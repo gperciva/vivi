@@ -1,0 +1,23 @@
+import os
+Import('env')
+
+gextract_files = Split("""
+	gextract.cpp
+""")
+gextract = env.Program (target='gextract',
+	source = [gextract_files] + env['ears_files'],
+	LIBS=["marsyas"]
+)
+
+#ears_h_files = map(lambda(x): x.replace('.cpp', '.h'),
+#	env['ears_files'])
+
+
+env.Install('$PREFIX/bin', gextract)
+#env.Install('$PREFIX/include/artifastring', [
+#env.Install('$PREFIX/include/', artifastring_h_files)
+#env.Install('$PREFIX/lib', [
+#	'libartifastring.a', 'libmonowav.a'
+#])
+
+

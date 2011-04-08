@@ -1,0 +1,103 @@
+import os
+
+# TODO: hard-coded python verison!
+Help("""
+old message, incorrect now.
+
+Build stuff:
+    scons
+
+Docs:  (requires doxygen)
+    scons doc
+
+Install stuff to:  bin/ include/ lib/
+    scons --prefix=DIR install
+# I use:
+    scons --prefix=$HOME/.usr/ install
+""")
+
+env = Environment()
+
+### destination
+AddOption('--prefix',
+	dest='prefix',
+	type='string',
+	nargs=1,
+	action='store',
+	metavar='DIR',
+	help='installation prefix')
+env = Environment(PREFIX = GetOption('prefix'))
+
+#print env.Dump()
+
+env['ears_files'] = Split("""
+	ears.cpp
+""")
+
+
+env.Append(
+	CPPFLAGS=Split("-O3 -FPIC -funroll-loops"),
+	CPPPATH=[
+		"/usr/include/python2.6",
+		],
+)
+
+### configure
+has_swig = True
+has_doxygen = True
+if (not env.GetOption('clean')) and (not env.GetOption('help')):
+	config = Configure(env)
+	### test for marsyas
+	status = config.CheckLibWithHeader('marsyas',
+		'marsyas/MarSystemManager.h', 'c++')
+	if not status:
+		print("Need marsyas!")
+		Exit(1)
+	### test for swig
+	#
+	status = config.CheckCXXHeader('Python.h')
+	if not status:
+		print("Need Python.h")
+		has_swig = False
+	#
+	status = config.CheckLib('python2.6')
+	if not status:
+		print("Need python2.6")
+		has_swig = False
+	#
+	status = WhereIs('swig')
+	if not status:
+		print("Need swig")
+		has_swig = False
+	#
+	### test for doc
+	status = WhereIs('doxygen')
+	if not status:
+		print("Need doxygen")
+		has_doxygen = False
+	#
+	#
+	env = config.Finish()
+	
+
+
+### setup for installing
+env.Alias('install', '$PREFIX')
+
+Export('env')
+
+def process_dir(dirname):
+	sconscript_filename = dirname + os.sep + "SConscript"
+	build_dirname = 'build' + os.sep + dirname
+	SConscript(sconscript_filename, build_dir=build_dirname, duplicate=0)
+	Clean(sconscript_filename, build_dirname)
+
+process_dir('src')
+#if (has_swig) and (('swig' in COMMAND_LINE_TARGETS)
+#		   or ('all' in COMMAND_LINE_TARGETS)):
+#	process_dir('swig')
+#if (has_doxygen) and ('doc' in COMMAND_LINE_TARGETS):
+#	process_dir('doc')
+
+Clean('.', 'build')
+
