@@ -6,7 +6,14 @@ gextract_files = Split("""
 """)
 gextract = env.Program (target='gextract',
 	source = [gextract_files] + env['ears_files'],
-	LIBS=["marsyas"]
+	LIBS=["marsyas"],
+)
+
+basic = env.Program (target='basic',
+	#source = env['vivi_controller_files'] + env['ears_files'] + ['basic.cpp']
+	source = (env['vivi_controller_files'] + ['basic.cpp']
+		+ ['ears.o', 'actions_file.cpp']),
+	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
 )
 
 #ears_h_files = map(lambda(x): x.replace('.cpp', '.h'),

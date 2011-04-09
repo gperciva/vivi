@@ -16,7 +16,7 @@ Install stuff to:  bin/ include/ lib/
     scons --prefix=$HOME/.usr/ install
 """)
 
-env = Environment()
+
 
 ### destination
 AddOption('--prefix',
@@ -26,12 +26,18 @@ AddOption('--prefix',
 	action='store',
 	metavar='DIR',
 	help='installation prefix')
-env = Environment(PREFIX = GetOption('prefix'))
+env = Environment(
+	ENV = os.environ,
+	PREFIX = GetOption('prefix')
+)
 
 #print env.Dump()
 
 env['ears_files'] = Split("""
 	ears.cpp
+""")
+env['vivi_controller_files'] = Split("""
+	vivi_controller.cpp
 """)
 
 
@@ -53,6 +59,13 @@ if (not env.GetOption('clean')) and (not env.GetOption('help')):
 	if not status:
 		print("Need marsyas!")
 		Exit(1)
+	### test for artifastring
+	status = config.CheckLibWithHeader('artifastring',
+		'violin_instrument.h', 'c++')
+	if not status:
+		print("Need artifastring!")
+		Exit(1)
+
 	### test for swig
 	#
 	status = config.CheckCXXHeader('Python.h')

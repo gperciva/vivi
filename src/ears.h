@@ -45,12 +45,12 @@ public:
     short *get_hopsize_array();
 
 private:
-typedef enum {
-    NONE,
-    TRAIN_FILE,
-    PREDICT_FILE,
-    PREDICT_BUFFER,
-} Mode;
+    typedef enum {
+        NONE,
+        TRAIN_FILE,
+        PREDICT_FILE,
+        PREDICT_BUFFER,
+    } Mode;
 
 
     //void listen(double *audio, double *bow_forces);

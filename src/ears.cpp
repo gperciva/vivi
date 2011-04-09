@@ -173,7 +173,7 @@ void Ears::listen(double *audio) {
 }
 
 void Ears::listenShort(short *audio) {
-	//cout<<"listenShort"<<endl;
+    //cout<<"listenShort"<<endl;
     for (unsigned int i=0; i<EARS_HOPSIZE; i++) {
         audio_input_realvec(0,i) = ((mrs_real) audio[i]) / SHRT_MAX;
     }
@@ -187,15 +187,15 @@ void Ears::listenShort(short *audio) {
     net->tick();
     //cout<<"ticked"<<endl;
 
-/*
-if (pitchdiff != NULL) {
-    realvec data =
-        pitchdiff->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
-    mrs_real pitch =
-        pitchdiff->getctrl("mrs_real/expectedPitch")->to<mrs_real>();
-    cout << data(0,0) << '\t' << pitch <<endl;
-  }
-*/
+    /*
+    if (pitchdiff != NULL) {
+        realvec data =
+            pitchdiff->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
+        mrs_real pitch =
+            pitchdiff->getctrl("mrs_real/expectedPitch")->to<mrs_real>();
+        cout << data(0,0) << '\t' << pitch <<endl;
+      }
+    */
 }
 
 
@@ -241,15 +241,15 @@ void Ears::processFile() {
             get_info_file(currentlyPlaying);
             oldfile = currentlyPlaying;
         }
-/*
-if (pitchdiff != NULL) {
-    realvec data =
-        pitchdiff->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
-    mrs_real pitch =
-        pitchdiff->getctrl("mrs_real/expectedPitch")->to<mrs_real>();
-    cout << currentlyPlaying << '\t' << data(0,0) << '\t' << pitch <<endl;
-}
-*/
+        /*
+        if (pitchdiff != NULL) {
+            realvec data =
+                pitchdiff->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
+            mrs_real pitch =
+                pitchdiff->getctrl("mrs_real/expectedPitch")->to<mrs_real>();
+            cout << currentlyPlaying << '\t' << data(0,0) << '\t' << pitch <<endl;
+        }
+        */
 
         net->tick();
     }
@@ -513,7 +513,7 @@ void Ears::make_net() {
     //"finger,intended_pitch,");
     // get the onObservations correct!
     parameters_input->updControl("mrs_realvec/inject",
-	parameters_input_realvec);
+                                 parameters_input_realvec);
     net->addMarSystem(parameters_input);
 
 #endif
