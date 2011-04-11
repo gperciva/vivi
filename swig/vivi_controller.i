@@ -14,5 +14,5 @@ http://stackoverflow.com/questions/2510696/allowing-threads-from-python-after-ca
 }
 
 
-#include "vivi_controller.h"
+%include "vivi_controller.h"
 

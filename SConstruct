@@ -106,11 +106,15 @@ def process_dir(dirname):
 	Clean(sconscript_filename, build_dirname)
 
 process_dir('src')
-if (has_swig) and (('swig' in COMMAND_LINE_TARGETS)
-		   or ('all' in COMMAND_LINE_TARGETS)):
-	process_dir('swig')
+# this one needs swig!
+process_dir('swig')
+#if (has_swig) and (('swig' in COMMAND_LINE_TARGETS)
+#		   or ('all' in COMMAND_LINE_TARGETS)):
+#	process_dir('swig')
+process_dir('python')
 #if (has_doxygen) and ('doc' in COMMAND_LINE_TARGETS):
 #	process_dir('doc')
 
 Clean('.', 'build')
+env.Clean("distclean", [".sconsign.dblite", ".sconf_temp", "config.log"])
 

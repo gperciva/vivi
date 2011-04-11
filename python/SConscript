@@ -1,0 +1,16 @@
+
+Import('env')
+
+ui_files = Split("""
+	vivi_mainwindow_gui.ui
+""")
+
+ui_files_targets = map(lambda(x): x.replace('.ui', '.py'), ui_files)
+
+for i in range(len(ui_files)):
+	env.Command(
+  		target = ui_files_targets[i],
+		source = ui_files[i],
+		action = "pyuic4 $SOURCE > $TARGET"
+	)
+

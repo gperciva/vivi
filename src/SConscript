@@ -20,7 +20,7 @@ basic = env.Program (target='test-basic',
 #	env['ears_files'])
 
 
-env.Install('$PREFIX/bin', gextract)
+#env.Install('$PREFIX/bin', gextract)
 #env.Install('$PREFIX/include/artifastring', [
 #env.Install('$PREFIX/include/', artifastring_h_files)
 #env.Install('$PREFIX/lib', [
