@@ -1,0 +1,37 @@
+
+import os
+Import('env')
+
+env.Append(
+  CPPPATH = [
+    "/usr/include/python2.6",
+    "../src/",
+  ],
+  SWIGFLAGS=Split("-c++ -python -Isrc/"),
+
+### workaround for scons bug
+  #LDMODULEPREFIX="_",
+  #LDMODULESUFFIX=".so",
+  #SHLIBPREFIX="_",
+  #SHLIBSUFFIX=".so",
+  #SHLIBPREFIX="",
+  #SHLIBSUFFIX="",
+)
+### actual workaround for scons bug
+env['LIBPREFIX']=""
+
+
+# the \# means "top level directory"
+env.SharedLibrary(
+  target = '_vivi_controller.so',
+  source = (['vivi_controller.i', '../src/vivi_controller.cpp']
+		+ ['../src/ears.cpp', '../src/actions_file.cpp']),
+  LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
+)
+
+# TODO: hard-coded python version again!
+env.Install('$PREFIX/lib/python2.6/site-packages/', [
+  '_vivi_controller.so',
+  'vivi_controller.py',
+])
+

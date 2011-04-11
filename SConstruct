@@ -106,9 +106,9 @@ def process_dir(dirname):
 	Clean(sconscript_filename, build_dirname)
 
 process_dir('src')
-#if (has_swig) and (('swig' in COMMAND_LINE_TARGETS)
-#		   or ('all' in COMMAND_LINE_TARGETS)):
-#	process_dir('swig')
+if (has_swig) and (('swig' in COMMAND_LINE_TARGETS)
+		   or ('all' in COMMAND_LINE_TARGETS)):
+	process_dir('swig')
 #if (has_doxygen) and ('doc' in COMMAND_LINE_TARGETS):
 #	process_dir('doc')
 
