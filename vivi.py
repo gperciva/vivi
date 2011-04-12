@@ -28,7 +28,7 @@ def main():
 	""" Runs Vivi."""
 	opts, args = get_options()
 
-	vivi_main = vivi_mainwindow.Vivi('train',
+	vivi_main = vivi_mainwindow.ViviMainwindow('train',
 		opts.lily_file, int(opts.skill))
 	sys.exit(vivi_main.app.exec_())
 

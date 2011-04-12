@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+""" Main window of Vivi, the Virtual Violinist. """
 
 import os
 
@@ -6,7 +7,7 @@ from PyQt4 import QtGui, QtCore
 import vivi_mainwindow_gui
 
 #import utils
-#import shared
+import shared
 
 #import lily
 #import score_widget
@@ -21,31 +22,18 @@ import vivi_mainwindow_gui
 
 #LOG_FILENAME = 'ly/violin-1.log'
 
-class Vivi(QtGui.QMainWindow):
+class ViviMainwindow(QtGui.QMainWindow):
+	""" Main window of Vivi, the Virtual Violinist. """
 	def __init__(self, training_dirname, ly_filename, skill):
 		self.app = QtGui.QApplication([])
 		QtGui.QMainWindow.__init__(self)
-		self.setup_gui()
 
-#		self.setup_shared(training_dirname, skill)
-#		self.setup_training()
-#		self.setup_music()
-#		self.setup_actions()
-#
-#		self.only_one = False
-#		if ly_filename:
-#			self.only_one = True
-#			self.open_ly_file(ly_filename)
-
-
-	def setup_gui(self):
+		## setup main gui
 		self.ui = vivi_mainwindow_gui.Ui_MainWindow()
 		self.ui.setupUi(self)
-		#self.resize(800, 500)
-		self.setup_gui_progress_window()
 		self.show()
 
-	def setup_gui_progress_window(self):
+		## setup progresss window
 		self.prod = QtGui.QDialog(self)
 		self.prod.setWindowTitle("Vivi calculations")
 		self.prod.setWindowModality(QtCore.Qt.ApplicationModal)
@@ -57,17 +45,32 @@ class Vivi(QtGui.QMainWindow):
 		vbox.addWidget(self.prod.progress)
 		self.process_value = 0
 
-	def setup_shared(self, training_dirname, skill):
+		## setup training directory
 		if not os.path.isdir(training_dirname):
 			os.makedirs(training_dirname)
 		shared.files = shared.training_dir.TrainingDir(training_dirname)
 
+		## setup other shared stuff
 		#shared.perform = shared.performer.Performer()
-		shared.compare = shared.compare_coll.CompareColl()
+#		shared.compare = shared.compare_coll.CompareColl()
+#
+#		shared.listen = [[]]*4
+#
+#		shared.ability = shared.skill.Skill(skill)
 
-		shared.listen = [[]]*4
 
-		shared.ability = shared.skill.Skill(skill)
+
+#		self.setup_training()
+#		self.setup_music()
+#		self.setup_actions()
+#
+#		self.only_one = False
+#		if ly_filename:
+#			self.only_one = True
+#			self.open_ly_file(ly_filename)
+
+
+
 
 	def setup_training(self):
 		self.string_train = string_train_all.StringTrainAll(
