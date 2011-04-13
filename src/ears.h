@@ -2,7 +2,17 @@
 #ifndef EARS
 #define EARS
 
+//#define LEAN
+/*
+#ifndef LEAN
 #include "marsyas/MarSystemManager.h"
+#else
+#include "marsyas/MarSystem.h"
+#endif
+*/
+
+#include "marsyas/MarSystemManager.h"
+//using namespace std;
 
 //const unsigned int EARS_HOPSIZE = 128;
 const unsigned int EARS_HOPSIZE = 256;

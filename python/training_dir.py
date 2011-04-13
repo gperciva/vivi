@@ -1,45 +1,61 @@
 #!/usr/bin/env python
 """ Manipulating files in the training directory. """
-import os.path
-import shared
+import os
+import shared  # for AudioParams
 
 class TrainingDir:
 	""" convenience class for training directory. """
-	def __init__(self, training_dir):
-		self.dir = training_dir
+	def __init__(self, training_dirname):
+		if not os.path.isdir(training_dirname):
+			os.makedirs(training_dirname)
+		self.dir = training_dirname
+
+#	def get_dirname(self):
+#		""" gets absolute location of training dir. """
+#		return os.path.abspath(self.dir)
+
+	def get_basename(self, st, cats_type, dyn):
+		if cats_type == 'main':
+			basename = '%i_%i.' % (st, dyn)
+		else:
+			basename = 'weird_%i_%i.' % (st, dyn)
+		return basename
 
 	def get_mf_filename(self, st, cats_type, dyn):
 		""" marsyas collection .mf file. """
-		basename = 'coll_%i_%s_%i.mf' % (st,
-			cats_type, dyn)
-		filename = os.path.join(self.dir, basename)
+		filename = os.path.join(self.dir,
+			self.get_basename(st, cats_type, dyn)
+			+ 'mf')
 		return filename
 
 	def get_arff_filename(self, st, cats_type, dyn):
 		""" weka training .arff file. """
-		basename = 'coll_%i_%s_%i.arff' % (st,
-			cats_type, dyn)
-		filename = os.path.join(self.dir, basename)
+		filename = os.path.join(self.dir,
+			self.get_basename(st, cats_type, dyn)
+			+ 'arff')
 		return filename
 
 	def get_mpl_filename(self, st, cats_type, dyn):
 		""" saved MarSystems (for training) .mpl file. """
-		basename = 'coll_%i_%s_%i.mpl' % (st,
-			cats_type, dyn)
-		filename = os.path.join(self.dir, basename)
+		filename = os.path.join(self.dir,
+			self.get_basename(st, cats_type, dyn)
+			+ 'mpl')
 		return filename
 
 	def get_forces_filename(self, st, dyn):
 		""" initial bow forces .forces file. """
-		basename = 'coll_%i_%i.forces' % (st, dyn)
-		filename = os.path.join(self.dir, basename)
+		filename = os.path.join(self.dir,
+			self.get_basename(st, 'main', dyn)
+			+ 'forces')
 		return filename
 
 	def make_audio_filename(self, params):
 		""" audio .wav file. """
 		basename = "audio_%i_%.3f_%.3f_%.3f_%.3f.wav" % (
-			params.st, float(params.finger),
-			params.bow_position, params.bow_force,
+			params.string_number,
+			float(params.finger_midi),
+			params.bow_bridge_distance,
+			params.bow_force,
 			params.bow_velocity)
 		filename = os.path.join(self.dir, basename)
 		return filename
@@ -56,8 +72,10 @@ class TrainingDir:
 	def make_zoom_filename(self, params):
 		""" save "zoomed" audio to a .wav file. """
 		base_basename = "audio_%i_%.3f_%.3f_%.3f_%.3f_z_" % (
-			params.st, float(params.finger),
-			params.bow_position, params.bow_force,
+			params.string_number,
+			float(params.finger_midi),
+			params.bow_position,
+			params.bow_force,
 			params.bow_velocity)
 		count = 0
 		potential_filename = os.path.join(self.dir, base_basename)

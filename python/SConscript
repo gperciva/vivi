@@ -1,9 +1,8 @@
 
 Import('env')
 
-ui_files = Split("""
-	vivi_mainwindow_gui.ui
-""")
+import glob
+ui_files = Glob("*.ui", strings=True)
 
 ui_files_targets = map(lambda(x): x.replace('.ui', '.py'), ui_files)
 

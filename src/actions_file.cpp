@@ -58,6 +58,7 @@ void ActionsFile::finger(double seconds, unsigned int string_number,
     ActionData action;
     action.type = ACTION_FINGER;
     action.seconds = seconds;
+    action.string_number = string_number;
     action.position = position;
     data[index] = action;
     index++;
@@ -72,6 +73,7 @@ void ActionsFile::pluck(double seconds, unsigned int string_number,
     ActionData action;
     action.type = ACTION_PLUCK;
     action.seconds = seconds;
+    action.string_number = string_number;
     action.position = position;
     action.force = force;
     data[index] = action;
@@ -87,6 +89,7 @@ void ActionsFile::bow(double seconds, unsigned int string_number,
     ActionData action;
     action.type = ACTION_BOW;
     action.seconds = seconds;
+    action.string_number = string_number;
     action.position = position;
     action.force = force;
     action.velocity = velocity;
@@ -96,7 +99,7 @@ void ActionsFile::bow(double seconds, unsigned int string_number,
 
 void ActionsFile::writeBuffer()
 {
-    for (int i=0; i<index; i++) {
+    for (unsigned int i = 0; i < index; i++) {
         ActionData actions = data[i];
         char textline[256];
 

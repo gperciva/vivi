@@ -4,10 +4,11 @@ Import('env')
 
 env.Append(
   CPPPATH = [
-    "/usr/include/python2.6",
+#    "/usr/include/python2.6",
     "../src/",
   ],
   SWIGFLAGS=Split("-c++ -python -Isrc/"),
+  LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
 
 ### workaround for scons bug
   #LDMODULEPREFIX="_",
@@ -20,13 +21,17 @@ env.Append(
 ### actual workaround for scons bug
 env['LIBPREFIX']=""
 
+#env.SharedLibrary(
+#  target = '_ears.so',
+#  source = (['ears.i', '../src/ears.cpp']),
+#)
+
 
 # the \# means "top level directory"
 env.SharedLibrary(
   target = '_vivi_controller.so',
   source = (['vivi_controller.i', '../src/vivi_controller.cpp']
 		+ ['../src/ears.cpp', '../src/actions_file.cpp']),
-  LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
 )
 
 # TODO: hard-coded python version again!
@@ -34,4 +39,9 @@ env.Install('$PREFIX/lib/python2.6/site-packages/', [
   '_vivi_controller.so',
   'vivi_controller.py',
 ])
+
+#env.Install('$PREFIX/lib/python2.6/site-packages/', [
+#  '_ears.so',
+#  'ears.py',
+#])
 

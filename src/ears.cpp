@@ -4,6 +4,42 @@
 
 #define INCLUDE_PITCH
 
+#ifndef LEAN
+#else
+#include "marsyas/Series.h"
+#include "marsyas/SoundFileSource.h"
+#include "marsyas/SoundFileSink.h"
+#include "marsyas/WekaSink.h"
+#include "marsyas/Inject.h"
+#include "marsyas/Parallel.h"
+#include "marsyas/SVMClassifier.h"
+#include "marsyas/RealvecSource.h"
+#include "marsyas/ShiftInput.h"
+#include "marsyas/Gain.h"
+#include "marsyas/Fanout.h"
+#include "marsyas/Yin.h"
+#include "marsyas/PitchDiff.h"
+#include "marsyas/ZeroCrossings.h"
+#include "marsyas/Clip.h"
+#include "marsyas/Fanout.h"
+#include "marsyas/Centroid.h"
+#include "marsyas/Rolloff.h"
+#include "marsyas/SCF.h"
+#include "marsyas/RemoveObservations.h"
+#include "marsyas/SFM.h"
+#include "marsyas/Sum.h"
+#include "marsyas/SpectralFlatnessAllBands.h"
+#include "marsyas/PowerToAverageRatio.h"
+#include "marsyas/MathPower.h"
+#include "marsyas/Windowing.h"
+#include "marsyas/PowerSpectrum.h"
+#include "marsyas/Transposer.h"
+#include "marsyas/Rms.h"
+#include "marsyas/Annotator.h"
+//#include "marsyas/.h"
+#endif
+
+
 using namespace Marsyas;
 #include <iostream>
 using namespace std;
@@ -69,7 +105,12 @@ void Ears::set_predict_wavfile(string training_filename)
 
     ifstream pluginStream(training_filename.c_str());
     //net = mng.getMarSystem(pluginStream);
+//zz
+#ifndef LEAN
     classifier = mng.getMarSystem(pluginStream);
+#else
+    classifier = mng.getMarSystem(pluginStream);
+#endif
     //classifier->updControl("WekaSink/wekasink/mrs_string/filename", m_filename);
     make_features();
     make_learning();
@@ -101,8 +142,9 @@ void Ears::saveTraining(string out_mpl_filename)
     ofstream clout;
     clout.open(out_mpl_filename.c_str());
     net->updControl("Series/learning/SVMClassifier/svm_cl/mrs_string/mode", "predict");
-    net->updControl("Series/learning/WekaSink/wekasink/mrs_string/filename", "null.arff");
-    net->updControl("Series/learning/WekaSink/wekasink/mrs_string/currentlyPlaying", "null.wav");
+    // I don't know what I was thinking?  -April 13, cleanup.
+    //net->updControl("Series/learning/WekaSink/wekasink/mrs_string/filename", "null.arff");
+    //net->updControl("Series/learning/WekaSink/wekasink/mrs_string/currentlyPlaying", "null.wav");
     net->update();
     //clout << *net << endl;
     clout << *classifier << endl;
@@ -257,7 +299,11 @@ void Ears::processFile() {
 
 
 void Ears::make_input() {
+#ifndef LEAN
     audio_input = mng.create("Series", "audio_input");
+#else
+    audio_input = new Series("audio_input");
+#endif
 
     if (mode == PREDICT_BUFFER) {
         audio_input->addMarSystem(mng.create("RealvecSource", "gextract_src"));

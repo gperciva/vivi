@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """ Main window of Vivi, the Virtual Violinist. """
 
-import os
+#import os
 
 from PyQt4 import QtGui, QtCore
 import vivi_mainwindow_gui
@@ -9,12 +9,12 @@ import vivi_mainwindow_gui
 #import utils
 import shared
 
+import string_train_all
+
 #import lily
 #import score_widget
 
 #import performer_feeder
-
-#import string_train_all
 
 #import examine_note_widget
 
@@ -27,6 +27,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 	def __init__(self, training_dirname, ly_filename, skill):
 		self.app = QtGui.QApplication([])
 		QtGui.QMainWindow.__init__(self)
+
 
 		## setup main gui
 		self.ui = vivi_mainwindow_gui.Ui_MainWindow()
@@ -46,9 +47,9 @@ class ViviMainwindow(QtGui.QMainWindow):
 		self.process_value = 0
 
 		## setup training directory
-		if not os.path.isdir(training_dirname):
-			os.makedirs(training_dirname)
 		shared.files = shared.training_dir.TrainingDir(training_dirname)
+		shared.basic = shared.basic_training.Basic()
+		shared.judge = shared.judge_audio.JudgeAudio(self.ui.verticalLayout)
 
 		## setup other shared stuff
 		#shared.perform = shared.performer.Performer()
@@ -58,11 +59,34 @@ class ViviMainwindow(QtGui.QMainWindow):
 #
 #		shared.ability = shared.skill.Skill(skill)
 
+		## setup training
+		self.string_train = string_train_all.StringTrainAll(
+			self.ui.string_train_layout)
+		#self.string_train.set_note_label(self.ui.note_label)
+
+		self.string_train.process_step.connect(self.process_step)
+#		shared.compare.set_string_train(self.string_train)
+
+
+		## setup actions?
+		self.ui.actionSave_training.triggered.connect(
+			self.save_training)
+		self.ui.actionBasic_training.triggered.connect(self.basic_training)
+
+		self.ui.actionCompute.triggered.connect(self.compute)
+		self.ui.actionCheck_accuracy.triggered.connect(self.train_check)
+
+		self.ui.actionLearn_attacks.triggered.connect(self.learn_attacks)
+		self.ui.actionLearn_stable.triggered.connect(self.learn_stable)
+
+		self.ui.action_Open_ly_file.triggered.connect(self.open_ly_file)
+		self.ui.actionGenerate_video.triggered.connect(self.generate_video)
+		self.ui.actionWatch.triggered.connect(self.watch)
+
 
 
 #		self.setup_training()
 #		self.setup_music()
-#		self.setup_actions()
 #
 #		self.only_one = False
 #		if ly_filename:
@@ -71,14 +95,6 @@ class ViviMainwindow(QtGui.QMainWindow):
 
 
 
-
-	def setup_training(self):
-		self.string_train = string_train_all.StringTrainAll(
-			self.ui.string_train_layout)
-		self.string_train.set_note_label(self.ui.note_label)
-
-		self.string_train.process_step.connect(self.process_step)
-		shared.compare.set_string_train(self.string_train)
 
 
 	def setup_music(self):
@@ -100,22 +116,6 @@ class ViviMainwindow(QtGui.QMainWindow):
 
 		self.movie = vivi_movie.ViviMovie()
 		self.movie.process_step.connect(self.process_step)
-
-	def setup_actions(self):
-		self.ui.actionSave_training.triggered.connect(
-			self.save_training)
-		self.ui.actionBasic_training.triggered.connect(self.basic_training)
-
-		self.ui.actionCompute.triggered.connect(self.compute)
-		self.ui.actionCheck_accuracy.triggered.connect(self.train_check)
-
-		self.ui.actionLearn_attacks.triggered.connect(self.learn_attacks)
-		self.ui.actionLearn_stable.triggered.connect(self.learn_stable)
-
-		self.ui.action_Open_ly_file.triggered.connect(self.open_ly_file)
-		self.ui.actionGenerate_video.triggered.connect(self.generate_video)
-		self.ui.actionWatch.triggered.connect(self.watch)
-
 
 	def basic_training(self):
 		self.string_train.basic_train()
@@ -147,8 +147,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 			self.rehearse()
 
 	def save_training(self):
-		print "STUB for save training"
-#		self.string_train.save()
+		self.string_train.save()
 
 
 	def progress_dialog(self, text, maximum):
@@ -166,12 +165,14 @@ class ViviMainwindow(QtGui.QMainWindow):
 			self.prod.progress.setValue(self.process_value)
 
 	def needs_basic(self):
-#		if not self.string_train.hasBasicTraining():
-#			QtGui.QMessageBox.warning(self,
-#				"Vivi error",
-#				"Vivi needs more basic training first!",	
-#				QtGui.QMessageBox.Close)
-#			return True
+		# TODO: is this debug only, or permanent?
+		return False
+		if self.string_train.get_basic_train_level() < 1:
+			QtGui.QMessageBox.warning(self,
+				"Vivi error",
+				"Vivi needs more basic training first!",	
+				QtGui.QMessageBox.Close)
+			return True
 		return False
 
 	def compute(self):
@@ -309,8 +310,6 @@ class ViviMainwindow(QtGui.QMainWindow):
 			self.open_ly_file('ly/black-box.ly')
 		elif key == 'm':
 			self.set_modified()
-		elif (key >= '0') and (key <= '9'):
-			self.string_train.opinion(key)
 		else:
 			QtGui.QMainWindow.keyPressEvent(self, event)
 

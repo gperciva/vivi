@@ -42,7 +42,8 @@ env['vivi_controller_files'] = Split("""
 
 
 env.Append(
-	CPPFLAGS=Split("-O3 -FPIC -funroll-loops"),
+#	CPPFLAGS=Split("-O3 -fPIC -funroll-loops"),
+	CPPFLAGS=Split("-g -fbounds-check -Wall -Wextra"),
 	CPPPATH=[
 		"/usr/include/python2.6",
 		],
@@ -108,13 +109,11 @@ def process_dir(dirname):
 process_dir('src')
 # this one needs swig!
 process_dir('swig')
-#if (has_swig) and (('swig' in COMMAND_LINE_TARGETS)
-#		   or ('all' in COMMAND_LINE_TARGETS)):
-#	process_dir('swig')
 process_dir('python')
+
 #if (has_doxygen) and ('doc' in COMMAND_LINE_TARGETS):
 #	process_dir('doc')
 
 Clean('.', 'build')
-env.Clean("distclean", [".sconsign.dblite", ".sconf_temp", "config.log"])
+#env.Clean("distclean", [".sconsign.dblite", ".sconf_temp", "config.log"])
 
