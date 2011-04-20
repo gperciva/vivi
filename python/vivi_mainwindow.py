@@ -46,10 +46,11 @@ class ViviMainwindow(QtGui.QMainWindow):
 		vbox.addWidget(self.prod.progress)
 		self.process_value = 0
 
-		## setup training directory
+		## setup shared
 		shared.files = shared.training_dir.TrainingDir(training_dirname)
 		shared.basic = shared.basic_training.Basic()
 		shared.judge = shared.judge_audio.JudgeAudio(self.ui.verticalLayout)
+		shared.dyns  = shared.dynamics.Dynamics()
 
 		## setup other shared stuff
 		#shared.perform = shared.performer.Performer()

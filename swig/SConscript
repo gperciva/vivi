@@ -27,11 +27,17 @@ env['LIBPREFIX']=""
 #)
 
 
+env.SharedLibrary(
+  target = '_dynamics.so',
+  source = (['dynamics.i', '../src/dynamics.cpp']),
+)
+
 # the \# means "top level directory"
 env.SharedLibrary(
   target = '_vivi_controller.so',
   source = (['vivi_controller.i', '../src/vivi_controller.cpp']
-		+ ['../src/ears.cpp', '../src/actions_file.cpp']),
+		+ ['../src/ears.cpp', '../src/actions_file.cpp']
+		+ ['../src/dynamics.cpp']),
 )
 
 # TODO: hard-coded python version again!

@@ -10,11 +10,18 @@ gextract = env.Program (target='test-gextract',
 )
 
 basic = env.Program (target='test-basic',
-	#source = env['vivi_controller_files'] + env['ears_files'] + ['basic.cpp']
 	source = (env['vivi_controller_files'] + ['test-basic.cpp']
-		+ ['ears.o', 'actions_file.cpp']),
+		+ ['ears.o', 'actions_file.cpp', 'dynamics.cpp']),
 	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
 )
+
+basic = env.Program (target='test-stable',
+	source = (['test-stable.cpp']
+		+ ['ears.o', 'vivi_controller.o', 'actions_file.o', 'dynamics.o']),
+	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
+)
+
+
 
 #ears_h_files = map(lambda(x): x.replace('.cpp', '.h'),
 #	env['ears_files'])

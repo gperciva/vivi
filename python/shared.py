@@ -10,6 +10,13 @@ AudioParams = collections.namedtuple('AudioParams', """
 	bow_velocity
 	""")
 
+NoteParams = collections.namedtuple('NoteParams', """
+	string_number,
+	dynamic,
+	finger_midi,
+	bow_force
+""")
+
 import training_dir
 files = None
 
@@ -18,6 +25,15 @@ judge = None
 
 import basic_training
 basic = None
+
+# FIXME: toa void the dreaded
+#   [MRSERR] MarControl::to() -  Incompatible type requested -
+#   expected mrs_string for control  mrs_string/currentlyPlaying
+# I have to import vivi_controller here for some unknown reason!
+import vivi_controller
+
+import dynamics
+dyns = None
 
 #import vivi_controller
 #AudioParams = vivi_controller.PhysicalActions

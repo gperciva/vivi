@@ -12,7 +12,6 @@ import utils
 
 # TODO: **must** import ears first, then controller.  No clue why.
 #import ears
-import vivi_controller
 
 #import utils
 import shared
@@ -261,17 +260,6 @@ class DynTrain(QtGui.QFrame):
 		att.write(str("%.3f\n" % self.force_factor))
 		att.close()
 
-	### interface with controller
-	def get_physical_params(self, audio_params):
-		physical = vivi_controller.PhysicalActions()
-		physical.string_number = audio_params.string_number
-		physical.finger_position = utils.midi2pos(audio_params.finger_midi)
-		physical.bow_bridge_distance = audio_params.bow_bridge_distance
-		physical.bow_force = audio_params.bow_force
-		physical.bow_velocity = audio_params.bow_velocity
-		return physical
-
-
 	### bulk processing state
 	def process_step_emit(self):
 		self.process_step.emit()
@@ -289,6 +277,16 @@ class DynTrain(QtGui.QFrame):
 			self.dyn_backend.compute_training(mf_filename)
 		elif job_type == state.ACCURACY:
 			self.dyn_backend.check_accuracy(self.coll)
+		elif job_type == state.STABLE:
+			low_force = min(self.get_forces(2))
+			# get mean.  TODO: use a library or util function
+			middle_force_list = self.get_forces(3)
+			middle_force = sum(middle_force_list) / len(middle_force_list)
+			#
+			high_force = max(self.get_forces(4))
+			self.dyn_backend.learn_stable([low_force, middle_force, high_force])
+		elif job_type == state.ACCURACY:
+			self.learn_accuracy()
 		else:
 			print "ERROR dyn_train: job type not recognized!"
 
@@ -306,6 +304,7 @@ class DynTrain(QtGui.QFrame):
 	def has_basic_training(self):
 		return self.basic_trained
 
+# FIXME: need to revise basic trainig for new State() object
 	def basic_train(self):
 		if self.basic_trained:
 			self.process_step.emit()
@@ -316,11 +315,14 @@ class DynTrain(QtGui.QFrame):
 		self.basic_train_next()
 
 	def basic_train_next(self):
-		params = shared.basic.get_next_basic()
-		if not params:
+		# FIXME: train_params now only gives force and finger_midi
+		train_params = shared.basic.get_next_basic()
+		if not train_params:
 			return self.basic_train_end()
+		print train_params
+		# FIXME: train_params now only gives force and finger_midi
 		self.train_filename = shared.files.make_audio_filename(params)
-		physical = self.get_physical_params(params)
+		physical = self.controller.get_physical_params(params)
 		self.controller.basic(
 			physical, BASIC_SECONDS, BASIC_SKIP,
 			self.train_filename[0:-4])
@@ -427,39 +429,45 @@ class DynTrain(QtGui.QFrame):
 			return 0
 		elif not self.modified_training:
 			return 0
-		self.state.prep(state.SVM)
-		return self.dyn_backend.compute_training_steps()
+		num_steps = self.dyn_backend.compute_training_steps()
+		self.state.prep(state.SVM, [num_steps])
+		return num_steps
 
 	def check_accuracy_steps(self):
 		if self.judged_main_num == 0:
 			return 0
 		elif not self.modified_accuracy:
 			return 0
-		self.state.prep(state.ACCURACY)
-		return self.dyn_backend.check_accuracy_steps()
+		num_steps = self.dyn_backend.check_accuracy_steps()
+		self.state.prep(state.ACCURACY, [num_steps])
+		return num_steps
 
-#	def learn_attacks_steps(self):
-#		if self.judged_main_num == 0:
-#			return 0
-#		elif not self.modified_attack:
-#			return 0
-#		else:
-#			return self.dyn_backend.learn_attacks_steps()
-#
-#	def learn_stable_steps(self):
-#		if self.judged_main_num == 0:
-#			return 0
-#		elif not self.modified_stable:
-#			return 0
-#		else:
-#			return self.dyn_backend.learn_stable_steps()
-#
+	def learn_attacks_steps(self):
+		if self.judged_main_num == 0:
+			return 0
+		elif not self.modified_attack:
+			return 0
+		num_steps = self.dyn_backend.learn_attacks_steps()
+		self.state.prep(state.ACCURACY, [num_steps])
+		return num_steps
+
+	def learn_stable_steps(self):
+		if self.judged_main_num == 0:
+			return 0
+		elif not self.modified_stable:
+			return 0
+		num_steps = self.dyn_backend.learn_stable_steps()
+		self.state.prep(state.STABLE, [num_steps])
+		return num_steps
+
 #	def learn_attacks(self):
 #		if self.judged_main_num == 0:
 #			return 0
 #		elif not self.modified_attack:
 #			return 0
-#		matches = self.levels.get_pairs_on_level(self.level)
+#		print "Learning attacks dyn train", self.st, self.dyn
+		#matches = self.levels.get_pairs_on_level(self.level)
+#		print matches
 #		force_max = 0.01
 #		force_min = 100.0
 #		for pair in matches:
@@ -470,22 +478,15 @@ class DynTrain(QtGui.QFrame):
 #			if force_min > force:
 #				force_min = force
 #		self.dyn_backend.learn_attacks(force_min, force_max)
-#
-#	def learn_stable(self):
-#		if self.judged_main_num == 0:
-#			return 0
-#		matches = self.levels.get_pairs_on_level(self.level)
-#		force_max = 0.01
-#		force_min = 100.0
-#		for pair in matches:
-#			audio_params = shared.files.get_audio_params(pair[0])
-#			force = audio_params.bow_force
-#			if force_max < force:
-#				force_max = force
-#			if force_min > force:
-#				force_min = force
-#		self.dyn_backend.learn_stable(force_min, force_max)
-#
+
+	def get_forces(self, cat):
+		forces = map(
+			lambda(x): shared.files.get_audio_params(x[0]).bow_force,
+			self.coll.get_items(cat))
+		return forces
+
+
+
 #	def process_step_emit(self):
 #		if self.dyn_backend.state > 0:
 #			self.process_step.emit()

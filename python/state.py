@@ -6,6 +6,8 @@ IDLE = 0
 BASIC_TRAINING = 1
 SVM = 2
 ACCURACY = 3
+STABLE = 4
+ATTACKS = 5
 
 class State(QtCore.QObject):
 	next_step = QtCore.pyqtSignal(int, int, name='next_step')
@@ -38,12 +40,9 @@ class State(QtCore.QObject):
 				self.job_index += 1
 				self.start()
 
-	def prep(self, job_type, jobs=None, parallel=False):
+	def prep(self, job_type, jobs, parallel=False):
 		self.job_type = job_type
-		if jobs:
-			self.jobs = jobs
-		else:
-			self.jobs = [1]
+		self.jobs = jobs
 		self.parallel = parallel
 		self.done_steps = 0
 

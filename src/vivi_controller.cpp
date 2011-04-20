@@ -2,10 +2,9 @@
 #include "vivi_controller.h"
 #include <time.h>
 
-#include "violin_instrument.h"
+//#include "violin_instrument.h"
 #include "monowav.h"
 #include "actions_file.h"
-
 
 // used in normal hops
 const double VELOCITY_STDDEV = 0.01;
@@ -20,11 +19,16 @@ const double BASIC_FORCE_STDDEV = 0.02;
 
 ViviController::ViviController() {
 
+	// always used classes
+    violin = new ViolinInstrument();
+	dynamics = new Dynamics();
     // setup random generator
     const gsl_rng_type * T = gsl_rng_default;
     random = gsl_rng_alloc (T);
+    const long seed = time(NULL) * getpid();
+    gsl_rng_set(random, seed);
 
-    violin = new ViolinInstrument();
+
     wavfile = NULL;
     actions_file = NULL;
     for (unsigned int i=0; i<NUM_STRINGS; i++) {
@@ -37,6 +41,7 @@ ViviController::ViviController() {
 
 
 ViviController::~ViviController() {
+	delete dynamics;
     gsl_rng_free(random);
     filesClose();
     delete violin;
@@ -50,9 +55,10 @@ ViviController::~ViviController() {
 }
 
 void ViviController::reset() {
-    const long seed = time(NULL) * getpid();
-    gsl_rng_set(random, seed);
+    filesClose();
     violin->reset();
+	// only action that matters; others are overwritten anyway
+	actions.bow_velocity = 0;
 }
 
 Ears* ViviController::getEars(unsigned int st, unsigned int dyn) {
@@ -60,6 +66,17 @@ Ears* ViviController::getEars(unsigned int st, unsigned int dyn) {
 		ears[st][dyn] = new Ears();
 	}
 	return ears[st][dyn];
+}
+
+bool ViviController::load_ears_training(unsigned int st, unsigned int dyn,
+		std::string training_file)
+{
+	if (ears[st][dyn] == NULL) {
+		ears[st][dyn] = new Ears();
+	}
+	// TODO: replace with const char *
+	ears[st][dyn]->set_predict_buffer(training_file);
+	return true;
 }
 
 
@@ -85,13 +102,13 @@ void ViviController::filesClose() {
     }
     if (actions_file != NULL) {
         delete actions_file;
-	actions_file = NULL;
+		actions_file = NULL;
     }
 }
 
 
 bool ViviController::filesNew(const char *filenames_base) {
-    filesClose();
+	reset();
     // wav file
     char filename[512];
     strncpy(filename, filenames_base, 511);
@@ -106,20 +123,21 @@ bool ViviController::filesNew(const char *filenames_base) {
     return true;
 }
 
-void ViviController::basic(PhysicalActions actions_get, double seconds,
+void ViviController::basic(NoteParams params, double seconds,
                            double skip_seconds, const char *filenames_base)
 {
     filesClose();
     filesNew(filenames_base);
-/*
-printf("physical action params:\n");
-printf("%i %f %f %f %f\n", actions_get.string_number,
-actions_get.finger_position,
-actions_get.bow_bridge_distance,
-actions_get.bow_force,
-actions_get.bow_velocity);
-*/
-    actions = actions_get;
+
+    actions.string_number = params.string_number;
+	actions.finger_position = params.finger_position;
+	actions.bow_force = params.bow_force;
+	actions.bow_bridge_distance = dynamics->get_distance(params.dynamic);
+	actions.bow_velocity = dynamics->get_velocity(params.dynamic);
+
+	const double orig_force = actions.bow_force;
+	const double orig_velocity = actions.bow_velocity;
+
     actions_file->finger(total_samples*dt, actions.string_number,
                          actions.finger_position);
     violin->finger(actions.string_number, actions.finger_position);
@@ -128,12 +146,12 @@ actions_get.bow_velocity);
     actions_file->skipStart(total_samples*dt);
     short mem_buf[EARS_HOPSIZE];
     for (int i = 0; i < skip_seconds/DH; i++) {
-        actions.bow_force = norm_bounded(actions_get.bow_force,
+        actions.bow_force = norm_bounded(orig_force,
                                          BASIC_FORCE_STDDEV
-                                         * actions_get.bow_force);
-        actions.bow_velocity = norm_bounded(actions_get.bow_velocity,
+                                         * orig_force);
+        actions.bow_velocity = norm_bounded(orig_velocity,
                                             BASIC_VELOCITY_STDDEV
-                                            * actions_get.bow_velocity);
+                                            * orig_velocity);
 
         violin->bow(actions.string_number,
                     actions.bow_bridge_distance,
@@ -149,12 +167,12 @@ actions_get.bow_velocity);
 
     // actual note, maybe going slightly over given time
     for (int i = 0; i < seconds/DH; i++) {
-        actions.bow_force = norm_bounded(actions_get.bow_force,
+        actions.bow_force = norm_bounded(orig_force,
                                          BASIC_FORCE_STDDEV
-                                         * actions_get.bow_force);
-        actions.bow_velocity = norm_bounded(actions_get.bow_velocity,
+                                         * orig_force);
+        actions.bow_velocity = norm_bounded(orig_velocity,
                                             BASIC_VELOCITY_STDDEV
-                                            * actions_get.bow_velocity);
+                                            * orig_velocity);
 
         violin->bow(actions.string_number,
                     actions.bow_bridge_distance,
@@ -170,10 +188,21 @@ actions_get.bow_velocity);
     filesClose();
 }
 
-void ViviController::note(PhysicalActions actions_get, double seconds)
+void ViviController::note(NoteParams params,
+	unsigned int dyn,
+	double K,
+	double seconds)
 {
-    printf("STUB for note()\n");
-    actions = actions_get;
+    actions.string_number = params.string_number;
+	actions.finger_position = params.finger_position;
+	actions.bow_force = params.bow_force;
+	actions.bow_bridge_distance = dynamics->get_distance(params.dynamic);
+	// don't copy bow_velocity!
+	// target
+	m_target_velocity = dynamics->get_velocity(params.dynamic);
+	m_st = actions.string_number;
+	m_dyn = dyn;
+	m_K = K;
 
     note_samples = 0;
 
@@ -186,9 +215,8 @@ void ViviController::note(PhysicalActions actions_get, double seconds)
 }
 
 inline void ViviController::hop(unsigned int num_samples) {
-    printf("STUB for hop()\n");
     // approach target velocity
-    const double dv = target_vel - actions.bow_velocity;
+    const double dv = m_target_velocity - actions.bow_velocity;
     if (dv > MAX_HAND_ACCEL*DH) {
         actions.bow_velocity += MAX_HAND_ACCEL*DH;
     } else {
@@ -199,15 +227,15 @@ inline void ViviController::hop(unsigned int num_samples) {
         }
     }
     // jitter
-    actions.bow_velocity += norm_bounded(0,
-                                         fabs(actions.bow_velocity) * VELOCITY_STDDEV);
-    actions.bow_force += norm_bounded(0,
-                                      actions.bow_force * FORCE_STDDEV);
+    actions.bow_velocity += norm_bounded(0, fabs(actions.bow_velocity)
+											* VELOCITY_STDDEV);
+    actions.bow_force += norm_bounded(0, actions.bow_force * FORCE_STDDEV);
     violin->bow(actions.string_number,
                 actions.bow_bridge_distance,
                 actions.bow_force,
                 actions.bow_velocity);
-//    ears[dyn]->set_extra_params(bow_st, finger);
+    ears[m_st][m_dyn]->set_extra_params(
+		m_st, actions.finger_position);
 
     actions_file->bow(total_samples*dt, actions.string_number,
                       actions.bow_bridge_distance, actions.bow_force,
@@ -217,8 +245,11 @@ inline void ViviController::hop(unsigned int num_samples) {
     total_samples += num_samples;
     note_samples += num_samples;
 
-    //ears[dyn]->listenShort(buf);
-    //cat = ears[dyn]->getClass();
-}
+    ears[m_st][m_dyn]->listenShort(buf);
+    int cat = ears[m_st][m_dyn]->getClass();
+	actions_file->category(total_samples*dt, cat);
+	// adjust bow force
+	actions.bow_force *= pow(m_K, 2-cat);
 
+}
 

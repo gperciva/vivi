@@ -8,6 +8,9 @@ import shared
 
 #import check_coll
 #import attacks
+import vivi_controller
+
+import utils
 
 #import scipy
 import operator
@@ -143,19 +146,52 @@ class DynBackend(QtCore.QThread):
 		#return 2 * STABLE_STEPS + 1
 		return STABLE_STEPS + 1
 
-	def learn_stable(self, force_min, force_max):
+	def learn_stable(self, stable_forces):
 		self.state = LEARN_STABLE
-		self.force_min = force_min
-		self.force_max = force_max
+		self.stable_forces = stable_forces
 		self.condition.wakeOne()
 
 	def learn_stable_thread(self):
-#		if self.st > 0 or self.dyn > 0:
-#			self.process_step.emit()
-#			return
+		if self.st > 0 or self.dyn > 0:
+			self.process_step.emit()
+			return
+		print "stable thread, trying forces", self.stable_forces
 
 		mpl_filename = shared.files.get_mpl_filename(
 			self.st, 'main', self.dyn)
+		K = 1.2
+		PLAY_LENGTH = 0.5
+		i = 0
+
+		finger_midi = 0
+		physical = vivi_controller.PhysicalActions()
+		physical.string_number = self.st
+		physical.finger_position = utils.midi2pos(finger_midi)
+		physical.bow_bridge_distance = 0.08
+		physical.bow_force = 0.5
+		physical.bow_velocity = 0.4
+
+		self.controller.filesNew('auto-stable-%i' % i)
+		self.controller.load_ears_training(self.st, self.dyn,
+			mpl_filename)
+		self.controller.note(physical, self.dyn, K, PLAY_LENGTH)
+		self.controller.filesClose()
+
+#zz
+	### interface with controller
+	def get_physical_params(self, audio_params):
+		physical = vivi_controller.PhysicalActions()
+		physical.string_number = audio_params.string_number
+		physical.finger_position = utils.midi2pos(audio_params.finger_midi)
+		physical.bow_bridge_distance = audio_params.bow_bridge_distance
+		physical.bow_force = audio_params.bow_force
+		physical.bow_velocity = audio_params.bow_velocity
+		return physical
+
+
+
+		return
+
 		self.practice.set_string_dyn(self.st, self.dyn,
 			mpl_filename)
 
@@ -236,11 +272,6 @@ class DynBackend(QtCore.QThread):
 			log.write('\n')
 		log.close()
 
-
-	#	vivi.learn_stable(self.st, levels.BOW_POS_FORTE,
-	#		4.0, levels.BOW_VEL_FORTE)
-	#	vivi = vivi_play.ViviPlay(-1)
-#zzz
 
 
 

@@ -28,6 +28,7 @@ public:
     void bow(double seconds, unsigned int string_number,
              double position, double force, double velocity);
 
+	void category(double seconds, unsigned int category);
 
 private:
     void writeBuffer();
@@ -42,7 +43,8 @@ private:
         ACTION_WAIT,
         ACTION_FINGER,
         ACTION_PLUCK,
-        ACTION_BOW
+        ACTION_BOW,
+		ACTION_CATEGORY,
     };
 
     typedef struct {

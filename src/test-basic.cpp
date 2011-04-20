@@ -9,14 +9,13 @@ const double PLAY = 0.01;
 int main() {
     ViviController *viviController = new ViviController();
 
-    PhysicalActions actions;
-    actions.string_number = 1;
-    actions.finger_position = 0.25;
-    actions.bow_bridge_distance = 0.1;
-    actions.bow_force = 1.0;
-    actions.bow_velocity = 0.2;
+    NoteParams params;
+    params.string_number = 1;
+    params.dynamic = 0;
+    params.finger_position = 0.25;
+    params.bow_force = 1.0;
 
-    viviController->basic(actions, PLAY, SKIP, "foo");
+    viviController->basic(params, PLAY, SKIP, "foo");
 
     delete viviController;
 }

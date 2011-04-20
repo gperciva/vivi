@@ -49,14 +49,6 @@ class StringTrainAll(QtGui.QFrame):
 
 	def next_step(self, job_type, job_index):
 		self.string_trains[job_index].start()
-#		if job_type == state.BASIC_TRAINING:
-#			self.string_trains[job_index].train_level()
-#		elif job_type == state.SVM:
-#			self.string_trains[job_index].compute_training()
-#		elif job_type == state.ACCURACY:
-#			self.string_trains[job_index].compute_accuracy()
-#		else:
-#			print "ERROR string_train_all: job type not recognized!"
 
 	def finished_step(self, job_type, job_index):
 		pass
@@ -75,7 +67,7 @@ class StringTrainAll(QtGui.QFrame):
 		return basic_min_level
 
 	def basic_train(self):
-		basic_min_level = self.needs_basic_train()
+		basic_min_level = self.get_basic_train_level()
 		if not basic_min_level:
 			return
 		jobs = []
@@ -98,6 +90,22 @@ class StringTrainAll(QtGui.QFrame):
 		for st in range(NUM_STRINGS):
 			jobs.append(self.string_trains[st].check_accuracy_steps())
 		self.state.prep(state.SVM, jobs, parallel=True)
+		self.state.start()
+		return sum(jobs)
+
+	def learn_stable(self):
+		jobs = []
+		for st in range(NUM_STRINGS):
+			jobs.append(self.string_trains[st].learn_stable_steps())
+		self.state.prep(state.STABLE, jobs, parallel=True)
+		self.state.start()
+		return sum(jobs)
+
+	def learn_attacks(self):
+		jobs = []
+		for st in range(NUM_STRINGS):
+			jobs.append(self.string_trains[st].learn_attacks_steps())
+		self.state.prep(state.ATTACKS, jobs, parallel=True)
 		self.state.start()
 		return sum(jobs)
 
@@ -214,14 +222,6 @@ class StringTrainAll(QtGui.QFrame):
 #		self.string_trainsing = self.string_trains[st].get_dyn_level(level)
 #		self.string_trainsing.train_reinit(wavfile)
 #		self.string_trains_prompt()
-#
-#	def learn_attacks(self):
-#		self.state = CALCULATING_ATTACKS
-#		self.done_steps = 0
-#		self.total_steps = 0
-#		for st in STRINGS:
-#			self.total_steps += self.string_trains[st].learn_attacks()
-#		return self.total_steps
 #
 #	def learn_stable(self):
 #		self.state = CALCULATING_STABLE

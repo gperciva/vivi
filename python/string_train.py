@@ -178,19 +178,20 @@ class StringTrain(QtGui.QFrame):
 		self.state.prep(state.ACCURACY, jobs)
 		return sum(jobs)
 
+	def learn_stable_steps(self):
+		jobs = []
+		for st in range(NUM_DYNS):
+			jobs.append(self.dyns[st].learn_stable_steps())
+		self.state.prep(state.ACCURACY, jobs)
+		return sum(jobs)
 
-#	def learn_attacks(self):
-#		self.state = LEARN_ATTACKS
-#		for di in DYNS:
-#			self.dyn_steps[di] = self.dyns[di].learn_attacks_steps()
-#		self.dyn_steps_index = 0
-#		if self.dyn_steps[self.dyn_steps_index] > 0:
-#			self.dyns[self.dyn_steps_index].learn_attacks()
-#		else:
-#			if self.find_next_step():
-#				self.dyns[self.dyn_steps_index].learn_attacks()
-#		return sum(self.dyn_steps)
-#
+	def learn_attacks_steps(self):
+		jobs = []
+		for st in range(NUM_DYNS):
+			jobs.append(self.dyns[st].learn_attacks_steps())
+		self.state.prep(state.ACCURACY, jobs)
+		return sum(jobs)
+
 #	def learn_stable(self):
 #		self.state = LEARN_STABLE
 #		for di in DYNS:
