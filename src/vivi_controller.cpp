@@ -1,6 +1,7 @@
 
 #include "vivi_controller.h"
 #include <time.h>
+#include <math.h>
 
 //#include "violin_instrument.h"
 #include "monowav.h"
@@ -21,7 +22,6 @@ ViviController::ViviController() {
 
 	// always used classes
     violin = new ViolinInstrument();
-	dynamics = new Dynamics();
     // setup random generator
     const gsl_rng_type * T = gsl_rng_default;
     random = gsl_rng_alloc (T);
@@ -41,7 +41,6 @@ ViviController::ViviController() {
 
 
 ViviController::~ViviController() {
-	delete dynamics;
     gsl_rng_free(random);
     filesClose();
     delete violin;
@@ -123,17 +122,19 @@ bool ViviController::filesNew(const char *filenames_base) {
     return true;
 }
 
-void ViviController::basic(NoteParams params, double seconds,
+void ViviController::basic(PhysicalActions actions_get, double seconds,
                            double skip_seconds, const char *filenames_base)
 {
     filesClose();
     filesNew(filenames_base);
 
-    actions.string_number = params.string_number;
-	actions.finger_position = params.finger_position;
-	actions.bow_force = params.bow_force;
-	actions.bow_bridge_distance = dynamics->get_distance(params.dynamic);
-	actions.bow_velocity = dynamics->get_velocity(params.dynamic);
+    actions.string_number = actions_get.string_number;
+	actions.finger_position = actions_get.finger_position;
+	actions.bow_force = actions_get.bow_force;
+	actions.bow_bridge_distance = actions_get.bow_bridge_distance;
+	// ok to copy bow_velocity here.
+	actions.bow_velocity = actions_get.bow_velocity;
+
 
 	const double orig_force = actions.bow_force;
 	const double orig_velocity = actions.bow_velocity;
@@ -188,26 +189,26 @@ void ViviController::basic(NoteParams params, double seconds,
     filesClose();
 }
 
-void ViviController::note(NoteParams params,
-	unsigned int dyn,
+void ViviController::note(PhysicalActions actions_get,
 	double K,
 	double seconds)
 {
-    actions.string_number = params.string_number;
-	actions.finger_position = params.finger_position;
-	actions.bow_force = params.bow_force;
-	actions.bow_bridge_distance = dynamics->get_distance(params.dynamic);
+    actions.string_number = actions_get.string_number;
+	actions.finger_position = actions_get.finger_position;
+	actions.bow_force = actions_get.bow_force;
+	actions.bow_bridge_distance = actions_get.bow_bridge_distance;
 	// don't copy bow_velocity!
 	// target
-	m_target_velocity = dynamics->get_velocity(params.dynamic);
+	m_target_velocity = actions_get.bow_velocity;
 	m_st = actions.string_number;
-	m_dyn = dyn;
+	m_dyn = round(actions_get.dynamic);
 	m_K = K;
 
     note_samples = 0;
 
     actions_file->finger(total_samples*dt, actions.string_number,
                          actions.finger_position);
+    violin->finger(actions.string_number, actions.finger_position);
 
     for (int i = 0; i < seconds/DH; i++) {
         hop();
@@ -252,4 +253,20 @@ inline void ViviController::hop(unsigned int num_samples) {
 	actions.bow_force *= pow(m_K, 2-cat);
 
 }
+
+/*
+ I haven't thought about it; this just comes from:
+ http://en.wikipedia.org/wiki/Linear_interpolation
+*/
+inline double ViviController::interpolate(const double x,
+	const double x0, const double y0,
+	const double x1, const double y1)
+{
+	if ((x1-x0) == 0) {
+		return y0;
+	} else {
+		return y0 + (x-x0)*(y1-y0)/(x1-x0);
+	}
+}
+
 

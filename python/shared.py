@@ -10,12 +10,12 @@ AudioParams = collections.namedtuple('AudioParams', """
 	bow_velocity
 	""")
 
-NoteParams = collections.namedtuple('NoteParams', """
-	string_number,
-	dynamic,
-	finger_midi,
-	bow_force
-""")
+#NoteParams = collections.namedtuple('NoteParams', """
+#	string_number,
+#	dynamic,
+#	finger_midi,
+#	bow_force
+#""")
 
 import training_dir
 files = None

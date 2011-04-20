@@ -42,8 +42,8 @@ env['vivi_controller_files'] = Split("""
 
 
 env.Append(
-#	CPPFLAGS=Split("-O3 -fPIC -funroll-loops"),
-	CPPFLAGS=Split("-g -fbounds-check -Wall -Wextra"),
+	CPPFLAGS=Split("-O3 -fPIC -funroll-loops"),
+#	CPPFLAGS=Split("-g -fbounds-check -Wall -Wextra"),
 	CPPPATH=[
 		"/usr/include/python2.6",
 		],

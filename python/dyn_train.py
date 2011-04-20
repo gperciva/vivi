@@ -5,6 +5,8 @@ import dyn_train_gui
 
 import collection
 
+import scipy
+
 import os # to delete audio files whose judgement was cancelled
 
 #import levels
@@ -278,12 +280,11 @@ class DynTrain(QtGui.QFrame):
 		elif job_type == state.ACCURACY:
 			self.dyn_backend.check_accuracy(self.coll)
 		elif job_type == state.STABLE:
-			low_force = min(self.get_forces(2))
-			# get mean.  TODO: use a library or util function
-			middle_force_list = self.get_forces(3)
-			middle_force = sum(middle_force_list) / len(middle_force_list)
-			#
-			high_force = max(self.get_forces(4))
+			#low_force = min(self.get_forces(2))
+			#high_force = max(self.get_forces(4))
+			low_force = scipy.mean(self.get_forces(2))
+			middle_force = scipy.mean(self.get_forces(3))
+			high_force = scipy.mean(self.get_forces(4))
 			self.dyn_backend.learn_stable([low_force, middle_force, high_force])
 		elif job_type == state.ACCURACY:
 			self.learn_accuracy()

@@ -5,10 +5,13 @@ import shared  # for AudioParams
 
 class TrainingDir:
 	""" convenience class for training directory. """
-	def __init__(self, training_dirname):
+	def __init__(self, training_dirname, auto_dirname):
 		if not os.path.isdir(training_dirname):
 			os.makedirs(training_dirname)
 		self.dir = training_dirname
+		if not os.path.isdir(auto_dirname):
+			os.makedirs(auto_dirname)
+		self.auto_dir = auto_dirname
 
 #	def get_dirname(self):
 #		""" gets absolute location of training dir. """
@@ -49,14 +52,35 @@ class TrainingDir:
 			+ 'forces')
 		return filename
 
-	def make_audio_filename(self, params):
-		""" audio .wav file. """
-		basename = "audio_%i_%.3f_%.3f_%.3f_%.3f.wav" % (
+	def basename_params(self, base, params, extra=None, count=None):
+		basename = "%s_%i_%.3f_%.3f_%.3f_%.3f" % (
+			base,
 			params.string_number,
 			float(params.finger_midi),
 			params.bow_bridge_distance,
 			params.bow_force,
 			params.bow_velocity)
+		if extra:
+			basename += "_%.3f" % (extra)
+		if count:
+			basename += "_%i" % (count)
+		# the .wav is added in ViviController
+		#basename += ".wav"
+		return basename
+
+	def make_stable_filename(self, params, K, count):
+		""" .wav file for automatic training of stable K."""
+		basename = self.basename_params("stable", params, K, count)
+		return os.path.join(self.auto_dir, basename)
+
+	def make_attack_filename(self, params, count):
+		""" .wav file for automatic training of initial Fb."""
+		basename = self.basename_params("attack", params, count)
+		return os.path.join(self.auto_dir, basename)
+
+	def make_audio_filename(self, params):
+		""" audio .wav file. """
+		basename = basename_params("audio", params)
 		filename = os.path.join(self.dir, basename)
 		return filename
 

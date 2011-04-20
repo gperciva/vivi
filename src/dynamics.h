@@ -5,6 +5,7 @@
 // forte, mf, mp, piano
 const unsigned int NUM_DYNAMICS = 4;
 
+// TODO: make static ?  eliminate class?  namespace?
 class Dynamics {
 public:
 	Dynamics();

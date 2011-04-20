@@ -24,7 +24,7 @@ import string_train_all
 
 class ViviMainwindow(QtGui.QMainWindow):
 	""" Main window of Vivi, the Virtual Violinist. """
-	def __init__(self, training_dirname, ly_filename, skill):
+	def __init__(self, training_dirname, auto_dirname, ly_filename, skill):
 		self.app = QtGui.QApplication([])
 		QtGui.QMainWindow.__init__(self)
 
@@ -47,7 +47,8 @@ class ViviMainwindow(QtGui.QMainWindow):
 		self.process_value = 0
 
 		## setup shared
-		shared.files = shared.training_dir.TrainingDir(training_dirname)
+		shared.files = shared.training_dir.TrainingDir(
+			training_dirname, auto_dirname)
 		shared.basic = shared.basic_training.Basic()
 		shared.judge = shared.judge_audio.JudgeAudio(self.ui.verticalLayout)
 		shared.dyns  = shared.dynamics.Dynamics()
@@ -264,6 +265,10 @@ class ViviMainwindow(QtGui.QMainWindow):
 			self.ly_filename = str(ly_filename)
 			self.load_ly_file(str(ly_filename))
 
+	def auto_examine(self):
+		import auto_examine
+		self.auto_examine = auto_examine.AutoExamine()
+
 	def generate_video(self):
 		self.movie.end_time = self.performer_feeder.get_duration()+1.0
 		steps = self.movie.generate_movie(str(self.ly_filename))
@@ -311,6 +316,8 @@ class ViviMainwindow(QtGui.QMainWindow):
 			self.open_ly_file('ly/black-box.ly')
 		elif key == 'm':
 			self.set_modified()
+		elif key == 'e':
+			self.auto_examine()
 		else:
 			QtGui.QMainWindow.keyPressEvent(self, event)
 

@@ -6,28 +6,22 @@ class MonoWav;
 class ActionsFile;
 class Ears;
 #include "ears.h"
-#include "dynamics.h"
 #include "violin_instrument.h"
+#include "dynamics.h" // for NUM_DYNAMICS
 
 extern "C" {
 #include <gsl/gsl_randist.h>
 }
 
+
 typedef struct {
     unsigned int string_number;
+	double dynamic; // to allow interpolation
     double finger_position;
 	double bow_bridge_distance;
     double bow_force;
 	double bow_velocity;
 } PhysicalActions;
-
-
-typedef struct {
-    unsigned int string_number;
-    double finger_position;
-    double dynamic;
-    double bow_force;
-} NoteParams;
 
 class ViviController {
 
@@ -42,16 +36,15 @@ public:
 
     void filesClose();
     bool filesNew(const char *filenames_base);
-    void note(NoteParams actions_get, unsigned int dyn,
+    void note(PhysicalActions actions_get,
 		double K,
 		double seconds);
-    void basic(NoteParams actions_get, double seconds,
+    void basic(PhysicalActions actions_get, double seconds,
                double seconds_skip, const char *filenames_base);
 
 private:
 	// always used
     ViolinInstrument *violin;
-	Dynamics *dynamics;
     gsl_rng *random;
 
 	// optional (maybe?  TODO: check)
@@ -73,6 +66,10 @@ private:
 
     inline void hop(unsigned int num_samples = EARS_HOPSIZE);
     inline double norm_bounded(double mu, double sigma);
+
+	inline double interpolate(const double x,
+		const double x0, const double y0,
+		const double x1, const double y1);
 
 
 };
