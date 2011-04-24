@@ -47,7 +47,7 @@ using namespace std;
 #include <limits.h>
 
 // C++ requires an external definition of static member variables!
-//MarSystemManager Ears::mng;
+MarSystemManager Ears::mng;
 
 
 Ears::Ears() {

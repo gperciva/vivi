@@ -73,8 +73,8 @@ private:
     Mode mode;
 
 
-    //static Marsyas::MarSystemManager mng;
-    Marsyas::MarSystemManager mng;
+    static Marsyas::MarSystemManager mng;
+    //Marsyas::MarSystemManager mng;
 
     void make_net();
     Marsyas::MarSystem *net;
