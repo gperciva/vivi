@@ -59,7 +59,7 @@ class JudgeAudio(QtGui.QFrame):
 	def user_judge(self, train_filename):
 		self.train_filename = train_filename
 		self.display()
-		utils.play(self.train_filename)
+		utils.play(self.train_filename+'.wav')
 
 	def user_key(self, key):
 		if (key > 0) and (key <= NUM_CATEGORIES):

@@ -9,11 +9,12 @@ import examine_note
 import note_plot
 
 class ExamineNoteWidget():
-	def __init__(self, parent):
+	#def __init__(self, parent):
+	def __init__(self):
 		#self.note_layout = note_layout
 		#self.note_label = self.note_layout.itemAt(0).widget()
 		self.note_plot = note_plot.NotePlot()
-		parent.layout().addWidget(self.note_plot, 1)
+		#parent.layout().addWidget(self.note_plot, 1)
 		#self.note_layout.addWidget(self.note_plot, 1)
 
 		self.examine_note = examine_note.ExamineNote()
@@ -73,15 +74,15 @@ class ExamineNoteWidget():
 		self.examine_note.opinion(cat)
 
 	def play(self):
+		print "examine note widget play", self.examine_note.wavfile
 		if self.note_plot.has_selection():
+			print "has selection"
 			start, dur = self.get_zoom_seconds()
 			#print "zoom in on: ", self.examine_note.wavfile
 			utils.play(self.examine_note.wavfile,
 				start, dur)
 		else:
-			utils.play(self.examine_note.wavfile,
-				self.examine_note.note_start,
-				self.examine_note.note_length)
+			utils.play(self.examine_note.wavfile)
 
 	def get_zoom_seconds(self):
 		start, dur = self.note_plot.get_selection()
@@ -94,4 +95,8 @@ class ExamineNoteWidget():
 		filename = self.examine_note.make_zoom_file(start, dur)
 		return st, self.examine_note.level, filename
 
+	def get_zoom_bare(self):
+		start, dur = self.get_zoom_seconds()
+		filename = self.examine_note.make_zoom_file(start, dur)
+		return filename
 

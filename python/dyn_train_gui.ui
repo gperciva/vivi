@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>72</width>
-    <height>140</height>
+    <width>78</width>
+    <height>155</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,6 +31,12 @@
    </property>
    <item>
     <widget class="QLabel" name="dyn_type">
+     <property name="maximumSize">
+      <size>
+       <width>40</width>
+       <height>16777215</height>
+      </size>
+     </property>
      <property name="font">
       <font>
        <pointsize>10</pointsize>
@@ -52,6 +58,12 @@
    </item>
    <item>
     <widget class="QLabel" name="num_trained_label">
+     <property name="maximumSize">
+      <size>
+       <width>40</width>
+       <height>16777215</height>
+      </size>
+     </property>
      <property name="font">
       <font>
        <italic>true</italic>
@@ -70,6 +82,12 @@
    </item>
    <item>
     <widget class="QLabel" name="accuracy_label">
+     <property name="maximumSize">
+      <size>
+       <width>40</width>
+       <height>16777215</height>
+      </size>
+     </property>
      <property name="font">
       <font>
        <weight>50</weight>
@@ -88,20 +106,29 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="force_factor">
-     <property name="autoFillBackground">
-      <bool>true</bool>
+    <widget class="QPushButton" name="force_factor">
+     <property name="maximumSize">
+      <size>
+       <width>40</width>
+       <height>16777215</height>
+      </size>
      </property>
      <property name="text">
       <string>1.05</string>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
+     <property name="flat">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QLabel" name="force_init1">
+     <property name="maximumSize">
+      <size>
+       <width>40</width>
+       <height>16777215</height>
+      </size>
+     </property>
      <property name="autoFillBackground">
       <bool>true</bool>
      </property>
@@ -115,6 +142,12 @@
    </item>
    <item>
     <widget class="QLabel" name="force_init2">
+     <property name="maximumSize">
+      <size>
+       <width>40</width>
+       <height>16777215</height>
+      </size>
+     </property>
      <property name="autoFillBackground">
       <bool>true</bool>
      </property>
@@ -128,6 +161,12 @@
    </item>
    <item>
     <widget class="QLabel" name="force_init3">
+     <property name="maximumSize">
+      <size>
+       <width>40</width>
+       <height>16777215</height>
+      </size>
+     </property>
      <property name="autoFillBackground">
       <bool>true</bool>
      </property>
@@ -140,7 +179,13 @@
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="toolButton">
+    <widget class="QPushButton" name="modify">
+     <property name="maximumSize">
+      <size>
+       <width>40</width>
+       <height>16777215</height>
+      </size>
+     </property>
      <property name="text">
       <string>Mod</string>
      </property>

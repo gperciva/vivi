@@ -15,6 +15,11 @@ import utils
 # TODO: **must** import ears first, then controller.  No clue why.
 #import ears
 
+# TODO: **must** import this first, then controller.  No clue why.
+import vivi_controller
+import dynamics
+import vivi_controller
+
 #import utils
 import shared
 
@@ -23,6 +28,7 @@ import state
 import dyn_backend
 #import ears
 
+import examine_auto_widget
 
 
 # just for BASIC_PARAMS; iffy; icky
@@ -35,6 +41,31 @@ BASIC_SKIP = 0.5
 
 STATE_NULL = 0
 STATE_BASIC_TRAINING = 1j
+
+
+def dyn_to_level(dyn):
+	level = -1
+	if dyn == 0:
+		level = 0
+	elif dyn == 1:
+		level = 2
+	elif dyn == 2:
+		level = 3
+	elif dyn == 3:
+		level = 1
+	return level
+
+def level_to_dyn(level):
+	dyn = -1
+	if level == 0:
+		dyn = 0
+	elif level == 1:
+		dyn = 3
+	elif level== 2:
+		dyn = 1
+	elif level == 3:
+		dyn = 2
+	return dyn
 
 
 
@@ -69,21 +100,15 @@ class DynTrain(QtGui.QFrame):
 		self.ui.dyn_type.setText(text)
 
 		self.mousePressEvent = self.click
-		self.ui.toolButton.clicked.connect(self.set_modified)
+		self.ui.modify.clicked.connect(self.set_modified)
+		self.ui.force_factor.clicked.connect(self.click_force_factor)
 
 
 		### setup variables
 		self.judged_main_num = 0
 		self.accuracy = -1.0
 
-		if self.dyn == 0:
-			self.level = 0
-		elif self.dyn == 1:
-			self.level = 2
-		elif self.dyn == 2:
-			self.level = 3
-		elif self.dyn == 3:
-			self.level = 1
+		self.level = dyn_to_level(self.dyn)
 
 		self.modified_training = False
 		self.modified_accuracy = False
@@ -116,6 +141,9 @@ class DynTrain(QtGui.QFrame):
 		self.state = state.State()
 		self.state.next_step.connect(self.next_step)
 		self.state.finished_step.connect(self.finished_step)
+
+
+		self.examine = examine_auto_widget.ExamineAutoWidget()
 
 		self.display()
 
@@ -271,7 +299,9 @@ class DynTrain(QtGui.QFrame):
 		self.state.start()
 
 	def next_step(self, job_type, job_index):
-		if job_type == state.SVM:
+		if job_type == state.BASIC_TRAINING:
+			self.basic_train()
+		elif job_type == state.SVM:
 			cat_text = self.coll.get_cat_text(
 				collection.CATS_MAIN)
 			mf_filename = shared.files.get_mf_filename(
@@ -305,28 +335,35 @@ class DynTrain(QtGui.QFrame):
 	def has_basic_training(self):
 		return self.basic_trained
 
-# FIXME: need to revise basic trainig for new State() object
-	def basic_train(self):
+	def basic_prep(self):
 		if self.basic_trained:
 			self.process_step.emit()
 			return
+		num_steps = 1
+		self.state.prep(state.BASIC_TRAINING, [num_steps])
+		return num_steps
+
+	def basic_train(self):
 		shared.basic.set_collection(self.st, self.dyn, self.coll)
 		shared.judge.judged_cat.connect(self.judged_cat)
-		self.state = STATE_BASIC_TRAINING
 		self.basic_train_next()
 
+
 	def basic_train_next(self):
-		# FIXME: train_params now only gives force and finger_midi
 		train_params = shared.basic.get_next_basic()
 		if not train_params:
 			return self.basic_train_end()
-		print train_params
-		# FIXME: train_params now only gives force and finger_midi
+		params = shared.AudioParams(
+			self.st, train_params[1],
+			shared.dynamics.get_distance(self.dyn),
+			train_params[0],
+			shared.dynamics.get_velocity(self.dyn))
+
 		self.train_filename = shared.files.make_audio_filename(params)
-		physical = self.controller.get_physical_params(params)
+		physical = self.dyn_backend.get_physical_params(params)
 		self.controller.basic(
 			physical, BASIC_SECONDS, BASIC_SKIP,
-			self.train_filename[0:-4])
+			self.train_filename)
 		shared.judge.user_judge(self.train_filename)
 
 	def basic_train_end(self):
@@ -513,7 +550,10 @@ class DynTrain(QtGui.QFrame):
 		print "dynamic clicked"
 #		shared.compare.compare(self.st, self.dyn,
 #			self.accuracy, self.coll)
-#
+
+	def click_force_factor(self, event):
+		self.examine.examine("stable", self.st, self.dyn)
+
 
 #	def delete_file(self, wavfile):
 #		self.coll.delete(wavfile)

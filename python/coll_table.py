@@ -7,8 +7,10 @@ class CollTable(QtGui.QTableWidget):
 	action_play = QtCore.pyqtSignal()
 	action_train = QtCore.pyqtSignal()
 	action_info = QtCore.pyqtSignal()
+	clear_select = QtCore.pyqtSignal(int, int, name="clear_select")
+	select_cell = QtCore.pyqtSignal(int, int, name="select_cell")
 
-	def __init__(self, parent):
+	def __init__(self, parent, column_names):
 		QtGui.QTableWidget.__init__(self, parent)
 		self.parent = parent
 
@@ -17,19 +19,22 @@ class CollTable(QtGui.QTableWidget):
 		self.setDragDropOverwriteMode(False)
 		self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 		self.setObjectName("table")
-		self.setColumnCount(2)
+		self.setColumnCount(len(column_names))
 		self.setRowCount(0)
 
-		item = QtGui.QTableWidgetItem()
-		self.setHorizontalHeaderItem(0, item)
-		item = QtGui.QTableWidgetItem()
-		self.setHorizontalHeaderItem(1, item)
+		self.itemSelectionChanged.connect(self.changed)
+		self.prevRow = 0
+		self.prevCol = 0
 
-		self.horizontalHeaderItem(0).setText(QtGui.QApplication.translate("Dialog", "Opinion", None, QtGui.QApplication.UnicodeUTF8))
-		self.horizontalHeaderItem(1).setText(QtGui.QApplication.translate("Dialog", "Predicted", None, QtGui.QApplication.UnicodeUTF8))
 
-		self.setColumnWidth(0, 70)
-		self.setColumnWidth(1, 430)
+		for i, name in enumerate(column_names):
+			item = QtGui.QTableWidgetItem()
+			self.setHorizontalHeaderItem(i, item)
+			self.horizontalHeaderItem(i).setText(name)
+			# not relevant to names, but oh well
+			self.setColumnWidth(i, 400)
+		# isn't working?
+		#self.resizeRowsToContents()
 
 	def keyPressEvent(self, event):
 		try:
@@ -48,4 +53,11 @@ class CollTable(QtGui.QTableWidget):
 			self.parent.keyPressEvent(event)
 		QtGui.QTableWidget.keyPressEvent(self, event)
 
+	def changed(self):
+		if ((self.currentRow != self.prevRow) or
+		    (self.currentCol != self.prevCol)):
+			self.clear_select.emit(self.prevRow, self.prevCol)
+		self.prevRow = self.currentRow()
+		self.prevCol = self.currentColumn()
+		self.select_cell.emit(self.currentRow(), self.currentColumn())
 

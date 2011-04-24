@@ -16,6 +16,7 @@ import utils
 import operator
 
 import math
+import scipy
 
 CALCULATE_TRAINING = 1
 CHECK_ACCURACY = 2
@@ -24,9 +25,10 @@ LEARN_STABLE = 4
 
 ATTACK_FORCE_STEPS = 10
 
-STABLE_STEPS = 11
+STABLE_STEPS = 3
+STABLE_REPS = 3
 STABLE_MIN = 1.00
-STABLE_MAX = 1.10
+STABLE_MAX = 1.20
 
 from PyQt4 import QtCore
 
@@ -144,7 +146,7 @@ class DynBackend(QtCore.QThread):
 
 	def learn_stable_steps(self):
 		#return 2 * STABLE_STEPS + 1
-		return STABLE_STEPS + 1
+		return (STABLE_STEPS * STABLE_REPS * 3) + 1
 
 	def learn_stable(self, stable_forces):
 		self.state = LEARN_STABLE
@@ -152,19 +154,14 @@ class DynBackend(QtCore.QThread):
 		self.condition.wakeOne()
 
 	def learn_stable_thread(self):
-		if self.st > 0 or self.dyn > 0:
-			self.process_step.emit()
-			return
-		print "stable thread, trying forces", self.stable_forces
-
 		mpl_filename = shared.files.get_mpl_filename(
 			self.st, 'main', self.dyn)
 		self.controller.load_ears_training(self.st, self.dyn,
 			mpl_filename)
 
-		for K in [1.0, 1.1, 1.2]:
+		for K in scipy.linspace(STABLE_MIN, STABLE_MAX, STABLE_STEPS):
 			# start counting at 1 due to "if 0" in training_dir
-			for count in range(1,4):
+			for count in range(1,STABLE_REPS+1):
 				for fi in range(3):
 					bow_force = self.stable_forces[fi]
 					# FIXME: oh god ick
@@ -179,6 +176,7 @@ class DynBackend(QtCore.QThread):
 					for finger_midi in shared.basic_training.finger_midis:
 						self.make_stable(K, count, bow_force, finger_midi)
 					self.controller.filesClose()
+					self.process_step.emit()
 
 
 

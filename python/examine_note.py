@@ -20,15 +20,16 @@ class ExamineNote:
 	def __init__(self):
 		self.force_min_factor = 1.333
 		self.lines = []
+		self.bow_lines = []
 		# TODO: ick, just for a static function
 		#self.levels = levels.Levels()
 
 
 	def load_file(self, filename):
-		print filename
+		#print filename
 		# it's a .wav
 		self.basename = filename[:-4]
-		print "examine note:", self.basename
+		#print "examine note:", self.basename
 		self.wavfile = self.basename+'.wav'
 		self.lines = open(self.basename+'.actions').readlines()
 
@@ -40,6 +41,7 @@ class ExamineNote:
 				self.note_cats_out.append(int(ni[2]))
 			if line.startswith("b"):
 				self.note_forces.append( float(ni[4]) )
+				self.bow_lines.append(ni)
 		#if os.path.exists('ly/violin-1.log'):
 	#		self.lines = open('ly/violin-1.log').readlines()
 #		else:
@@ -47,6 +49,10 @@ class ExamineNote:
 		#print self.note_cats_out
 		#print self.note_forces
 		self.note_lines = []
+
+		self.note_start = 0
+		self.note_length = (float(self.lines[-1].split()[1])
+			- self.note_start)
 
 		self.judging = False
 
@@ -148,20 +154,25 @@ class ExamineNote:
 
 	def get_seconds(self, start, dur):
 		num_bins = len(self.note_forces)
-		seconds = num_bins * ears.EARS_HOPSIZE / 44100.0
+		#seconds = num_bins * ears.EARS_HOPSIZE / 44100.0
+		# TODO: generalize this
+		seconds = num_bins * 256 / 44100.0
 		start_sec = self.note_start + start*seconds
 		dur_sec = dur*seconds
 		return start_sec, dur_sec
 
 	def make_zoom_file(self, start, dur):
 		force = 0.0
+		# TODO: generalize
 		starthop = int((start-self.note_start)
-				*44100.0/ears.EARS_HOPSIZE)
+				*44100.0/256)
+				#*44100.0/ears.EARS_HOPSIZE)
 		endhop = starthop+int( dur
-				*44100.0/ears.EARS_HOPSIZE)
+				*44100.0/256)
+				#*44100.0/ears.EARS_HOPSIZE)
 		for i in range(starthop, endhop):
-			ni = self.note_lines[i].split()
-			force += float(ni[3])
+			print self.bow_lines[i][4]
+			force += float(self.bow_lines[i][4])
 		force /= (endhop - starthop)
 		audio_params = shared.AudioParams(
 			self.note_st, self.note_finger, self.note_pos,
@@ -170,4 +181,5 @@ class ExamineNote:
 		cmd = 'sox %s %s trim %f %f' % (self.wavfile, filename, start, dur)
 		os.system(cmd)
 		return filename
+
 

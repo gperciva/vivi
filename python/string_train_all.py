@@ -62,7 +62,7 @@ class StringTrainAll(QtGui.QFrame):
 			level = self.string_trains[st].min_level()
 			if basic_min_level > level:
 				basic_min_level = level
-		if basic_min_level == string_train.NUM_DYNS - 1:
+		if basic_min_level == string_train.NUM_DYNS:
 			return False
 		return basic_min_level
 

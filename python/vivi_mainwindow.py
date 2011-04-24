@@ -265,10 +265,6 @@ class ViviMainwindow(QtGui.QMainWindow):
 			self.ly_filename = str(ly_filename)
 			self.load_ly_file(str(ly_filename))
 
-	def auto_examine(self):
-		import auto_examine
-		self.auto_examine = auto_examine.AutoExamine()
-
 	def generate_video(self):
 		self.movie.end_time = self.performer_feeder.get_duration()+1.0
 		steps = self.movie.generate_movie(str(self.ly_filename))
@@ -316,8 +312,6 @@ class ViviMainwindow(QtGui.QMainWindow):
 			self.open_ly_file('ly/black-box.ly')
 		elif key == 'm':
 			self.set_modified()
-		elif key == 'e':
-			self.auto_examine()
 		else:
 			QtGui.QMainWindow.keyPressEvent(self, event)
 

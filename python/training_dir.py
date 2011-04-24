@@ -13,10 +13,6 @@ class TrainingDir:
 			os.makedirs(auto_dirname)
 		self.auto_dir = auto_dirname
 
-#	def get_dirname(self):
-#		""" gets absolute location of training dir. """
-#		return os.path.abspath(self.dir)
-
 	def get_basename(self, st, cats_type, dyn):
 		if cats_type == 'main':
 			basename = '%i_%i.' % (st, dyn)
@@ -80,7 +76,7 @@ class TrainingDir:
 
 	def make_audio_filename(self, params):
 		""" audio .wav file. """
-		basename = basename_params("audio", params)
+		basename = self.basename_params("audio", params)
 		filename = os.path.join(self.dir, basename)
 		return filename
 
@@ -92,6 +88,14 @@ class TrainingDir:
 			int(params[0]), float(params[1]),
 			float(params[2]), float(params[3]), float(params[4]))
 		return audio_params
+
+	def get_audio_params_extra(self, filename):
+		audio_params = self.get_audio_params(filename)
+		basename = os.path.splitext(os.path.basename(filename))[0]
+		params = basename.split('_')[1:]
+		extra = float(params[5])
+		count = int(params[6])
+		return audio_params, extra, count
 
 	def make_zoom_filename(self, params):
 		""" save "zoomed" audio to a .wav file. """
