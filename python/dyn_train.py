@@ -144,6 +144,7 @@ class DynTrain(QtGui.QFrame):
 
 
 		self.examine = examine_auto_widget.ExamineAutoWidget()
+		self.examine.select_note.connect(self.examine_auto_select_note)
 
 		self.display()
 
@@ -554,6 +555,11 @@ class DynTrain(QtGui.QFrame):
 	def click_force_factor(self, event):
 		self.examine.examine("stable", self.st, self.dyn)
 
+	def examine_auto_select_note(self):
+		note_filename_text = self.examine.get_selected_filename()
+		if note_filename_text:
+			shared.examine_main.load_file(note_filename_text[0])
+			shared.examine_main.load_note(note_filename_text[1])
 
 #	def delete_file(self, wavfile):
 #		self.coll.delete(wavfile)

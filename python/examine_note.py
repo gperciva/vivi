@@ -21,6 +21,8 @@ class ExamineNote:
 		self.lines = []
 		self.note_lines = []
 		self.note_force_cat = []
+		self.wavfile = None
+		self.note_text = None
 
 
 	def load_file(self, filename):
@@ -67,6 +69,7 @@ class ExamineNote:
 	def load_note(self, text):
 		if not self.lines:
 			return False
+		self.note_text = text
 		self.note_lines = []
 		i = 0
 		while not self.lines[i].find(text) >= 0:
@@ -157,7 +160,7 @@ class ExamineNote:
 		return self.train_list
 
 	def get_seconds(self, start, dur):
-		num_bins = len(self.note_forces)
+		num_bins = len(self.note_force_cat)
 		#seconds = num_bins * ears.EARS_HOPSIZE / 44100.0
 		# TODO: generalize this
 		seconds = num_bins * 256 / 44100.0
@@ -175,8 +178,7 @@ class ExamineNote:
 				*44100.0/256)
 				#*44100.0/ears.EARS_HOPSIZE)
 		for i in range(starthop, endhop):
-			print self.bow_lines[i][4]
-			force += float(self.bow_lines[i][4])
+			force += self.note_force_cat[i][0]
 		force /= (endhop - starthop)
 		audio_params = shared.AudioParams(
 			self.note_st, self.note_finger, self.note_pos,

@@ -102,7 +102,7 @@ class TrainingDir:
 		base_basename = "audio_%i_%.3f_%.3f_%.3f_%.3f_z_" % (
 			params.string_number,
 			float(params.finger_midi),
-			params.bow_position,
+			params.bow_bridge_distance,
 			params.bow_force,
 			params.bow_velocity)
 		count = 0

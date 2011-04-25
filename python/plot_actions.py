@@ -7,8 +7,6 @@ class PlotActions(QtGui.QWidget):
 		QtGui.QWidget.__init__(self)
 		self.setAutoFillBackground(True)
 		self.setPalette(QtGui.QPalette( QtCore.Qt.white) )
-		#self.setMinimumHeight(100)
-		#self.background = QtCore.Qt.white
 		self.back = QtCore.Qt.white
 		self.forces = []
 		self.cats = []

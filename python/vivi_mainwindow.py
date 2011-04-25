@@ -52,6 +52,10 @@ class ViviMainwindow(QtGui.QMainWindow):
 		shared.basic = shared.basic_training.Basic()
 		shared.judge = shared.judge_audio.JudgeAudio(self.ui.verticalLayout)
 		shared.dyns  = shared.dynamics.Dynamics()
+		shared.examine_main = shared.examine_note_widget.ExamineNoteWidget()
+		shared.examine_main.plot_actions.setMinimumHeight(100)
+		shared.examine_main.plot_actions.highlight(True)
+		self.ui.verticalLayout.addWidget(shared.examine_main.plot_actions)
 
 		## setup other shared stuff
 		#shared.perform = shared.performer.Performer()
@@ -298,7 +302,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 		elif key == 'q':
 			self.close()
 		elif (key == 'p'):
-			self.examine.play()
+			shared.examine_main.play()
 		elif key == 't':
 			self.train_note()
 		elif key == 'z':

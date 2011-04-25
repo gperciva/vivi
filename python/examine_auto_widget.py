@@ -12,6 +12,7 @@ import examine_note_widget
 import coll_table
 
 class ExamineAutoWidget(QtGui.QFrame):
+	select_note = QtCore.pyqtSignal()
 
 	def __init__(self):
 		QtGui.QFrame.__init__(self)
@@ -132,4 +133,14 @@ class ExamineAutoWidget(QtGui.QFrame):
 
 	def select_plot(self, row, col):
 		self.examines[row][col].plot_actions.highlight(True)
+		self.select_note.emit()
+
+	def get_selected_filename(self):
+		row = self.table.currentRow()
+		col = self.table.currentColumn()
+		if row >= 0 and col >= 0:
+			examine = self.examines[row][col]
+			return examine.examine_note.wavfile, examine.examine_note.note_text
+		return None
+
 
