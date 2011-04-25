@@ -13,6 +13,8 @@ extern "C" {
 #include <gsl/gsl_randist.h>
 }
 
+// TODO: move to artifastring?
+const unsigned int NUM_STRINGS = 4;
 
 typedef struct {
     unsigned int string_number;
@@ -57,7 +59,8 @@ private:
     PhysicalActions actions;
     unsigned int m_st;
     unsigned int m_dyn;
-    double m_target_velocity;
+    double m_velocity_target;
+    double m_velocity_cutoff_force_adj;
 
     double m_K;
 

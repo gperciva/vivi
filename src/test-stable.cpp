@@ -11,7 +11,7 @@ int main() {
     PhysicalActions params;
     params.string_number = 0;
     params.dynamic = 0;
-    params.finger_position = 0.25;
+    params.finger_position = 0.0;
     params.bow_force = 1.0;
     params.bow_bridge_distance = dynamics->get_distance(0);
     params.bow_velocity = dynamics->get_velocity(0);

@@ -201,26 +201,42 @@ void ViviController::note(PhysicalActions actions_get,
     actions.bow_force = actions_get.bow_force;
     actions.bow_bridge_distance = actions_get.bow_bridge_distance;
     // don't copy bow_velocity!
-    // target
-    m_target_velocity = actions_get.bow_velocity;
+    m_velocity_target = actions_get.bow_velocity;
+    m_velocity_cutoff_force_adj = m_velocity_target / 2.0;
+    // other setup
     m_st = actions.string_number;
     m_dyn = round(actions_get.dynamic);
     m_K = K;
 
     note_samples = 0;
+    unsigned int accel_hops = ceil(fabs(
+                                       m_velocity_target
+                                       / (MAX_HAND_ACCEL*DH)));
+    unsigned int decel_hop = seconds/DH - accel_hops;
 
     actions_file->finger(total_samples*dt, actions.string_number,
                          actions.finger_position);
     violin->finger(actions.string_number, actions.finger_position);
 
-    for (int i = 0; i < seconds/DH; i++) {
+    for (int i = 0; i < seconds/DH-1; i++) {
         hop();
+        // start deceleration
+        if (i > decel_hop) {
+            m_velocity_target = 0.0;
+        }
     }
+    // finish final "half hop"
+    int remaining_samples = seconds*44100.0 - note_samples;
+    if (remaining_samples > 0) {
+        hop(remaining_samples);
+    }
+
+//zz
 }
 
 inline void ViviController::hop(unsigned int num_samples) {
     // approach target velocity
-    const double dv = m_target_velocity - actions.bow_velocity;
+    const double dv = m_velocity_target - actions.bow_velocity;
     if (dv > MAX_HAND_ACCEL*DH) {
         actions.bow_velocity += MAX_HAND_ACCEL*DH;
     } else {
@@ -249,13 +265,23 @@ inline void ViviController::hop(unsigned int num_samples) {
 
     ears[m_st][m_dyn]->listenShort(buf);
     int cat = ears[m_st][m_dyn]->getClass();
-    actions_file->category(total_samples*dt, cat);
+    // TODO: sort out this conditional
+    if (m_velocity_cutoff_force_adj > 0) {
+        if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
+            // adjust bow force
+            actions.bow_force *= pow(m_K, 2-cat);
+            actions_file->category(total_samples*dt, cat);
+        }
+    } else {
+        if (actions.bow_velocity < m_velocity_cutoff_force_adj) {
+            actions.bow_force *= pow(m_K, 2-cat);
+            actions_file->category(total_samples*dt, cat);
+        }
+    }
 
     // after processing
     total_samples += num_samples;
     note_samples += num_samples;
-    // adjust bow force
-    actions.bow_force *= pow(m_K, 2-cat);
 }
 
 void ViviController::comment(const char *text) {

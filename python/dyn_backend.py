@@ -163,32 +163,36 @@ class DynBackend(QtCore.QThread):
 			# start counting at 1 due to "if 0" in training_dir
 			for count in range(1,STABLE_REPS+1):
 				for fi in range(3):
+					bow_direction = 1
 					bow_force = self.stable_forces[fi]
 					# FIXME: oh god ick
 					ap = shared.AudioParams( self.st, 0,
 						shared.dyns.get_distance(self.dyn),
 						bow_force,
-						shared.dyns.get_velocity(self.dyn))
+						bow_direction*shared.dyns.get_velocity(self.dyn))
 					stable_filename = shared.files.make_stable_filename(
 						ap, K, count)
 
 					self.controller.filesNew(stable_filename)
-					for finger_midi in shared.basic_training.finger_midis:
-						self.make_stable(K, count, bow_force, finger_midi)
+					for fmi, finger_midi in enumerate(shared.basic_training.finger_midis):
+						self.controller.comment("stable note, st %i dyn %i finger_midi_index %i finger_midi %.3f"
+							% (self.st, self.dyn, fmi, finger_midi))
+						self.make_stable(K, count, bow_force, finger_midi, bow_direction)
+						bow_direction *= -1
 					self.controller.filesClose()
 					self.process_step.emit()
 
 
 
-	def make_stable(self, K, count, bow_force, finger_midi):
-		PLAY_LENGTH = 0.5
+	def make_stable(self, K, count, bow_force, finger_midi, bow_direction):
+		PLAY_LENGTH = 0.75
 		params = vivi_controller.PhysicalActions()
 		params.string_number = self.st
 		params.dynamic = self.dyn
 		params.finger_position = utils.midi2pos(finger_midi)
 		params.bow_force = bow_force
 		params.bow_bridge_distance = shared.dyns.get_distance(self.dyn)
-		params.bow_velocity = shared.dyns.get_velocity(self.dyn)
+		params.bow_velocity = bow_direction * shared.dyns.get_velocity(self.dyn)
 
 		self.controller.note(params, K, PLAY_LENGTH)
 
@@ -291,6 +295,7 @@ class DynBackend(QtCore.QThread):
 
 
 	def learn_attacks_thread(self):
+		return
 		# need to reload training files from disk
 		mpl_filename = shared.files.get_mpl_filename(
 			self.st, 'main', self.dyn)
