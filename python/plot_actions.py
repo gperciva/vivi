@@ -2,7 +2,7 @@
 
 from PyQt4 import QtGui, QtCore
 
-class NotePlot(QtGui.QWidget):
+class PlotActions(QtGui.QWidget):
 	def __init__(self):
 		QtGui.QWidget.__init__(self)
 		self.setAutoFillBackground(True)
@@ -11,13 +11,14 @@ class NotePlot(QtGui.QWidget):
 		#self.background = QtCore.Qt.white
 		self.back = QtCore.Qt.white
 		self.forces = []
+		self.cats = []
 		self.mouse_x_begin = -1
 		self.mouse_x_end = -1
 		self.highlight(False)
 
-	def set_data(self, forces, cats_out):
-		self.forces = forces
-		self.cats_out = cats_out
+	def set_data(self, force_cat):
+		self.forces = [x[0] for x in force_cat]
+		self.cats = [x[1] for x in force_cat]
 		self.mouse_x_begin = -1
 		self.mouse_x_end = -1
 		self.update()
@@ -102,7 +103,7 @@ class NotePlot(QtGui.QWidget):
 		prev_x = left_margin
 		prev_y = self.forces[0]*yscale + yoffset
 		for i, force in enumerate(self.forces):
-			cat_out = self.cats_out[i]
+			cat = self.cats[i]
 
 			x = i*xscale + left_margin
 			y = self.forces[i]*yscale + yoffset
@@ -111,23 +112,14 @@ class NotePlot(QtGui.QWidget):
 			prev_x = x
 			prev_y = y
 
-			if (cat_out == 0) or (cat_out == 4):
-				direction = (2-cat_out)/2
+			if (cat == 0) or (cat == 4):
+				direction = (2-cat)/2
 				painter.setPen(QtCore.Qt.red)
 				self.arrow(painter, x, y, direction)
-			if (cat_out == 1) or (cat_out == 3):
-				direction = 2-cat_out
+			if (cat == 1) or (cat == 3):
+				direction = 2-cat
 				painter.setPen(QtCore.Qt.blue)
 				self.arrow(painter, x, y, direction)
-
-#			if (cat_out == 0) or (cat_out == 2):
-#				direction = 1-cat_out
-#				painter.setPen(QtCore.Qt.red)
-#				self.arrow(painter, x, y, direction)
-#			elif (cat_in == 0) or (cat_in == 2):
-#				direction = 1-cat_in
-#				painter.setPen(QtCore.Qt.blue)
-#				self.arrow(painter, x, y, direction)
 
 	def arrow(self, painter, x, y, direction):
 		painter.drawLine(x, y, x+2, y+direction*10)

@@ -32,7 +32,7 @@ class CollTable(QtGui.QTableWidget):
 			self.setHorizontalHeaderItem(i, item)
 			self.horizontalHeaderItem(i).setText(name)
 			# not relevant to names, but oh well
-			self.setColumnWidth(i, 400)
+			self.setColumnWidth(i, 1100.0/len(column_names))
 		# isn't working?
 		#self.resizeRowsToContents()
 

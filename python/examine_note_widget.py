@@ -6,16 +6,16 @@ import utils
 import shared
 
 import examine_note
-import note_plot
+import plot_actions
 
 class ExamineNoteWidget():
 	#def __init__(self, parent):
 	def __init__(self):
 		#self.note_layout = note_layout
 		#self.note_label = self.note_layout.itemAt(0).widget()
-		self.note_plot = note_plot.NotePlot()
-		#parent.layout().addWidget(self.note_plot, 1)
-		#self.note_layout.addWidget(self.note_plot, 1)
+		self.plot_actions = plot_actions.PlotActions()
+		#parent.layout().addWidget(self.plot_actions, 1)
+		#self.note_layout.addWidget(self.plot_actions, 1)
 
 		self.examine_note = examine_note.ExamineNote()
 		self.got_zoom = False
@@ -23,18 +23,19 @@ class ExamineNoteWidget():
 	def load_file(self, filename):
 		self.examine_note.load_file(filename)
 		# FIXME: debug only
-		self.note_plot.set_data(
-			self.examine_note.note_forces,
-			self.examine_note.note_cats_out,
-		)
+		#self.plot_actions.set_data(
+		#	self.examine_note.note_forces,
+		#	self.examine_note.note_cats_out,
+		#)
 
-	def load_note(self, lily_line, lily_col):
-		status = self.examine_note.load_note(lily_line, lily_col)
+	# old function
+	#def load_note(self, lily_line, lily_col):
+	#	status = self.examine_note.load_note(lily_line, lily_col)
+	def load_note(self, text):
+		status = self.examine_note.load_note(text)
 		if status:
-			self.note_plot.set_data(
-				self.examine_note.note_forces,
-				self.examine_note.note_cats_out,
-		#		self.examine_note.note_cats_in
+			self.plot_actions.set_data(
+				self.examine_note.note_force_cat
 				)
 		else:
 			self.note_label.setText("Not a rehearsed note!")
@@ -75,17 +76,20 @@ class ExamineNoteWidget():
 
 	def play(self):
 		print "examine note widget play", self.examine_note.wavfile
-		if self.note_plot.has_selection():
+		if self.plot_actions.has_selection():
 			print "has selection"
 			start, dur = self.get_zoom_seconds()
 			#print "zoom in on: ", self.examine_note.wavfile
 			utils.play(self.examine_note.wavfile,
 				start, dur)
 		else:
-			utils.play(self.examine_note.wavfile)
+			start = self.examine_note.note_start
+			dur = self.examine_note.note_length
+		utils.play(self.examine_note.wavfile,
+			start, dur)
 
 	def get_zoom_seconds(self):
-		start, dur = self.note_plot.get_selection()
+		start, dur = self.plot_actions.get_selection()
 		self.got_zoom = True
 		return self.examine_note.get_seconds(start, dur)
 

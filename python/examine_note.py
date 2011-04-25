@@ -18,11 +18,9 @@ def pos2midi(pos):
 
 class ExamineNote:
 	def __init__(self):
-		self.force_min_factor = 1.333
 		self.lines = []
-		self.bow_lines = []
-		# TODO: ick, just for a static function
-		#self.levels = levels.Levels()
+		self.note_lines = []
+		self.note_force_cat = []
 
 
 	def load_file(self, filename):
@@ -33,15 +31,15 @@ class ExamineNote:
 		self.wavfile = self.basename+'.wav'
 		self.lines = open(self.basename+'.actions').readlines()
 
-		self.note_cats_out = []
-		self.note_forces = []
-		for line in self.lines:
-			ni = line.split()
-			if line.startswith("cat"):
-				self.note_cats_out.append(int(ni[2]))
-			if line.startswith("b"):
-				self.note_forces.append( float(ni[4]) )
-				self.bow_lines.append(ni)
+#		self.note_cats_out = []
+#		self.note_forces = []
+#		for line in self.lines:
+#			ni = line.split()
+#			if line.startswith("cat"):
+#				self.note_cats_out.append(int(ni[2]))
+#			if line.startswith("b"):
+#				self.note_forces.append( float(ni[4]) )
+#				self.bow_lines.append(ni)
 		#if os.path.exists('ly/violin-1.log'):
 	#		self.lines = open('ly/violin-1.log').readlines()
 #		else:
@@ -49,20 +47,27 @@ class ExamineNote:
 		#print self.note_cats_out
 		#print self.note_forces
 		self.note_lines = []
+		self.note_force_cat = []
 
-		self.note_start = 0
-		self.note_length = (float(self.lines[-1].split()[1])
-			- self.note_start)
+#		self.note_start = 0
+#		self.note_length = (float(self.lines[-1].split()[1])
+#			- self.note_start)
 
-		self.judging = False
+#		self.judging = False
 
 
 
-	def load_note(self, lily_line, lily_col):
+	### old function
+	#def load_note(self, lily_line, lily_col):
+	#	if not self.lines:
+	#		return False
+	#	self.note_lines = []
+	#	text = 'point-and-click %i %i' % (lily_col, lily_line)
+	#	i = 0
+	def load_note(self, text):
 		if not self.lines:
 			return False
 		self.note_lines = []
-		text = 'point-and-click %i %i' % (lily_col, lily_line)
 		i = 0
 		while not self.lines[i].find(text) >= 0:
 			i += 1
@@ -70,54 +75,53 @@ class ExamineNote:
 				#print "Item not found"
 				return False
 
-		i += 1
+#		i += 1
 		note_prelim_info = self.lines[i].split()
-		self.note_st = int(note_prelim_info[2])
-		self.note_finger = int(round(
-			float(note_prelim_info[4])))
-		self.note_pos = float(note_prelim_info[6])
-		self.note_vel = float(note_prelim_info[8])
+		self.note_st = int(note_prelim_info[4])
+		self.note_dyn = float(note_prelim_info[6])
+		self.note_finger = round(
+			float(note_prelim_info[10]))
+		self.note_pos = shared.dyns.get_distance(self.note_dyn)
+		self.note_vel = shared.dyns.get_velocity(self.note_dyn)
+		#self.note_pos = float(note_prelim_info[6])
+		#self.note_vel = float(note_prelim_info[8])
+		i += 1
 		i += 1
 
-		while not self.lines[i].startswith('###'):
+		while not self.lines[i].startswith('#'):
 			self.note_lines.append( self.lines[i] )
 			i += 1
 			if i >= len(self.lines):
 				break
 
-		self.note_start = float(self.note_lines[0].split()[0])
-		self.note_length = (float(self.note_lines[-1].split()[0])
+		self.note_start = float(self.note_lines[0].split()[1])
+		self.note_length = (float(self.note_lines[-1].split()[1])
 			- self.note_start)
 
 		self.note_info()
 		return True
 
 	def note_info(self):
-		#self.level = self.levels.find_closest_level(
-		#	self.note_pos, self.note_vel)
-		self.level = 0
-
-		#self.note_cats_out = [0,0,0]
-		#self.note_cats_in = [0,0,0]
-		self.note_cats_out = []
-		#self.note_cats_in = []
-		self.note_forces = []
-		for i in range(len(self.note_lines)):
-			ni = self.note_lines[i].split()
-			cat_out = int(ni[1])
-			#cat_in = int(ni[2])
-			self.note_cats_out.append(cat_out)
-			#self.note_cats_in.append(cat_in)
-			#self.note_cats_out[cat_out] += 1
-			#if cat_in >= 0:
-			#	self.note_cats_in[cat_in] += 1
-			self.note_forces.append( float(ni[3]) )
-		#cats_out_total = float(sum(self.note_cats_out))
-		#cats_in_total = float(sum(self.note_cats_in))
-		#for i in range(3):
-		#	self.note_cats_out[i] /= cats_out_total
-		#	if cats_in_total > 0:
-		#		self.note_cats_in[i] /= cats_in_total
+		self.note_force_cat = []
+		i = 0
+		while (i < len(self.note_lines)):
+			line = self.note_lines[i].split()
+			#print line
+			if line[0][0] == 'b':
+				force = float(line[4])
+			#	print force
+				cat = -1
+				i += 1
+				if i < len(self.note_lines):
+					line = self.note_lines[i].split()
+					if line[0] == "cat":
+						cat = int(line[2])
+						i += 1 
+				self.note_force_cat.append( (force, cat) )
+			else:
+				# skip
+				i += 1
+		#print self.note_force_cat
 
 	def potential_add(self, force, prev_force):
 		audio_params = shared.AudioParams(

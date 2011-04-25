@@ -91,14 +91,18 @@ class ExamineAutoWidget(QtGui.QFrame):
 				counts = self.data[bf][extra]
 
 				for k, filename in enumerate(counts):
-					examine = examine_note_widget.ExamineNoteWidget()
-					examine.load_file(filename)
-					col = i
-					row = 3*j+k
-					self.table.setCellWidget(row, 3*col, examine.note_plot)
-					self.table.setRowHeight(row, 50)
+					for fm in range(3):
+						examine = examine_note_widget.ExamineNoteWidget()
+						examine.load_file(filename)
+						to_find = "finger_midi_index %i" % fm
+						examine.load_note(to_find)
+						col = 3*i+fm
+						row = 3*j+k
+						#print row, col
+						self.table.setCellWidget(row, col, examine.plot_actions)
+						self.table.setRowHeight(row, 600.0/9)
 
-					self.examines[row].append(examine)
+						self.examines[row].append(examine)
 
 		self.setFocus()
 		self.show()
@@ -123,9 +127,9 @@ class ExamineAutoWidget(QtGui.QFrame):
 			#self.string_train.retrain(self.st, self.dyn, wavfile)
 
 	def clear_select(self, row, col):
-		self.examines[row][col].note_plot.clear_selection()
-		self.examines[row][col].note_plot.highlight(False)
+		self.examines[row][col].plot_actions.clear_selection()
+		self.examines[row][col].plot_actions.highlight(False)
 
 	def select_plot(self, row, col):
-		self.examines[row][col].note_plot.highlight(True)
+		self.examines[row][col].plot_actions.highlight(True)
 
