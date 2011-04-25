@@ -20,7 +20,7 @@ const double BASIC_FORCE_STDDEV = 0.02;
 
 ViviController::ViviController() {
 
-	// always used classes
+    // always used classes
     violin = new ViolinInstrument();
     // setup random generator
     const gsl_rng_type * T = gsl_rng_default;
@@ -56,26 +56,26 @@ ViviController::~ViviController() {
 void ViviController::reset() {
     filesClose();
     violin->reset();
-	// only action that matters; others are overwritten anyway
-	actions.bow_velocity = 0;
+    // only action that matters; others are overwritten anyway
+    actions.bow_velocity = 0;
 }
 
 Ears* ViviController::getEars(unsigned int st, unsigned int dyn) {
-	if (ears[st][dyn] == NULL) {
-		ears[st][dyn] = new Ears();
-	}
-	return ears[st][dyn];
+    if (ears[st][dyn] == NULL) {
+        ears[st][dyn] = new Ears();
+    }
+    return ears[st][dyn];
 }
 
 bool ViviController::load_ears_training(unsigned int st, unsigned int dyn,
-		std::string training_file)
+                                        std::string training_file)
 {
-	if (ears[st][dyn] == NULL) {
-		ears[st][dyn] = new Ears();
-	}
-	// TODO: replace with const char *
-	ears[st][dyn]->set_predict_buffer(training_file);
-	return true;
+    if (ears[st][dyn] == NULL) {
+        ears[st][dyn] = new Ears();
+    }
+    // TODO: replace with const char *
+    ears[st][dyn]->set_predict_buffer(training_file);
+    return true;
 }
 
 
@@ -101,13 +101,13 @@ void ViviController::filesClose() {
     }
     if (actions_file != NULL) {
         delete actions_file;
-		actions_file = NULL;
+        actions_file = NULL;
     }
 }
 
 
 bool ViviController::filesNew(const char *filenames_base) {
-	reset();
+    reset();
     // wav file
     char filename[512];
     strncpy(filename, filenames_base, 511);
@@ -127,17 +127,18 @@ void ViviController::basic(PhysicalActions actions_get, double seconds,
 {
     filesClose();
     filesNew(filenames_base);
+    actions_file->comment("begin basic training note");
 
     actions.string_number = actions_get.string_number;
-	actions.finger_position = actions_get.finger_position;
-	actions.bow_force = actions_get.bow_force;
-	actions.bow_bridge_distance = actions_get.bow_bridge_distance;
-	// ok to copy bow_velocity here.
-	actions.bow_velocity = actions_get.bow_velocity;
+    actions.finger_position = actions_get.finger_position;
+    actions.bow_force = actions_get.bow_force;
+    actions.bow_bridge_distance = actions_get.bow_bridge_distance;
+    // ok to copy bow_velocity here.
+    actions.bow_velocity = actions_get.bow_velocity;
 
 
-	const double orig_force = actions.bow_force;
-	const double orig_velocity = actions.bow_velocity;
+    const double orig_force = actions.bow_force;
+    const double orig_velocity = actions.bow_velocity;
 
     actions_file->finger(total_samples*dt, actions.string_number,
                          actions.finger_position);
@@ -190,19 +191,21 @@ void ViviController::basic(PhysicalActions actions_get, double seconds,
 }
 
 void ViviController::note(PhysicalActions actions_get,
-	double K,
-	double seconds)
+                          double K,
+                          double seconds)
 {
+    actions_file->comment("begin note");
+
     actions.string_number = actions_get.string_number;
-	actions.finger_position = actions_get.finger_position;
-	actions.bow_force = actions_get.bow_force;
-	actions.bow_bridge_distance = actions_get.bow_bridge_distance;
-	// don't copy bow_velocity!
-	// target
-	m_target_velocity = actions_get.bow_velocity;
-	m_st = actions.string_number;
-	m_dyn = round(actions_get.dynamic);
-	m_K = K;
+    actions.finger_position = actions_get.finger_position;
+    actions.bow_force = actions_get.bow_force;
+    actions.bow_bridge_distance = actions_get.bow_bridge_distance;
+    // don't copy bow_velocity!
+    // target
+    m_target_velocity = actions_get.bow_velocity;
+    m_st = actions.string_number;
+    m_dyn = round(actions_get.dynamic);
+    m_K = K;
 
     note_samples = 0;
 
@@ -229,29 +232,36 @@ inline void ViviController::hop(unsigned int num_samples) {
     }
     // jitter
     actions.bow_velocity += norm_bounded(0, fabs(actions.bow_velocity)
-											* VELOCITY_STDDEV);
+                                         * VELOCITY_STDDEV);
     actions.bow_force += norm_bounded(0, actions.bow_force * FORCE_STDDEV);
     violin->bow(actions.string_number,
                 actions.bow_bridge_distance,
                 actions.bow_force,
                 actions.bow_velocity);
     ears[m_st][m_dyn]->set_extra_params(
-		m_st, actions.finger_position);
+        m_st, actions.finger_position);
 
     actions_file->bow(total_samples*dt, actions.string_number,
                       actions.bow_bridge_distance, actions.bow_force,
                       actions.bow_velocity);
     short *buf = wavfile->request_fill(num_samples);
     violin->wait_samples(buf, num_samples);
-    total_samples += num_samples;
-    note_samples += num_samples;
 
     ears[m_st][m_dyn]->listenShort(buf);
     int cat = ears[m_st][m_dyn]->getClass();
-	actions_file->category(total_samples*dt, cat);
-	// adjust bow force
-	actions.bow_force *= pow(m_K, 2-cat);
+    actions_file->category(total_samples*dt, cat);
 
+    // after processing
+    total_samples += num_samples;
+    note_samples += num_samples;
+    // adjust bow force
+    actions.bow_force *= pow(m_K, 2-cat);
+}
+
+void ViviController::comment(const char *text) {
+    if (actions_file != NULL) {
+        actions_file->comment(text);
+    }
 }
 
 /*
@@ -259,14 +269,13 @@ inline void ViviController::hop(unsigned int num_samples) {
  http://en.wikipedia.org/wiki/Linear_interpolation
 */
 inline double ViviController::interpolate(const double x,
-	const double x0, const double y0,
-	const double x1, const double y1)
+        const double x0, const double y0,
+        const double x1, const double y1)
 {
-	if ((x1-x0) == 0) {
-		return y0;
-	} else {
-		return y0 + (x-x0)*(y1-y0)/(x1-x0);
-	}
+    if ((x1-x0) == 0) {
+        return y0;
+    } else {
+        return y0 + (x-x0)*(y1-y0)/(x1-x0);
+    }
 }
-
 

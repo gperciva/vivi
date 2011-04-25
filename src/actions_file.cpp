@@ -110,11 +110,19 @@ void ActionsFile::bow(double seconds, unsigned int string_number,
     index++;
 }
 
+void ActionsFile::comment(const char *text)
+{
+    writeBuffer();
+    char textline[MAX_LINE_LENGTH];
+    sprintf(textline, "#\t%.*s\n", MAX_LINE_LENGTH-1, text);
+    fwrite(textline, sizeof(char), strlen(textline), outfile);
+}
+
 void ActionsFile::writeBuffer()
 {
     for (unsigned int i = 0; i < index; i++) {
         ActionData actions = data[i];
-        char textline[256];
+        char textline[MAX_LINE_LENGTH];
 
         switch (actions.type) {
         case ACTION_WAIT:

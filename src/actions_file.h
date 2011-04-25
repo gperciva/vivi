@@ -2,6 +2,8 @@
 #define ACTIONS_FILE
 #include <stdio.h>
 
+const unsigned int MAX_LINE_LENGTH = 256;
+
 class ActionsFile {
 public:
     /**
@@ -28,7 +30,9 @@ public:
     void bow(double seconds, unsigned int string_number,
              double position, double force, double velocity);
 
-	void category(double seconds, unsigned int category);
+    void category(double seconds, unsigned int category);
+    // writes buffer to file immediately
+    void comment(const char *text);
 
 private:
     void writeBuffer();
@@ -44,7 +48,7 @@ private:
         ACTION_FINGER,
         ACTION_PLUCK,
         ACTION_BOW,
-		ACTION_CATEGORY,
+        ACTION_CATEGORY,
     };
 
     typedef struct {
