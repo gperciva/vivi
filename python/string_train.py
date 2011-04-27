@@ -195,6 +195,11 @@ class StringTrain(QtGui.QFrame):
 		self.state.prep(state.ACCURACY, jobs)
 		return sum(jobs)
 
+
+
+	def train_zoom(self, dyn, wavfile):
+		self.dyns[dyn].train_zoom(wavfile)
+
 #	def learn_stable(self):
 #		self.state = LEARN_STABLE
 #		for di in DYNS:

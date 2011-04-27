@@ -99,9 +99,10 @@ class DynTrain(QtGui.QFrame):
 			text = 'p'
 		self.ui.dyn_type.setText(text)
 
-		self.mousePressEvent = self.click
+		#self.mousePressEvent = self.click
 		self.ui.modify.clicked.connect(self.set_modified)
 		self.ui.force_factor.clicked.connect(self.click_force_factor)
+		self.ui.accuracy_label.clicked.connect(self.click_accuracy)
 
 
 		### setup variables
@@ -119,6 +120,7 @@ class DynTrain(QtGui.QFrame):
 
 		self.basic_trained = False
 
+		self.force_init = []
 		self.read()
 #		self.levels = levels.Levels()
 #		self.levels.set_coll(self.coll)
@@ -132,8 +134,9 @@ class DynTrain(QtGui.QFrame):
 #		shared.listen[self.st][self.dyn] = self.ears
 
 		### setup backend
+		# (after self.read() !)
 		self.dyn_backend = dyn_backend.DynBackend(
-			self.st, self.dyn, self.level, self.force_init,
+			self.st, self.dyn, self.level, self.accuracy, self.force_init,
 			self.force_factor,
 			self.controller, self.practice)
 		self.dyn_backend.process_step.connect(self.process_step_emit)
@@ -143,7 +146,7 @@ class DynTrain(QtGui.QFrame):
 		self.state.finished_step.connect(self.finished_step)
 
 
-		self.examine = examine_auto_widget.ExamineAutoWidget()
+		self.examine = examine_auto_widget.ExamineAutoWidget(self)
 		self.examine.select_note.connect(self.examine_auto_select_note)
 
 		self.display()
@@ -259,12 +262,13 @@ class DynTrain(QtGui.QFrame):
 			self.coll.add_mf_file(filename)
 		self.judged_main_num = self.coll.num_main()
 		### read forces
-		filename = shared.files.get_forces_filename(self.st, self.dyn)
+		filename = shared.files.get_dyn_data_filename(self.st, self.dyn)
 		try:
 			att = open(filename).readlines()
 			for i in range(3):
 				self.force_init.append(float( att[i].rstrip() ))
 			self.force_factor = float( att[3].rstrip() )
+			self.accuracy = float( att[4].rstrip() )
 		except:
 			# we don't care if we can't read the forces file.
 			self.force_init = [-1.0, -1.0, -1.0]
@@ -284,11 +288,12 @@ class DynTrain(QtGui.QFrame):
 			self.coll.write_mf_file(filename, cat_type)
 		#self.modified = False
 		### write forces
-		filename = shared.files.get_forces_filename(self.st, self.dyn)
+		filename = shared.files.get_dyn_data_filename(self.st, self.dyn)
 		att = open(filename, 'w')
 		for i in range(3):
 			att.write(str("%.3f\n" % self.force_init[i]))
 		att.write(str("%.3f\n" % self.force_factor))
+		att.write(str("%.3f\n" % self.accuracy))
 		att.close()
 
 	### bulk processing state
@@ -369,26 +374,31 @@ class DynTrain(QtGui.QFrame):
 
 	def basic_train_end(self):
 		self.basic_trained = True
-		self.state = STATE_NULL
 		shared.judge.judged_cat.disconnect(self.judged_cat)
 		shared.judge.display(show=False)
 		self.process_step.emit()
 
-	def judged_cat(self, cat):
-		if self.state == STATE_BASIC_TRAINING:
-			if cat >= 0:
-				self.coll.add_item(self.train_filename,
-					collection.categories[cat-1])
-				if cat <= 5:
-					self.judged_main_num += 1
-					self.set_modified()
-				self.basic_train_next()
-			else:
-				os.remove(self.train_filename)
-				os.remove(self.train_filename.replace(".wav",
-					".actions"))
-				self.basic_train_end()
+	def train_over(self):
+		shared.judge.judged_cat.disconnect(self.judged_cat)
+		shared.judge.display(show=False)
 
+	def judged_cat(self, cat):
+		print "judged cat"
+		if cat >= 0:
+			self.coll.add_item(self.train_filename,
+				collection.categories[cat-1])
+			if cat <= 5:
+				self.judged_main_num += 1
+				self.set_modified()
+		else:
+			os.remove(self.train_filename)
+			os.remove(self.train_filename.replace(".wav",
+				".actions"))
+			self.basic_train_end()
+		if self.state.job_type == STATE_BASIC_TRAINING:
+				self.basic_train_next()
+		else:
+			self.train_over()
 
 #		if not self.ears:
 #			if self.judged_main_num > 0:
@@ -547,8 +557,8 @@ class DynTrain(QtGui.QFrame):
 #		self.display()
 #		self.process_step.emit()
 #
-	def click(self, event):
-		print "dynamic clicked"
+	def click_accuracy(self, event):
+		print "accuracy clicked"
 #		shared.compare.compare(self.st, self.dyn,
 #			self.accuracy, self.coll)
 
@@ -560,6 +570,14 @@ class DynTrain(QtGui.QFrame):
 		if note_filename_text:
 			shared.examine_main.load_file(note_filename_text[0])
 			shared.examine_main.load_note(note_filename_text[1])
+
+
+	def train_zoom(self, wavfile):
+		print "train ", wavfile
+		self.train_filename = wavfile
+		shared.judge.judged_cat.connect(self.judged_cat)
+		shared.judge.display()
+		shared.judge.user_judge(wavfile[0:-4])
 
 #	def delete_file(self, wavfile):
 #		self.coll.delete(wavfile)

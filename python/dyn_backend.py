@@ -35,7 +35,7 @@ from PyQt4 import QtCore
 class DynBackend(QtCore.QThread):
 	process_step = QtCore.pyqtSignal()
 
-	def __init__(self, st, dyn, level, force_init, force_factor, controller, practice):
+	def __init__(self, st, dyn, level, accuracy, force_init, force_factor, controller, practice):
 		QtCore.QThread.__init__(self)
 
 		self.st = st
@@ -51,7 +51,6 @@ class DynBackend(QtCore.QThread):
 
 		#self.check_coll = check_coll.CheckColl(ears)
 		self.accuracy = -1.0
-		self.accuracy_data = []
 
 		#self.attacks = attacks.Attacks(self.st,
 	#		self.dyn, self.level, performer)
@@ -106,7 +105,6 @@ class DynBackend(QtCore.QThread):
 		self.ears.saveTraining(mpl_filename)
 
 		self.accuracy = -1.0
-		self.accuracy_data = []
 
 	def check_accuracy_steps(self):
 		return 1

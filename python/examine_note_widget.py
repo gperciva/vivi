@@ -7,13 +7,20 @@ import shared
 
 import examine_note
 import plot_actions
+import plot_main
+
+PLOT_ACTIONS = 1
+PLOT_MAIN = 2
 
 class ExamineNoteWidget():
 	#def __init__(self, parent):
-	def __init__(self):
+	def __init__(self, plot_type=PLOT_ACTIONS):
 		#self.note_layout = note_layout
 		#self.note_label = self.note_layout.itemAt(0).widget()
-		self.plot_actions = plot_actions.PlotActions()
+		if plot_type==PLOT_MAIN:
+			self.plot_actions = plot_main.PlotMain()
+		else:
+			self.plot_actions = plot_actions.PlotActions()
 		#parent.layout().addWidget(self.plot_actions, 1)
 		#self.note_layout.addWidget(self.plot_actions, 1)
 
@@ -76,12 +83,14 @@ class ExamineNoteWidget():
 
 	def play(self):
 		print "examine note widget play", self.examine_note.wavfile
+		if not self.examine_note.wavfile:
+			return
 		if self.plot_actions.has_selection():
 			print "has selection"
 			start, dur = self.get_zoom_seconds()
 			#print "zoom in on: ", self.examine_note.wavfile
-			utils.play(self.examine_note.wavfile,
-				start, dur)
+			#utils.play(self.examine_note.wavfile,
+			#	start, dur)
 		else:
 			start = self.examine_note.note_start
 			dur = self.examine_note.note_length
@@ -96,8 +105,9 @@ class ExamineNoteWidget():
 	def get_zoom(self):
 		start, dur = self.get_zoom_seconds()
 		st = self.examine_note.note_st
+		dyn = int(round(self.examine_note.note_dyn))
 		filename = self.examine_note.make_zoom_file(start, dur)
-		return st, self.examine_note.level, filename
+		return st, dyn, filename
 
 	def get_zoom_bare(self):
 		start, dur = self.get_zoom_seconds()

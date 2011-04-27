@@ -43,6 +43,7 @@ class JudgeAudio(QtGui.QFrame):
 		self.user_key(int(event.objectName()[11]))
 
 	def keyPressEvent(self, event):
+		print "judge audio key press:", event
 		try:
 			key = chr(event.key())
 		except:

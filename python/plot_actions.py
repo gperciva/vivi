@@ -67,9 +67,9 @@ class PlotActions(QtGui.QWidget):
 		self.update()
 
 	def paintEvent(self, event):
-		painter = QtGui.QPainter(self)
 		if not self.forces:
 			return
+		painter = QtGui.QPainter(self)
 		# bad way of drawing the background, but I don't
 		# feel like wading through more API docs to find
 		# the right way
@@ -90,13 +90,6 @@ class PlotActions(QtGui.QWidget):
 					/ len(self.forces))
 		yoffset = height - top_margin
 		yscale = (-(height - top_margin - bottom_margin)) / maxforce
-
-		painter.drawText( 15, self.height()-5,
-			"Max force: %.3f" % maxforce)
-		force_bar_height = maxforce / 12.0*height
-		painter.fillRect(2, height - force_bar_height - 4,
-			2, force_bar_height,
-			QtCore.Qt.green)
 
 		prev_x = left_margin
 		prev_y = self.forces[0]*yscale + yoffset

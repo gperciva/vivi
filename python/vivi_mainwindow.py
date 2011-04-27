@@ -52,7 +52,8 @@ class ViviMainwindow(QtGui.QMainWindow):
 		shared.basic = shared.basic_training.Basic()
 		shared.judge = shared.judge_audio.JudgeAudio(self.ui.verticalLayout)
 		shared.dyns  = shared.dynamics.Dynamics()
-		shared.examine_main = shared.examine_note_widget.ExamineNoteWidget()
+		shared.examine_main = shared.examine_note_widget.ExamineNoteWidget(
+			shared.examine_note_widget.PLOT_MAIN)
 		shared.examine_main.plot_actions.setMinimumHeight(100)
 		shared.examine_main.plot_actions.highlight(True)
 		self.ui.verticalLayout.addWidget(shared.examine_main.plot_actions)
@@ -235,7 +236,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 		self.string_train.train_note(train_list, level)
 
 	def train_zoom(self):
-		st, level, filename = self.examine.get_zoom()
+		st, level, filename = shared.examine_main.get_zoom()
 		self.string_train.train_zoom(st, level, filename)
 
 	def train_check(self):

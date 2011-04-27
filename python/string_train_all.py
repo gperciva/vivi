@@ -218,11 +218,12 @@ class StringTrainAll(QtGui.QFrame):
 #		return True
 #
 
-#	def train_zoom(self, st, level, wavfile):
+	def train_zoom(self, st, dyn, wavfile):
+		self.string_trains[st].train_zoom(dyn, wavfile)
 #		self.string_trainsing = self.string_trains[st].get_dyn_level(level)
 #		self.string_trainsing.train_reinit(wavfile)
 #		self.string_trains_prompt()
-#
+
 #	def learn_stable(self):
 #		self.state = CALCULATING_STABLE
 #		self.done_steps = 0

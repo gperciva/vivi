@@ -14,8 +14,8 @@ import coll_table
 class ExamineAutoWidget(QtGui.QFrame):
 	select_note = QtCore.pyqtSignal()
 
-	def __init__(self):
-		QtGui.QFrame.__init__(self)
+	def __init__(self, parent):
+		QtGui.QFrame.__init__(self, parent, QtCore.Qt.Window)
 
 		### setup GUI
 		self.ui = examine_auto_gui.Ui_Frame()
@@ -23,7 +23,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 
 		self.st = None
 		self.dyn = None
-		
+
 
 	def examine(self, type, st, dyn):
 		self.st = st
@@ -67,8 +67,12 @@ class ExamineAutoWidget(QtGui.QFrame):
 			str("High: %.3f" % forces_initial[2]),
 			"", "",
 			])
+		# clear previous table if exists
+		if self.ui.verticalLayout.count() == 2:
+			self.ui.verticalLayout.takeAt(1)
+
 		self.ui.verticalLayout.addWidget(self.table)
-		self.setFocusPolicy(QtCore.Qt.StrongFocus)
+		#self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
 		self.table.action_play.connect(self.table_play)
 		self.table.action_train.connect(self.table_train)
@@ -105,7 +109,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 
 						self.examines[row].append(examine)
 
-		self.setFocus()
+		#self.setFocus()
 		self.show()
 
 
@@ -113,16 +117,16 @@ class ExamineAutoWidget(QtGui.QFrame):
 		row = self.table.currentRow()
 		col = self.table.currentColumn()
 		print "table_play:", row, col
-		if row >= 0:
+		if row >= 0 and col >= 0:
 			self.examines[row][col].play()
 
 	def table_train(self):
 		row = self.table.currentRow()
 		col = self.table.currentColumn()
-		print "table train:", row, col
-		if row >= 0:
-			filename = self.examines[row][col].get_zoom_bare()
-			print "train ", filename
+#		print "table train:", row, col
+#		if row >= 0:
+#			filename = self.examines[row][col].get_zoom_bare()
+#			print "train ", filename
 			#self.examine.load_file(wavfile)
 			#self.string_train.set_note_label(self.ui.note_label)
 			#self.string_train.retrain(self.st, self.dyn, wavfile)
@@ -143,4 +147,9 @@ class ExamineAutoWidget(QtGui.QFrame):
 			return examine.examine_note.wavfile, examine.examine_note.note_text
 		return None
 
+#	def keyPressEvent(self, event):
+#		print "examine note auto, key event:", event
+		#QtGui.QFrame.keyPressEvent(self.parent, event)
+		#self.parent.keyPressEvent(event)
+		#QtCore.QCoreApplication.sendEvent(event)
 

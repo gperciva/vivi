@@ -41,11 +41,11 @@ class TrainingDir:
 			+ 'mpl')
 		return filename
 
-	def get_forces_filename(self, st, dyn):
-		""" initial bow forces .forces file. """
+	def get_dyn_data_filename(self, st, dyn):
+		""" trained dynamic .data file. """
 		filename = os.path.join(self.dir,
 			self.get_basename(st, 'main', dyn)
-			+ 'forces')
+			+ 'data')
 		return filename
 
 	def basename_params(self, base, params, extra=None, count=None):

@@ -81,27 +81,18 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="accuracy_label">
+    <widget class="QPushButton" name="accuracy_label">
      <property name="maximumSize">
       <size>
        <width>40</width>
        <height>16777215</height>
       </size>
      </property>
-     <property name="font">
-      <font>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="autoFillBackground">
-      <bool>true</bool>
-     </property>
      <property name="text">
       <string>98%</string>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
+     <property name="flat">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
