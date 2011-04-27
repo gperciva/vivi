@@ -5,13 +5,13 @@ gextract_files = Split("""
 	test-gextract.cpp
 """)
 gextract = env.Program (target='test-gextract',
-	source = [gextract_files] + env['ears_files'],
+	source = [gextract_files] + env['ears_files'] + ['actions_file.cpp'],
 	LIBS=["marsyas"],
 )
 
 basic = env.Program (target='test-basic',
 	source = (env['vivi_controller_files'] + ['test-basic.cpp']
-		+ ['ears.o', 'actions_file.cpp', 'dynamics.cpp']),
+		+ ['ears.o', 'actions_file.o', 'dynamics.cpp']),
 	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
 )
 

@@ -45,10 +45,13 @@ int main(int argc, char **argv) {
         ears->reset();
         ears->set_predict_wavfile(mpl_filename.c_str());
         // should be category 2
-        ears->load_file_to_process(CAT_2_FILE);
-        while (ears->tick_file()) {
-            std::cout << ears->getClass() << " ";
-        }
+        // TODO: display this somehow?
+        ears->predict_wavfile(CAT_2_FILE, "cat_2_file.cat");
+        /*
+                while (ears->tick_file()) {
+                    std::cout << ears->getClass() << " ";
+                }
+        */
         std::cout << std::endl;
 
         // test buffer prediction

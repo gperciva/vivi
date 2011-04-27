@@ -1,6 +1,7 @@
 
 #include "ears.h"
 #include <string.h>
+#include "actions_file.h"
 
 #define INCLUDE_PITCH
 
@@ -132,10 +133,28 @@ void Ears::set_predict_buffer(const char *training_filename)
     make_net();
 }
 
-void Ears::load_file_to_process(const char *wav_in_filename)
+void Ears::predict_wavfile(const char *wav_in_filename,
+                           const char *cats_out_filename)
 {
     in_filename.assign(wav_in_filename);
     audio_input->updControl("SoundFileSource/gextract_src/mrs_string/filename", in_filename);
+    get_info_file(wav_in_filename);
+    ActionsFile *cats_out = new ActionsFile(cats_out_filename);
+    cats_out->comment("wav_in_filename");
+
+    unsigned int ticks = 0;
+    while (audio_input->getctrl("SoundFileSource/gextract_src/mrs_bool/hasData")->isTrue())
+    {
+        net->tick();
+        realvec data =
+            net->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
+        //cout << currentlyPlaying << '\t' << data(0,0) << endl;
+        unsigned int cat = data(0,0);
+        cats_out->category(ticks*dh, cat);
+        ticks++;
+    }
+    delete cats_out;
+//zz
 }
 
 void Ears::saveTraining(const char *out_mpl_filename)

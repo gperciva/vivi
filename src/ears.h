@@ -20,6 +20,9 @@ const unsigned int EARS_HOPSIZE = 256;
 // needs to be at least 1024 for yin pitch
 const unsigned int EARS_WINDOWSIZE = 1024;
 
+const unsigned int SAMPLE_RATE = 44100;
+const double dh = (double) EARS_HOPSIZE / SAMPLE_RATE;
+
 
 class Ears {
 public:
@@ -37,7 +40,8 @@ public:
     // for set_training
     void processFile();
     // for predict_wavfile:
-    void load_file_to_process(const char *wav_in_filename);
+    void predict_wavfile(const char *wav_in_filename,
+                         const char *cats_out_filename);
     bool tick_file();
     // for predict_audio
     void listen(double *audio);
