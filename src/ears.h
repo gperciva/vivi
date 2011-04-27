@@ -78,8 +78,9 @@ private:
     Mode mode;
 
 
-    static Marsyas::MarSystemManager mng;
-    //Marsyas::MarSystemManager mng;
+    // don't use static -- it's not thread-safe!
+    //static Marsyas::MarSystemManager mng;
+    Marsyas::MarSystemManager mng;
 
     void make_net();
     Marsyas::MarSystem *net;
