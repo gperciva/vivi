@@ -88,22 +88,23 @@ void Ears::reset()
 }
 
 
-void Ears::set_training(string mf_in_filename, string arff_out_filename_get)
+void Ears::set_training(const char *mf_in_filename,
+                        const char *arff_out_filename_get)
 {
     mode = TRAIN_FILE;
-    arff_out_filename = arff_out_filename_get;
-    in_filename = mf_in_filename;
+    arff_out_filename.assign(arff_out_filename_get);
+    in_filename.assign(mf_in_filename);
     make_features();
     make_learning();
     make_input();
     make_net();
 }
 
-void Ears::set_predict_wavfile(string training_filename)
+void Ears::set_predict_wavfile(const char *training_filename)
 {
     mode = PREDICT_FILE;
 
-    ifstream pluginStream(training_filename.c_str());
+    ifstream pluginStream(training_filename);
     //net = mng.getMarSystem(pluginStream);
 //zz
 #ifndef LEAN
@@ -119,10 +120,10 @@ void Ears::set_predict_wavfile(string training_filename)
 
 }
 
-void Ears::set_predict_buffer(string training_filename)
+void Ears::set_predict_buffer(const char *training_filename)
 {
     mode = PREDICT_BUFFER;
-    ifstream pluginStream(training_filename.c_str());
+    ifstream pluginStream(training_filename);
     classifier = mng.getMarSystem(pluginStream);
 
     make_features();
@@ -131,16 +132,16 @@ void Ears::set_predict_buffer(string training_filename)
     make_net();
 }
 
-void Ears::load_file_to_process(string wav_in_filename)
+void Ears::load_file_to_process(const char *wav_in_filename)
 {
-    in_filename = wav_in_filename;
+    in_filename.assign(wav_in_filename);
     audio_input->updControl("SoundFileSource/gextract_src/mrs_string/filename", in_filename);
 }
 
-void Ears::saveTraining(string out_mpl_filename)
+void Ears::saveTraining(const char *out_mpl_filename)
 {
     ofstream clout;
-    clout.open(out_mpl_filename.c_str());
+    clout.open(out_mpl_filename);
     net->updControl("Series/learning/SVMClassifier/svm_cl/mrs_string/mode", "predict");
     // I don't know what I was thinking?  -April 13, cleanup.
     //net->updControl("Series/learning/WekaSink/wekasink/mrs_string/filename", "null.arff");
@@ -148,7 +149,7 @@ void Ears::saveTraining(string out_mpl_filename)
     net->update();
     //clout << *net << endl;
     clout << *classifier << endl;
-	clout.close();
+    clout.close();
 }
 
 /*

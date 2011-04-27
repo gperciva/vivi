@@ -34,7 +34,7 @@ public:
 
     Ears *getEars(unsigned int st, unsigned int dyn);
     bool load_ears_training(unsigned int st, unsigned int dyn,
-                            std::string training_file);
+                            const char *training_file);
 
     void filesClose();
     bool filesNew(const char *filenames_base);

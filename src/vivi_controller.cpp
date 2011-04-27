@@ -68,7 +68,7 @@ Ears* ViviController::getEars(unsigned int st, unsigned int dyn) {
 }
 
 bool ViviController::load_ears_training(unsigned int st, unsigned int dyn,
-                                        std::string training_file)
+                                        const char *training_file)
 {
     if (ears[st][dyn] == NULL) {
         ears[st][dyn] = new Ears();
@@ -109,14 +109,14 @@ void ViviController::filesClose() {
 bool ViviController::filesNew(const char *filenames_base) {
     reset();
     // wav file
-    char filename[512];
-    strncpy(filename, filenames_base, 511);
-    strncat(filename, ".wav", 511);
-    wavfile = new MonoWav(filename);
+    std::string filename;
+    filename.assign(filenames_base);
+    filename.append(".wav");
+    wavfile = new MonoWav(filename.c_str());
     // actions file
-    strncpy(filename, filenames_base, 511);
-    strncat(filename, ".actions", 511);
-    actions_file = new ActionsFile(filename);
+    filename.assign(filenames_base);
+    filename.append(".actions");
+    actions_file = new ActionsFile(filename.c_str());
     // update positions
     total_samples = 0;
     return true;
@@ -218,7 +218,7 @@ void ViviController::note(PhysicalActions actions_get,
                          actions.finger_position);
     violin->finger(actions.string_number, actions.finger_position);
 
-    for (int i = 0; i < seconds/DH-1; i++) {
+    for (unsigned int i = 0; i < seconds/DH-1; i++) {
         hop();
         // start deceleration
         if (i > decel_hop) {

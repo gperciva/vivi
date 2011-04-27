@@ -8,7 +8,8 @@
 int main(int argc, char **argv) {
     // filename setup
     if (argc == 1) {
-        std::cout<<"Usage: gextract COLLECTION_NAME.mf [extra tests"<<std::endl;
+        std::cout<<"Usage: gextract COLLECTION_NAME.mf [extra tests]";
+        std::cout<<std::endl;
         exit(1);
     }
     std::string mf_filename = argv[1];
@@ -25,9 +26,9 @@ int main(int argc, char **argv) {
     // actual processing
     Ears *ears = new Ears();
 
-    ears->set_training(mf_filename, arff_filename);
+    ears->set_training(mf_filename.c_str(), arff_filename.c_str());
     ears->processFile();
-    ears->saveTraining(mpl_filename);
+    ears->saveTraining(mpl_filename.c_str());
 
     if (argc > 2) {
         // extra memory tests, if requested
@@ -35,14 +36,14 @@ int main(int argc, char **argv) {
         std::cout<<"  resetting and retraining"<<std::endl;
 
         ears->reset();
-        ears->set_training(mf_filename, arff_filename);
+        ears->set_training(mf_filename.c_str(), arff_filename.c_str());
         ears->processFile();
-        ears->saveTraining(mpl_filename);
+        ears->saveTraining(mpl_filename.c_str());
 
         // test file prediction
         std::cout<<"  predicting file (should be 2)"<<std::endl;
         ears->reset();
-        ears->set_predict_wavfile(mpl_filename);
+        ears->set_predict_wavfile(mpl_filename.c_str());
         // should be category 2
         ears->load_file_to_process(CAT_2_FILE);
         while (ears->tick_file()) {
@@ -53,7 +54,7 @@ int main(int argc, char **argv) {
         // test buffer prediction
         std::cout<<"  predicting buffer (may be fairly random)"<<std::endl;
         ears->reset();
-        ears->set_predict_buffer(mpl_filename);
+        ears->set_predict_buffer(mpl_filename.c_str());
         short* buf = new short[EARS_HOPSIZE];
         for (unsigned int j=0; j<10; j++) {
             for (unsigned int i=0; i<EARS_HOPSIZE; i++) {

@@ -26,9 +26,10 @@ public:
     Ears();
     ~Ears();
     // additional "constructors"
-    void set_training(std::string mf_in_filename, std::string arff_out_filename_get);
-    void set_predict_wavfile(std::string training_file);
-    void set_predict_buffer(std::string training_file);
+    void set_training(const char *mf_in_filename,
+                      const char *arff_out_filename_get);
+    void set_predict_wavfile(const char *training_file);
+    void set_predict_buffer(const char *training_file);
 
     void reset();
 
@@ -36,7 +37,7 @@ public:
     // for set_training
     void processFile();
     // for predict_wavfile:
-    void load_file_to_process(std::string wav_in_filename);
+    void load_file_to_process(const char *wav_in_filename);
     bool tick_file();
     // for predict_audio
     void listen(double *audio);
@@ -50,7 +51,7 @@ public:
     double getPitch();
 
     // end
-    void saveTraining(std::string out_mpl_filename);
+    void saveTraining(const char *out_mpl_filename);
 
     short *get_hopsize_array();
 
