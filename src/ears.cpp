@@ -148,6 +148,7 @@ void Ears::saveTraining(string out_mpl_filename)
     net->update();
     //clout << *net << endl;
     clout << *classifier << endl;
+	clout.close();
 }
 
 /*

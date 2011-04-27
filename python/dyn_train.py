@@ -558,9 +558,12 @@ class DynTrain(QtGui.QFrame):
 #		self.process_step.emit()
 #
 	def click_accuracy(self, event):
-		print "accuracy clicked"
-#		shared.compare.compare(self.st, self.dyn,
-#			self.accuracy, self.coll)
+		# TODO: move into main accuracy
+		import compare_coll
+		self.compare = compare_coll.CompareColl()
+		self.compare.compare(self.st, self.dyn,
+			self.accuracy, self.coll,
+			self.controller.getEars(self.st, self.dyn))
 
 	def click_force_factor(self, event):
 		self.examine.examine("stable", self.st, self.dyn)

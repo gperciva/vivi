@@ -3,15 +3,16 @@
 import os
 import shared  # for AudioParams
 
+# TODO: organize cache dir into subdirs!
 class TrainingDir:
 	""" convenience class for training directory. """
-	def __init__(self, training_dirname, auto_dirname):
+	def __init__(self, training_dirname, cache_dirname):
 		if not os.path.isdir(training_dirname):
 			os.makedirs(training_dirname)
 		self.dir = training_dirname
-		if not os.path.isdir(auto_dirname):
-			os.makedirs(auto_dirname)
-		self.auto_dir = auto_dirname
+		if not os.path.isdir(cache_dirname):
+			os.makedirs(cache_dirname)
+		self.cache_dir = cache_dirname
 
 	def get_basename(self, st, cats_type, dyn):
 		if cats_type == 'main':
@@ -29,21 +30,21 @@ class TrainingDir:
 
 	def get_arff_filename(self, st, cats_type, dyn):
 		""" weka training .arff file. """
-		filename = os.path.join(self.dir,
+		filename = os.path.join(self.cache_dir,
 			self.get_basename(st, cats_type, dyn)
 			+ 'arff')
 		return filename
 
 	def get_mpl_filename(self, st, cats_type, dyn):
 		""" saved MarSystems (for training) .mpl file. """
-		filename = os.path.join(self.dir,
+		filename = os.path.join(self.cache_dir,
 			self.get_basename(st, cats_type, dyn)
 			+ 'mpl')
 		return filename
 
 	def get_dyn_data_filename(self, st, dyn):
 		""" trained dynamic .data file. """
-		filename = os.path.join(self.dir,
+		filename = os.path.join(self.cache_dir,
 			self.get_basename(st, 'main', dyn)
 			+ 'data')
 		return filename
@@ -67,12 +68,12 @@ class TrainingDir:
 	def make_stable_filename(self, params, K, count):
 		""" .wav file for automatic training of stable K."""
 		basename = self.basename_params("stable", params, K, count)
-		return os.path.join(self.auto_dir, basename)
+		return os.path.join(self.cache_dir, basename)
 
 	def make_attack_filename(self, params, count):
 		""" .wav file for automatic training of initial Fb."""
 		basename = self.basename_params("attack", params, count)
-		return os.path.join(self.auto_dir, basename)
+		return os.path.join(self.cache_dir, basename)
 
 	def make_audio_filename(self, params):
 		""" audio .wav file. """

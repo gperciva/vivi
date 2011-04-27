@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from PyQt4 import QtCore, QtGui
-import examine_auto_gui
+import examine_widget_gui
 
 import glob
 
@@ -18,7 +18,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 		QtGui.QFrame.__init__(self, parent, QtCore.Qt.Window)
 
 		### setup GUI
-		self.ui = examine_auto_gui.Ui_Frame()
+		self.ui = examine_widget_gui.Ui_Frame()
 		self.ui.setupUi(self)
 
 		self.st = None

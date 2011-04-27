@@ -15,9 +15,9 @@ def get_options():
 	""" Gets options from command line."""
 	import optparse
 	parser = optparse.OptionParser()
-	parser.add_option("-a", "--auto_dir", dest="auto_dir",
-		default="auto/",
-		help="Directory for automatic training files", metavar="DIR")
+	parser.add_option("-c", "--cache_dir", dest="cache_dir",
+		default="cache/",
+		help="Directory for cache of automatic training files", metavar="DIR")
 	parser.add_option("-d", "--dir", dest="train_dir",
 		default="train/",
 		help="Directory for training files", metavar="DIR")
@@ -34,7 +34,7 @@ def main():
 	opts, args = get_options()
 
 	vivi_main = vivi_mainwindow.ViviMainwindow(opts.train_dir,
-		opts.auto_dir, opts.lily_file, int(opts.skill))
+		opts.cache_dir, opts.lily_file, int(opts.skill))
 	sys.exit(vivi_main.app.exec_())
 
 if __name__ == "__main__":

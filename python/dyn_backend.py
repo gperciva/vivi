@@ -96,8 +96,10 @@ class DynBackend(QtCore.QThread):
 
 	def compute_thread(self):
 		self.ears.reset()
-		arff_filename = self.mf_filename.replace('.mf', '.arff')
-		mpl_filename = self.mf_filename.replace('.mf', '.mpl')
+		arff_filename = shared.files.get_arff_filename(
+			self.st, 'main', self.dyn)
+		mpl_filename = shared.files.get_mpl_filename(
+			self.st, 'main', self.dyn)
 
 		self.ears.set_training(self.mf_filename, arff_filename)
 		self.ears.processFile()
