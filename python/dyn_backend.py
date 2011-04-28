@@ -108,31 +108,42 @@ class DynBackend(QtCore.QThread):
 
 		self.accuracy = -1.0
 
-	def check_accuracy_steps(self):
-		return 1
-
-	def check_accuracy(self, coll):
-		self.state = CHECK_ACCURACY
+	def check_accuracy_steps(self, coll):
 		self.coll_accuracy = coll
+		return 2 + len(self.coll_accuracy.coll)
+
+	def check_accuracy(self):
+		self.state = CHECK_ACCURACY
 		self.condition.wakeOne()
 
 	def check_accuracy_thread(self):
-#		self.check_coll.check(self.coll_accuracy,
-#			self.st, self.dyn)
-#		self.accuracy_data = list(self.check_coll.data)
-#		self.accuracy = 100.0*self.check_coll.accuracy
+		### find overall 10-fold cross-validation accuracy
 		cmd = "kea -cl SVM -w %s" % (
 			shared.files.get_arff_filename(
 				self.st, 'main', self.dyn))
 		process = subprocess.Popen(cmd, shell=True,
 			stdout=subprocess.PIPE)
 		kea_output = process.communicate()
-		#self.process_step.emit()
+		self.process_step.emit()
 		# could be done better
 		for line in kea_output[0].split('\n'):
 			if line.find("Correctly Classified Instances") >= 0:
 				splitline = line.split()
 				self.accuracy = float(splitline[4])
+		### calculate cats for each file
+		mpl_filename = shared.files.get_mpl_filename(
+			self.st, 'main', self.dyn)
+		self.ears.reset()
+		self.ears.set_predict_wavfile(mpl_filename)
+		for pair in self.coll_accuracy.coll:
+			filename = pair[0]
+			# TODO: replace with something in training_dir
+			cat_out = filename.replace(".wav", ".cats")
+			cat_out = cat_out.replace("train/", "cache/")
+			#
+			self.ears.predict_wavfile(filename, cat_out)
+			self.process_step.emit()
+
 
 	def learn_attacks_steps(self):
 		return 3*2*ATTACK_FORCE_STEPS + 1

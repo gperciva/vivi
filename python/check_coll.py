@@ -33,14 +33,27 @@ class CheckColl:
 
 	def judge_wav_file(self, wavfile, user_cat):
 		compare_cat = user_cat-1
-		self.listen.load_file_to_process(wavfile)
+		#self.listen.load_file_to_process(wavfile)
 		cats = [0]*5
-		while self.listen.tick_file():
-			cat = self.listen.getClass()
+
+		# TODO: need to generalize
+		cat_out = wavfile.replace(".wav", ".cats")
+		cat_out = cat_out.replace("train/", "cache/")
+		cat_lines = open(cat_out).readlines()
+		for line in cat_lines:
+			if line[0] == '#':
+				continue
+			splitline = line.split()
+			cat = int( splitline[2].rstrip() )
 			cats[cat] += 1
-			if cat == compare_cat:
-				self.correct_count += 1
 			self.total_count += 1
+
+#		while self.listen.tick_file():
+#			cat = self.listen.getClass()
+#			cats[cat] += 1
+#			if cat == compare_cat:
+#				self.correct_count += 1
+#			self.total_count += 1
 		cats_sum = float(sum(cats))
 		for i in range(len(cats)):
 			cats[i] /= cats_sum

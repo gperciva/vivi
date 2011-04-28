@@ -43,31 +43,6 @@ STATE_NULL = 0
 STATE_BASIC_TRAINING = 1j
 
 
-def dyn_to_level(dyn):
-	level = -1
-	if dyn == 0:
-		level = 0
-	elif dyn == 1:
-		level = 2
-	elif dyn == 2:
-		level = 3
-	elif dyn == 3:
-		level = 1
-	return level
-
-def level_to_dyn(level):
-	dyn = -1
-	if level == 0:
-		dyn = 0
-	elif level == 1:
-		dyn = 3
-	elif level== 2:
-		dyn = 1
-	elif level == 3:
-		dyn = 2
-	return dyn
-
-
 
 
 OPINION_END = 1
@@ -109,7 +84,7 @@ class DynTrain(QtGui.QFrame):
 		self.judged_main_num = 0
 		self.accuracy = -1.0
 
-		self.level = dyn_to_level(self.dyn)
+		self.level = utils.dyn_to_level(self.dyn)
 
 		self.modified_training = False
 		self.modified_accuracy = False
@@ -314,7 +289,7 @@ class DynTrain(QtGui.QFrame):
 				self.st, cat_text, self.dyn)
 			self.dyn_backend.compute_training(mf_filename)
 		elif job_type == state.ACCURACY:
-			self.dyn_backend.check_accuracy(self.coll)
+			self.dyn_backend.check_accuracy()
 		elif job_type == state.STABLE:
 			#low_force = min(self.get_forces(2))
 			#high_force = max(self.get_forces(4))
@@ -487,7 +462,7 @@ class DynTrain(QtGui.QFrame):
 			return 0
 		elif not self.modified_accuracy:
 			return 0
-		num_steps = self.dyn_backend.check_accuracy_steps()
+		num_steps = self.dyn_backend.check_accuracy_steps(self.coll)
 		self.state.prep(state.ACCURACY, [num_steps])
 		return num_steps
 

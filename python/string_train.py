@@ -129,14 +129,14 @@ class StringTrain(QtGui.QFrame):
 	### basic training
 	def min_level(self):
 		for li in range(NUM_DYNS):
-			di = dyn_train.level_to_dyn(li)
+			di = utils.level_to_dyn(li)
 			if not self.dyns[di].has_basic_training():
 				return li
 		return NUM_DYNS
 
 	def basic_train_prep(self, level):
 		jobs = [0]*NUM_DYNS
-		dyn = dyn_train.level_to_dyn(level)
+		dyn = utils.level_to_dyn(level)
 		jobs[dyn] = 1
 		self.state.prep(state.BASIC_TRAINING, jobs)
 		self.dyns[dyn].basic_prep()

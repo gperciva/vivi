@@ -29,8 +29,8 @@ class CompareColl(QtGui.QFrame):
 #		self.ui.basic_train_button.clicked.connect(self.basic_train)
 		self.table = coll_table.CollTable(self,
 			["filename", "stars"])
-		self.ui.verticalLayout.insertWidget(
-			self.ui.verticalLayout.count()-1,
+
+		self.ui.verticalLayout.addWidget(
 			self.table)
 
 		self.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -43,23 +43,9 @@ class CompareColl(QtGui.QFrame):
 		self.string_train = string_train
 
 	def display(self):
-		if self.st == 0:
-			text = 'G'
-		elif self.st == 1:
-			text = 'D'
-		elif self.st == 2:
-			text = 'A'
-		elif self.st == 3:
-			text = 'E'
+		text = utils.st_to_text(self.st)
 		label = text+" string"
-		if self.dyn == 0:
-			text = 'f'
-		elif self.dyn == 1:
-			text = 'mf'
-		elif self.dyn == 2:
-			text = 'mp'
-		elif self.dyn == 3:
-			text = 'p'
+		text = utils.dyn_to_text(self.dyn)
 		label += "  " + text
 		self.ui.label.setText(str(label + "%.2f%%"%(self.accuracy)))
 

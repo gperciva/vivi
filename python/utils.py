@@ -79,3 +79,53 @@ def is_in_list(needle, haystack):
 	except:
 		return -1
 
+
+def dyn_to_level(dyn):
+	level = -1
+	if dyn == 0:
+		level = 0
+	elif dyn == 1:
+		level = 2
+	elif dyn == 2:
+		level = 3
+	elif dyn == 3:
+		level = 1
+	return level
+
+def level_to_dyn(level):
+	dyn = -1
+	if level == 0:
+		dyn = 0
+	elif level == 1:
+		dyn = 3
+	elif level== 2:
+		dyn = 1
+	elif level == 3:
+		dyn = 2
+	return dyn
+
+def st_to_text(st):
+	text = 'X'
+	if st == 0:
+		text = 'G'
+	elif st == 1:
+		text = 'D'
+	elif st == 2:
+		text = 'A'
+	elif st == 3:
+		text = 'E'
+	return text
+
+def dyn_to_text(dyn):
+	text = 'X'
+	if dyn == 0:
+		text = 'f'
+	elif dyn == 1:
+		text = 'mf'
+	elif dyn == 2:
+		text = 'mp'
+	elif dyn == 3:
+		text = 'p'
+	return text
+
+

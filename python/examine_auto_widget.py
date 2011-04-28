@@ -67,7 +67,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 			str("High: %.3f" % forces_initial[2]),
 			"", "",
 			])
-		# clear previous table if exists
+		# clear previous widget if exists
 		if self.ui.verticalLayout.count() == 2:
 			self.ui.verticalLayout.takeAt(1)
 
