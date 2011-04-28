@@ -125,9 +125,8 @@ bool ViviController::filesNew(const char *filenames_base) {
 void ViviController::basic(PhysicalActions actions_get, double seconds,
                            double skip_seconds, const char *filenames_base)
 {
-    filesClose();
+    // must do this first, otherwise actions.bow_velocity gets overwritten!
     filesNew(filenames_base);
-    actions_file->comment("begin basic training note");
 
     actions.string_number = actions_get.string_number;
     actions.finger_position = actions_get.finger_position;
@@ -136,6 +135,11 @@ void ViviController::basic(PhysicalActions actions_get, double seconds,
     // ok to copy bow_velocity here.
     actions.bow_velocity = actions_get.bow_velocity;
 
+    int dyn = round(actions_get.dynamic);
+    char note_search_params[MAX_LINE_LENGTH];
+    sprintf(note_search_params, "basic\tst %i\tdyn %i\tfinger_midi %.3f",
+            actions.string_number, dyn, actions.finger_position);
+    actions_file->comment(note_search_params);
 
     const double orig_force = actions.bow_force;
     const double orig_velocity = actions.bow_velocity;
@@ -194,8 +198,7 @@ void ViviController::note(PhysicalActions actions_get,
                           double K,
                           double seconds)
 {
-    actions_file->comment("begin note");
-
+    // set up note parameters
     actions.string_number = actions_get.string_number;
     actions.finger_position = actions_get.finger_position;
     actions.bow_force = actions_get.bow_force;
@@ -207,6 +210,13 @@ void ViviController::note(PhysicalActions actions_get,
     m_st = actions.string_number;
     m_dyn = round(actions_get.dynamic);
     m_K = K;
+
+    // write (some) parameters to file
+    char note_search_params[MAX_LINE_LENGTH];
+    sprintf(note_search_params, "note\tst %i\tdyn %i\tfinger_midi %.3f",
+            m_st, m_dyn, actions.finger_position);
+    actions_file->comment(note_search_params);
+
 
     note_samples = 0;
     unsigned int accel_hops = ceil(fabs(

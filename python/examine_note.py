@@ -26,10 +26,7 @@ class ExamineNote:
 
 
 	def load_file(self, filename):
-		#print filename
-		# it's a .wav
-		self.basename = filename[:-4]
-		#print "examine note:", self.basename
+		self.basename = filename
 		self.wavfile = self.basename+'.wav'
 		self.lines = open(self.basename+'.actions').readlines()
 
@@ -80,10 +77,10 @@ class ExamineNote:
 
 #		i += 1
 		note_prelim_info = self.lines[i].split()
-		self.note_st = int(note_prelim_info[4])
-		self.note_dyn = float(note_prelim_info[6])
+		self.note_st = int(note_prelim_info[3])
+		self.note_dyn = float(note_prelim_info[5])
 		self.note_finger = round(
-			float(note_prelim_info[10]))
+			float(note_prelim_info[7]))
 		self.note_pos = shared.dyns.get_distance(self.note_dyn)
 		self.note_vel = shared.dyns.get_velocity(self.note_dyn)
 		#self.note_pos = float(note_prelim_info[6])

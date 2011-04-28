@@ -12,7 +12,7 @@ class TrainingDir:
 		map(ensure_dir_exists, [training_dirname] +
 							   map(lambda(x): os.path.join(cache_dirname, x),
 						 	       ["", "final", "inter", "works"]))
-		self.train_dir = training_dirname
+		self.train_dir = os.path.normpath(training_dirname)
 		self.final_dir = os.path.join(cache_dirname, "final")
 		self.inter_dir = os.path.join(cache_dirname, "inter")
 		self.works_dir = os.path.join(cache_dirname, "works")
@@ -114,12 +114,14 @@ class TrainingDir:
 		while os.path.exists(potential_filename+'%04i'%count+'.wav'):
 			count += 1
 			if count >= 1000:
-				print "Vivi error: training_dir: 999 files!"
+				print "Vivi error: training_dir: 999 files with same params!"
 				break
 		filename = potential_filename + ('%04i' % count) + '.wav'
 		return filename
 
 	def move_works_to_train(self, src):
 		dest = src.replace(self.works_dir, self.train_dir)
-		os.rename(src, dest)
+		os.rename(src+'.wav', dest+'.wav')
+		os.rename(src+'.actions', dest+'.actions')
+		return dest
 

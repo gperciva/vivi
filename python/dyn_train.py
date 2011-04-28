@@ -29,6 +29,7 @@ import dyn_backend
 #import ears
 
 import examine_auto_widget
+import compare_coll
 
 
 # just for BASIC_PARAMS; iffy; icky
@@ -37,12 +38,6 @@ import examine_auto_widget
 #	duration_settle=1.0, duration_play=0.5)
 BASIC_SECONDS = 0.3
 BASIC_SKIP = 0.5
-
-
-STATE_NULL = 0
-STATE_BASIC_TRAINING = 1j
-
-
 
 
 OPINION_END = 1
@@ -123,6 +118,9 @@ class DynTrain(QtGui.QFrame):
 
 		self.examine = examine_auto_widget.ExamineAutoWidget(self)
 		self.examine.select_note.connect(self.examine_auto_select_note)
+
+		self.compare = compare_coll.CompareColl()
+		self.compare.row_delete.connect(self.delete_file)
 
 		self.display()
 
@@ -359,7 +357,9 @@ class DynTrain(QtGui.QFrame):
 
 	def judged_cat(self, cat):
 		if cat >= 0:
-			self.coll.add_item(self.train_filename,
+			self.train_filename = shared.files.move_works_to_train(
+				self.train_filename)
+			self.coll.add_item(self.train_filename+'.wav',
 				collection.categories[cat-1])
 			if cat <= 5:
 				self.judged_main_num += 1
@@ -369,8 +369,8 @@ class DynTrain(QtGui.QFrame):
 			os.remove(self.train_filename+".actions")
 			self.basic_train_end()
 			return
-		if self.state.job_type == STATE_BASIC_TRAINING:
-				self.basic_train_next()
+		if self.state.job_type == state.BASIC_TRAINING:
+			self.basic_train_next()
 		else:
 			self.train_over()
 
@@ -532,12 +532,8 @@ class DynTrain(QtGui.QFrame):
 #		self.process_step.emit()
 #
 	def click_accuracy(self, event):
-		# TODO: move into main accuracy
-		import compare_coll
-		self.compare = compare_coll.CompareColl()
 		self.compare.compare(self.st, self.dyn,
-			self.accuracy, self.coll,
-			self.controller.getEars(self.st, self.dyn))
+			self.accuracy, self.coll)
 
 	def click_force_factor(self, event):
 		self.examine.examine("stable", self.st, self.dyn)
@@ -556,10 +552,8 @@ class DynTrain(QtGui.QFrame):
 		shared.judge.display()
 		shared.judge.user_judge(wavfile[0:-4])
 
-#	def delete_file(self, wavfile):
-#		self.coll.delete(wavfile)
-#		self.set_modified()
-#		self.display()
-#
-
+	def delete_file(self, filename):
+		self.coll.delete(filename+'.wav')
+		self.set_modified()
+		self.display()
 

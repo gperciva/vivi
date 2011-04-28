@@ -9,7 +9,7 @@ import utils
 import shared
 
 import examine_note_widget
-import coll_table
+import table_play_widget
 
 class ExamineAutoWidget(QtGui.QFrame):
 	select_note = QtCore.pyqtSignal()
@@ -59,7 +59,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 		forces_initial = self.data.keys()
 		forces_initial.sort()
 
-		self.table = coll_table.CollTable(self, [
+		self.table = table_play_widget.TablePlayWidget(self, [
 			str("Low: %.3f" % forces_initial[0]),
 			"", "",
 			str("Middle: %.3f" % forces_initial[1]),

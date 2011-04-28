@@ -2,10 +2,8 @@
 #include "vivi_controller.h"
 #include "dynamics.h"
 
-//const double SKIP = 0.5;
-//const double PLAY = 0.3;
-const double SKIP = 0.01;
-const double PLAY = 0.01;
+const double SKIP = 0.5;
+const double PLAY = 0.3;
 
 int main() {
     ViviController *viviController = new ViviController();

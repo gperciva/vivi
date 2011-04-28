@@ -212,6 +212,7 @@ class DynBackend(QtCore.QThread):
 	def get_physical_params(self, audio_params):
 		physical = vivi_controller.PhysicalActions()
 		physical.string_number = audio_params.string_number
+		physical.dynamic = self.dyn
 		physical.finger_position = utils.midi2pos(audio_params.finger_midi)
 		physical.bow_bridge_distance = audio_params.bow_bridge_distance
 		physical.bow_force = audio_params.bow_force

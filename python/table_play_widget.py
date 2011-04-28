@@ -4,7 +4,9 @@ from PyQt4 import QtGui, QtCore
 
 class TablePlayWidget(QtGui.QTableWidget):
 	action_play = QtCore.pyqtSignal()
-	clear_select = QtCore.pyqtSignal(int, int, name="clear_select")
+	action_delete = QtCore.pyqtSignal()
+	select_previous = QtCore.pyqtSignal(int, int, name="select_previous")
+	select_new = QtCore.pyqtSignal(int, int, name="select_new")
 
 	def __init__(self, parent, column_names):
 		QtGui.QTableWidget.__init__(self, parent)
@@ -35,11 +37,14 @@ class TablePlayWidget(QtGui.QTableWidget):
 		key = key.lower()
 		if key == 'p':
 			self.action_play.emit()
+		elif key == 'd':
+			self.action_delete.emit()
 		else:
 			QtGui.QTableWidget.keyPressEvent(self, event)
 
 	def changed(self):
-		if ((self.currentRow != self.prevRow) or
-		    (self.currentCol != self.prevCol)):
-			self.clear_select.emit(self.prevRow, self.prevCol)
+		self.select_previous.emit(self.prevRow, self.prevCol)
+		self.prevRow = self.currentRow()
+		self.prevCol = self.currentColumn()
+		self.select_new.emit(self.currentRow(), self.currentColumn())
 

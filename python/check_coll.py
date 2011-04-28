@@ -8,32 +8,22 @@ import shared
 class CheckColl:
 	def __init__(self):
 		self.data = []
-		self.accuracy = -1
 
-	def check(self, coll, st, dyn, ears):
+	def check(self, coll, st, dyn):
 		self.data = []
-		self.correct_count = 0
-		self.total_count = 0
 
 		cats_type = collection.CATS_MAIN
 		cat_text = "main"
 		training_file = shared.files.get_mf_filename(
 			st, cat_text, dyn).replace(".mf", ".mpl")
 
-		#self.listen = shared.listen[st][dyn]
-		self.listen = ears
-		self.listen.reset()
-		self.listen.set_predict_wavfile(training_file)
-
 		for coll_index,pair in enumerate(coll.coll):
 			cat = int(pair[1][0])
 			if coll.is_cat(pair[1], cats_type):
 				self.judge_wav_file(pair[0], cat)
-		self.accuracy = float(self.correct_count) / self.total_count
 
 	def judge_wav_file(self, wavfile, user_cat):
 		compare_cat = user_cat-1
-		#self.listen.load_file_to_process(wavfile)
 		cats = [0]*5
 
 		# TODO: need to generalize
@@ -47,14 +37,7 @@ class CheckColl:
 			cat = int( splitline[2].rstrip() )
 			if cat != shared.vivi_controller.CATEGORY_NULL:
 				cats[cat] += 1
-			self.total_count += 1
 
-#		while self.listen.tick_file():
-#			cat = self.listen.getClass()
-#			cats[cat] += 1
-#			if cat == compare_cat:
-#				self.correct_count += 1
-#			self.total_count += 1
 		cats_sum = float(sum(cats))
 		for i in range(len(cats)):
 			cats[i] /= cats_sum

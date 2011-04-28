@@ -43,7 +43,6 @@ class JudgeAudio(QtGui.QFrame):
 		self.user_key(int(event.objectName()[11]))
 
 	def keyPressEvent(self, event):
-		print "judge audio key press:", event
 		try:
 			key = chr(event.key())
 		except:
@@ -65,10 +64,8 @@ class JudgeAudio(QtGui.QFrame):
 	def user_key(self, key):
 		if (key > 0) and (key <= NUM_CATEGORIES):
 			self.judged_cat.emit(key)
-#			self.display(show=False)
 		elif key == 8:
-			utils.play(self.train_filename)
+			utils.play(self.train_filename+'.wav')
 		elif key == 9:
 			self.judged_cat.emit(-1)
-#			self.display(show=False)
 

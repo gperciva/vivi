@@ -9,32 +9,27 @@ import utils
 import shared
 
 class CompareColl(QtGui.QFrame):
+	row_delete = QtCore.pyqtSignal(str, name="row_delete")
+	
 	def __init__(self):
 		QtGui.QFrame.__init__(self)
+		# set up GUI
 		self.ui = examine_widget_gui.Ui_Frame()
 		self.ui.setupUi(self)
 
-#		self.levels = levels.levels()
-
-#		self.colls = [None, None, None, None]
 		self.check_coll = check_coll.CheckColl()
-		#for item in ["all", "outer", "inner", "mixed"]:
-		#for item in ["outer", "inner"]:
-		#	self.ui.cats_type_box.addItem(item)
 
-##		self.ui.check_collection_button.clicked.connect(self.show_string)
-#		self.ui.basic_train_button.clicked.connect(self.basic_train)
 		self.table = table_play_widget.TablePlayWidget(self,
 			["cat", "stars"])
 		self.table.setColumnWidth(0, 40)
 		self.table.setColumnWidth(1, 360)
 
-		self.ui.verticalLayout.addWidget(
-			self.table)
+		self.ui.verticalLayout.addWidget(self.table)
 
 		self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
 		self.table.action_play.connect(self.table_play)
+		self.table.action_delete.connect(self.table_row_delete)
 		self.table.itemSelectionChanged.connect(self.selection_changed)
 
 	def set_string_train(self, string_train):
@@ -47,13 +42,13 @@ class CompareColl(QtGui.QFrame):
 		label += "  " + text
 		self.ui.label.setText(str(label + "%.2f%%"%(self.accuracy)))
 
-	def compare(self, st, dyn, accuracy, coll, ears):
+	def compare(self, st, dyn, accuracy, coll):
 		self.st = st
 		self.dyn = dyn
 		self.accuracy = accuracy
 		self.display()
 
-		self.check_coll.check(coll, self.st, self.dyn, ears)
+		self.check_coll.check(coll, self.st, self.dyn)
 		self.data = list(self.check_coll.data)
 
 		self.table.clearContents()
@@ -63,7 +58,7 @@ class CompareColl(QtGui.QFrame):
 			table_item.setTextAlignment(QtCore.Qt.AlignCenter)
 			self.table.setItem(i, 0, table_item)
 			table_item = QtGui.QTableWidgetItem(datum[1])
-			table_item.setFont(QtGui.QFont("Andale Mono",7))
+			table_item.setFont(QtGui.QFont("Andale Mono", 7))
 			self.table.setItem(i, 1, table_item)
 		self.setFocus()
 		self.show()
@@ -119,36 +114,23 @@ class CompareColl(QtGui.QFrame):
 #			wavfile = self.check_coll.get_filename(row)
 #			self.ui.note_label.setText(wavfile)
 
-
-	def keyPressEvent(self, event):
-		try:
-			key = chr(event.key())
-		except:
-			QtGui.QFrame.keyPressEvent(self, event)
-			return
-		key = key.lower()
-#		if key == 'h':
-#			disp = "help"
-#			self.note_label.setText(disp)
-		if key == 't':
-			self.table_train()
-		elif key == 'p':
-			self.table_play()
-		elif key == 'd':
-			self.table_delete_row()
-		else:
-			QtGui.QFrame.keyPressEvent(self, event)
-
 	def get_selected_filename(self):
 		row = self.table.currentRow()
 		col = self.table.currentColumn()
 
-	def selection_changed(self):
-		print "new selection"
+	def get_selected_filename(self):
 		row = self.table.currentRow()
-		col = self.table.currentColumn()
-		wavfile = self.data[row][2]
-		shared.examine_main.load_file(wavfile)
+		wavfilename = self.data[row][2]
+		filename = wavfilename[0:-4] # remove .wav
+		return filename
+
+	def selection_changed(self):
+		filename = self.get_selected_filename()
+		shared.examine_main.load_file(filename)
 		shared.examine_main.load_note("")
+
+	def table_row_delete(self):
+		filename = self.get_selected_filename()
+		self.row_delete.emit(filename)
 
 
