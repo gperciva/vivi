@@ -20,6 +20,9 @@ const unsigned int EARS_HOPSIZE = 256;
 // needs to be at least 1024 for yin pitch
 const unsigned int EARS_WINDOWSIZE = 1024;
 
+const unsigned int CATEGORY_NULL = -1;
+
+
 const unsigned int SAMPLE_RATE = 44100;
 const double dh = (double) EARS_HOPSIZE / SAMPLE_RATE;
 
@@ -35,6 +38,7 @@ public:
     void set_predict_buffer(const char *training_file);
 
     void reset();
+    void resetTicksCount();
 
     // usage
     // for set_training
@@ -116,6 +120,9 @@ private:
     std::string oldfile;
     Marsyas::realvec parameters_input_realvec;
     Marsyas::MarSystem *parameters_input;
+
+    Marsyas::mrs_natural ticks_count;
+    Marsyas::mrs_natural stabilizingDelay;
 
     short *hopsize_array;
 };

@@ -86,6 +86,12 @@ void Ears::reset()
     parameters_input_realvec.create(1,1);
 
     parameters_input = NULL;
+
+    ticks_count = 0;
+}
+
+void Ears::resetTicksCount() {
+    ticks_count = 0;
 }
 
 
@@ -138,20 +144,19 @@ void Ears::predict_wavfile(const char *wav_in_filename,
 {
     in_filename.assign(wav_in_filename);
     audio_input->updControl("SoundFileSource/gextract_src/mrs_string/filename", in_filename);
+    // must be done after setting the filename!
+    stabilizingDelay = net->getctrl("mrs_natural/onStabilizingDelay")->to<mrs_natural>();
+
     get_info_file(wav_in_filename);
     ActionsFile *cats_out = new ActionsFile(cats_out_filename);
     cats_out->comment("wav_in_filename");
 
-    unsigned int ticks = 0;
+    ticks_count = 0;
     while (audio_input->getctrl("SoundFileSource/gextract_src/mrs_bool/hasData")->isTrue())
     {
         net->tick();
-        realvec data =
-            net->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
-        //cout << currentlyPlaying << '\t' << data(0,0) << endl;
-        unsigned int cat = data(0,0);
-        cats_out->category(ticks*dh, cat);
-        ticks++;
+        ticks_count++;
+        cats_out->category(ticks_count*dh, getClass());
     }
     delete cats_out;
 //zz
@@ -233,6 +238,7 @@ void Ears::listen(double *audio) {
     }
     audio_input->updControl("RealvecSource/gextract_src/mrs_realvec/data", audio_input);
     net->tick();
+    ticks_count++;
 }
 
 void Ears::listenShort(short *audio) {
@@ -248,6 +254,7 @@ void Ears::listenShort(short *audio) {
     //cout<<audio_input->getControl("mrs_natural/onSamples")->to<mrs_natural>()<<endl;
     //cout<<"going to tick"<<endl;
     net->tick();
+    ticks_count++;
     //cout<<"ticked"<<endl;
 
     /*
@@ -263,11 +270,12 @@ void Ears::listenShort(short *audio) {
 
 
 int Ears::getClass() {
-// classifier predictions
-    realvec data =
-        net->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
-    //cout << currentlyPlaying << '\t' << data(0,0) << endl;
-    return (int)data(0,0);
+    if (ticks_count > stabilizingDelay) {
+        realvec data = net->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
+        return data(0,0);
+    } else {
+        return CATEGORY_NULL;
+    }
 }
 
 double Ears::string_finger_freq(double st, double finger) {
@@ -288,6 +296,7 @@ bool Ears::tick_file() {
         }
 
         net->tick();
+        ticks_count++;
         return true;
     } else {
         return false;
@@ -295,6 +304,7 @@ bool Ears::tick_file() {
 }
 
 void Ears::processFile() {
+    ticks_count = 0;
     while (audio_input->getctrl("SoundFileSource/gextract_src/mrs_bool/hasData")->isTrue())
     {
         string currentlyPlaying =
@@ -315,6 +325,7 @@ void Ears::processFile() {
         */
 
         net->tick();
+        ticks_count++;
     }
 }
 
@@ -570,6 +581,7 @@ void Ears::make_net() {
     net->addMarSystem(mng.create("SoundFileSink", "dest"));
     net->updControl("SoundFileSink/dest/mrs_string/filename", "marsyas.wav");
     */
+
     net->addMarSystem(audio_features);
 
 #ifdef INCLUDE_PITCH
@@ -634,6 +646,7 @@ void Ears::make_net() {
     // make sure everything is hooked up.
     net->update();
 
+    stabilizingDelay = net->getctrl("mrs_natural/onStabilizingDelay")->to<mrs_natural>();
 // for debug
     //net->put_html(std::cout);
 }

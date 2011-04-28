@@ -23,14 +23,14 @@ public:
     void wait(double seconds);
     void skipStart(double seconds);
     void skipStop(double seconds);
-    void finger(double seconds, unsigned int string_number,
+    void finger(double seconds, int string_number,
                 double position);
-    void pluck(double seconds, unsigned int string_number,
+    void pluck(double seconds, int string_number,
                double position, double force);
-    void bow(double seconds, unsigned int string_number,
+    void bow(double seconds, int string_number,
              double position, double force, double velocity);
 
-    void category(double seconds, unsigned int category);
+    void category(double seconds, int category);
     // writes buffer to file immediately
     void comment(const char *text);
 
@@ -54,7 +54,7 @@ private:
     typedef struct {
         ActionType type;
         double seconds;
-        unsigned int string_number;
+        int string_number;
         double position;
         double force;
         double velocity;

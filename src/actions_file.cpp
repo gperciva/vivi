@@ -49,7 +49,7 @@ void ActionsFile::skipStop(double seconds) {
     index++;
 }
 
-void ActionsFile::finger(double seconds, unsigned int string_number,
+void ActionsFile::finger(double seconds, int string_number,
                          double position)
 {
     if ((index + 1) >= size) {
@@ -64,7 +64,7 @@ void ActionsFile::finger(double seconds, unsigned int string_number,
     index++;
 }
 
-void ActionsFile::category(double seconds, unsigned int category)
+void ActionsFile::category(double seconds, int category)
 {
     if ((index + 1) >= size) {
         writeBuffer();
@@ -77,7 +77,7 @@ void ActionsFile::category(double seconds, unsigned int category)
     index++;
 }
 
-void ActionsFile::pluck(double seconds, unsigned int string_number,
+void ActionsFile::pluck(double seconds, int string_number,
                         double position, double force)
 {
     if ((index + 1) >= size) {
@@ -93,7 +93,7 @@ void ActionsFile::pluck(double seconds, unsigned int string_number,
     index++;
 }
 
-void ActionsFile::bow(double seconds, unsigned int string_number,
+void ActionsFile::bow(double seconds, int string_number,
                       double position, double force, double velocity)
 {
     if ((index + 1) >= size) {

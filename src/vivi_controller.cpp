@@ -266,16 +266,18 @@ inline void ViviController::hop(unsigned int num_samples) {
     ears[m_st][m_dyn]->listenShort(buf);
     int cat = ears[m_st][m_dyn]->getClass();
     // TODO: sort out this conditional
-    if (m_velocity_cutoff_force_adj > 0) {
-        if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
-            // adjust bow force
-            actions.bow_force *= pow(m_K, 2-cat);
-            actions_file->category(total_samples*dt, cat);
-        }
-    } else {
-        if (actions.bow_velocity < m_velocity_cutoff_force_adj) {
-            actions.bow_force *= pow(m_K, 2-cat);
-            actions_file->category(total_samples*dt, cat);
+    if (cat != CATEGORY_NULL) {
+        if (m_velocity_cutoff_force_adj > 0) {
+            if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
+                // adjust bow force
+                actions.bow_force *= pow(m_K, 2-cat);
+                actions_file->category(total_samples*dt, cat);
+            }
+        } else {
+            if (actions.bow_velocity < m_velocity_cutoff_force_adj) {
+                actions.bow_force *= pow(m_K, 2-cat);
+                actions_file->category(total_samples*dt, cat);
+            }
         }
     }
 
