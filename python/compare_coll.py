@@ -3,13 +3,10 @@
 from PyQt4 import QtGui, QtCore
 import examine_widget_gui
 import check_coll
-import coll_table
+import table_play_widget
 
 import utils
 import shared
-
-#import string_train_widget
-#import levels
 
 class CompareColl(QtGui.QFrame):
 	def __init__(self):
@@ -27,8 +24,10 @@ class CompareColl(QtGui.QFrame):
 
 ##		self.ui.check_collection_button.clicked.connect(self.show_string)
 #		self.ui.basic_train_button.clicked.connect(self.basic_train)
-		self.table = coll_table.CollTable(self,
-			["filename", "stars"])
+		self.table = table_play_widget.TablePlayWidget(self,
+			["cat", "stars"])
+		self.table.setColumnWidth(0, 40)
+		self.table.setColumnWidth(1, 360)
 
 		self.ui.verticalLayout.addWidget(
 			self.table)
@@ -36,8 +35,7 @@ class CompareColl(QtGui.QFrame):
 		self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
 		self.table.action_play.connect(self.table_play)
-		#self.table.action_train.connect(self.table_train)
-		#self.table.action_info.connect(self.table_info)
+		self.table.itemSelectionChanged.connect(self.selection_changed)
 
 	def set_string_train(self, string_train):
 		self.string_train = string_train
@@ -65,7 +63,7 @@ class CompareColl(QtGui.QFrame):
 			table_item.setTextAlignment(QtCore.Qt.AlignCenter)
 			self.table.setItem(i, 0, table_item)
 			table_item = QtGui.QTableWidgetItem(datum[1])
-			table_item.setFont(QtGui.QFont("Andale Mono"))
+			table_item.setFont(QtGui.QFont("Andale Mono",7))
 			self.table.setItem(i, 1, table_item)
 		self.setFocus()
 		self.show()
@@ -108,13 +106,6 @@ class CompareColl(QtGui.QFrame):
 			wavfile = self.data[row][2]
 			utils.play(wavfile)
 
-	def table_train(self):
-		row = self.table.currentRow()
-		if row >= 0:
-			wavfile = self.data[row][2]
-			self.string_train.set_note_label(self.ui.note_label)
-			self.string_train.retrain(self.st, self.dyn, wavfile)
-
 	def table_delete_row(self):
 		row = self.table.currentRow()
 		if row >= 0:
@@ -145,9 +136,19 @@ class CompareColl(QtGui.QFrame):
 			self.table_play()
 		elif key == 'd':
 			self.table_delete_row()
-		elif (key >= '0') and (key <= '9'):
-			self.string_train.opinion(key)
 		else:
 			QtGui.QFrame.keyPressEvent(self, event)
+
+	def get_selected_filename(self):
+		row = self.table.currentRow()
+		col = self.table.currentColumn()
+
+	def selection_changed(self):
+		print "new selection"
+		row = self.table.currentRow()
+		col = self.table.currentColumn()
+		wavfile = self.data[row][2]
+		shared.examine_main.load_file(wavfile)
+		shared.examine_main.load_note("")
 
 

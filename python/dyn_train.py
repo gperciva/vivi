@@ -336,9 +336,9 @@ class DynTrain(QtGui.QFrame):
 			return self.basic_train_end()
 		params = shared.AudioParams(
 			self.st, train_params[1],
-			shared.dynamics.get_distance(self.dyn),
+			shared.dyns.get_distance(self.dyn),
 			train_params[0],
-			shared.dynamics.get_velocity(self.dyn))
+			shared.dyns.get_velocity(self.dyn))
 
 		self.train_filename = shared.files.make_audio_filename(params)
 		physical = self.dyn_backend.get_physical_params(params)
@@ -358,7 +358,6 @@ class DynTrain(QtGui.QFrame):
 		shared.judge.display(show=False)
 
 	def judged_cat(self, cat):
-		print "judged cat"
 		if cat >= 0:
 			self.coll.add_item(self.train_filename,
 				collection.categories[cat-1])
@@ -366,10 +365,10 @@ class DynTrain(QtGui.QFrame):
 				self.judged_main_num += 1
 				self.set_modified()
 		else:
-			os.remove(self.train_filename)
-			os.remove(self.train_filename.replace(".wav",
-				".actions"))
+			os.remove(self.train_filename+".wav")
+			os.remove(self.train_filename+".actions")
 			self.basic_train_end()
+			return
 		if self.state.job_type == STATE_BASIC_TRAINING:
 				self.basic_train_next()
 		else:

@@ -29,14 +29,14 @@ def play(filename, start=None, length=None):
 #	print cmd
 	os.system(cmd)
 
-def visualize_cats(cats, length=8):
-	cats_string = ''
-	for c in cats:
-		stars = int(round(c*length))
-		cats_string += '*'*stars
-		cats_string += ' '*(length-stars)
-		cats_string += ' '*(length/4)
-	return cats_string
+#def visualize_cats(cats, length=8):
+#	cats_string = ''
+#	for c in cats:
+#		stars = int(round(c*length))
+#		cats_string += '*'*stars
+#		cats_string += ' '*(length-stars)
+#		cats_string += ' '*(length/4)
+#	return cats_string
 
 def midi2freq(note):
 	freq = 440.0*pow(2,(note-69)/12.0)

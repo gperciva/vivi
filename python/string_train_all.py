@@ -63,12 +63,12 @@ class StringTrainAll(QtGui.QFrame):
 			if basic_min_level > level:
 				basic_min_level = level
 		if basic_min_level == string_train.NUM_DYNS:
-			return False
+			return -1
 		return basic_min_level
 
 	def basic_train(self):
 		basic_min_level = self.get_basic_train_level()
-		if not basic_min_level:
+		if basic_min_level < 0:
 			return
 		jobs = []
 		for st in range(NUM_STRINGS):

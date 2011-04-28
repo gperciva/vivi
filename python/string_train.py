@@ -7,7 +7,7 @@ import dyn_train
 
 #import ears
 import vivi_controller
-#import utils
+import utils
 
 import state
 

@@ -45,7 +45,8 @@ class CheckColl:
 				continue
 			splitline = line.split()
 			cat = int( splitline[2].rstrip() )
-			cats[cat] += 1
+			if cat != shared.vivi_controller.CATEGORY_NULL:
+				cats[cat] += 1
 			self.total_count += 1
 
 #		while self.listen.tick_file():
@@ -58,15 +59,19 @@ class CheckColl:
 		for i in range(len(cats)):
 			cats[i] /= cats_sum
 		#print cats
-		datum = (str(user_cat), self.visualize_cats(cats,10),
+		datum = (str(user_cat), self.visualize_cats(cats,user_cat-1,10),
 			wavfile, cats)
 		self.data.append(datum)
 
-	def visualize_cats(self, cats, length=8):
+	def visualize_cats(self, cats, target, length=8):
 		cats_string = ''
-		for c in cats:
+		for i,c in enumerate(cats):
+			if i == target:
+				sym = '-'
+			else:
+				sym = '*'
 			stars = int(round(c*length))
-			cats_string += '*'*stars
+			cats_string += sym*stars
 			cats_string += ' '*(length-stars)
 			cats_string += ' '*(length/4)
 		return cats_string

@@ -3,16 +3,19 @@
 import os
 import shared  # for AudioParams
 
-# TODO: organize cache dir into subdirs!
 class TrainingDir:
 	""" convenience class for training directory. """
 	def __init__(self, training_dirname, cache_dirname):
-		if not os.path.isdir(training_dirname):
-			os.makedirs(training_dirname)
-		self.dir = training_dirname
-		if not os.path.isdir(cache_dirname):
-			os.makedirs(cache_dirname)
-		self.cache_dir = cache_dirname
+		def ensure_dir_exists(x):
+			if not os.path.isdir(x):
+				os.makedirs(x)
+		map(ensure_dir_exists, [training_dirname] +
+							   map(lambda(x): os.path.join(cache_dirname, x),
+						 	       ["", "final", "inter", "works"]))
+		self.train_dir = training_dirname
+		self.final_dir = os.path.join(cache_dirname, "final")
+		self.inter_dir = os.path.join(cache_dirname, "inter")
+		self.works_dir = os.path.join(cache_dirname, "works")
 
 	def get_basename(self, st, cats_type, dyn):
 		if cats_type == 'main':
@@ -23,28 +26,28 @@ class TrainingDir:
 
 	def get_mf_filename(self, st, cats_type, dyn):
 		""" marsyas collection .mf file. """
-		filename = os.path.join(self.dir,
+		filename = os.path.join(self.train_dir,
 			self.get_basename(st, cats_type, dyn)
 			+ 'mf')
 		return filename
 
 	def get_arff_filename(self, st, cats_type, dyn):
 		""" weka training .arff file. """
-		filename = os.path.join(self.cache_dir,
+		filename = os.path.join(self.inter_dir,
 			self.get_basename(st, cats_type, dyn)
 			+ 'arff')
 		return filename
 
 	def get_mpl_filename(self, st, cats_type, dyn):
 		""" saved MarSystems (for training) .mpl file. """
-		filename = os.path.join(self.cache_dir,
+		filename = os.path.join(self.final_dir,
 			self.get_basename(st, cats_type, dyn)
 			+ 'mpl')
 		return filename
 
 	def get_dyn_data_filename(self, st, dyn):
 		""" trained dynamic .data file. """
-		filename = os.path.join(self.cache_dir,
+		filename = os.path.join(self.final_dir,
 			self.get_basename(st, 'main', dyn)
 			+ 'data')
 		return filename
@@ -68,17 +71,17 @@ class TrainingDir:
 	def make_stable_filename(self, params, K, count):
 		""" .wav file for automatic training of stable K."""
 		basename = self.basename_params("stable", params, K, count)
-		return os.path.join(self.cache_dir, basename)
+		return os.path.join(self.works_dir, basename)
 
 	def make_attack_filename(self, params, count):
 		""" .wav file for automatic training of initial Fb."""
 		basename = self.basename_params("attack", params, count)
-		return os.path.join(self.cache_dir, basename)
+		return os.path.join(self.works_dir, basename)
 
 	def make_audio_filename(self, params):
 		""" audio .wav file. """
 		basename = self.basename_params("audio", params)
-		filename = os.path.join(self.dir, basename)
+		filename = os.path.join(self.works_dir, basename)
 		return filename
 
 	def get_audio_params(self, filename):
@@ -107,7 +110,7 @@ class TrainingDir:
 			params.bow_force,
 			params.bow_velocity)
 		count = 0
-		potential_filename = os.path.join(self.dir, base_basename)
+		potential_filename = os.path.join(self.works_dir, base_basename)
 		while os.path.exists(potential_filename+'%04i'%count+'.wav'):
 			count += 1
 			if count >= 1000:
@@ -116,4 +119,7 @@ class TrainingDir:
 		filename = potential_filename + ('%04i' % count) + '.wav'
 		return filename
 
+	def move_works_to_train(self, src):
+		dest = src.replace(self.works_dir, self.train_dir)
+		os.rename(src, dest)
 

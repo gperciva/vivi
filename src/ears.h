@@ -20,7 +20,7 @@ const unsigned int EARS_HOPSIZE = 256;
 // needs to be at least 1024 for yin pitch
 const unsigned int EARS_WINDOWSIZE = 1024;
 
-const unsigned int CATEGORY_NULL = -1;
+const int CATEGORY_NULL = -1;
 
 
 const unsigned int SAMPLE_RATE = 44100;
