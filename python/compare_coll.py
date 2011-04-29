@@ -36,11 +36,15 @@ class CompareColl(QtGui.QFrame):
 		self.string_train = string_train
 
 	def display(self):
-		text = utils.st_to_text(self.st)
-		label = text+" string"
+		text = utils.st_to_text(self.st) + " string "
+		self.ui.string_label.setText(text)
+
 		text = utils.dyn_to_text(self.dyn)
-		label += "  " + text
-		self.ui.label.setText(str(label + "%.2f%%"%(self.accuracy)))
+		self.ui.dyn_label.setText(text)
+
+		self.ui.examine_type_label.setText("collection")
+
+#		self.ui.label.setText(str(label + "%.2f%%"%(self.accuracy)))
 
 	def compare(self, st, dyn, accuracy, coll):
 		self.st = st

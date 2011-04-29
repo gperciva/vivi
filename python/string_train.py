@@ -139,8 +139,7 @@ class StringTrain(QtGui.QFrame):
 		dyn = utils.level_to_dyn(level)
 		jobs[dyn] = 1
 		self.state.prep(state.BASIC_TRAINING, jobs)
-		self.dyns[dyn].basic_prep()
-		return 1
+		return self.dyns[dyn].basic_prep()
 
 #	def has_level(self, level):
 #		for di in range(4):

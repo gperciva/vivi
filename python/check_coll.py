@@ -26,10 +26,8 @@ class CheckColl:
 		compare_cat = user_cat-1
 		cats = [0]*5
 
-		# TODO: need to generalize
-		cat_out = wavfile.replace(".wav", ".cats")
-		cat_out = cat_out.replace("train/", "cache/")
-		cat_lines = open(cat_out).readlines()
+		cat_out = shared.files.get_cats_name(wavfile[0:-4])
+		cat_lines = open(cat_out+'.cats').readlines()
 		for line in cat_lines:
 			if line[0] == '#':
 				continue
@@ -38,9 +36,14 @@ class CheckColl:
 			if cat != shared.vivi_controller.CATEGORY_NULL:
 				cats[cat] += 1
 
+		# TODO: ick, why is this necessary?
 		cats_sum = float(sum(cats))
-		for i in range(len(cats)):
-			cats[i] /= cats_sum
+		if cats_sum > 0:
+			for i in range(len(cats)):
+				cats[i] /= cats_sum
+		else:
+			for i in range(len(cats)):
+				cats[i] = 0.0
 		#print cats
 		datum = (str(user_cat), self.visualize_cats(cats,user_cat-1,10),
 			wavfile, cats)

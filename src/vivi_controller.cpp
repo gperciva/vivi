@@ -31,6 +31,7 @@ ViviController::ViviController() {
 
     wavfile = NULL;
     actions_file = NULL;
+	cats_file = NULL;
     for (unsigned int i=0; i<NUM_STRINGS; i++) {
         for (unsigned int j=0; j<NUM_DYNAMICS; j++) {
             ears[i][j] = NULL;
@@ -103,6 +104,10 @@ void ViviController::filesClose() {
         delete actions_file;
         actions_file = NULL;
     }
+    if (cats_file != NULL) {
+        delete cats_file;
+        cats_file = NULL;
+    }
 }
 
 
@@ -117,6 +122,10 @@ bool ViviController::filesNew(const char *filenames_base) {
     filename.assign(filenames_base);
     filename.append(".actions");
     actions_file = new ActionsFile(filename.c_str());
+	// cats file
+    filename.assign(filenames_base);
+    filename.append(".cats");
+    cats_file = new ActionsFile(filename.c_str());
     // update positions
     total_samples = 0;
     return true;
@@ -216,6 +225,7 @@ void ViviController::note(PhysicalActions actions_get,
     sprintf(note_search_params, "note\tst %i\tdyn %i\tfinger_midi %.3f",
             m_st, m_dyn, actions.finger_position);
     actions_file->comment(note_search_params);
+    cats_file->comment(note_search_params);
 
 
     note_samples = 0;
@@ -281,12 +291,16 @@ inline void ViviController::hop(unsigned int num_samples) {
             if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
                 // adjust bow force
                 actions.bow_force *= pow(m_K, 2-cat);
-                actions_file->category(total_samples*dt, cat);
-            }
+                cats_file->category(total_samples*dt, cat);
+            } else {
+                cats_file->category(total_samples*dt, CATEGORY_NULL);
+			}
         } else {
             if (actions.bow_velocity < m_velocity_cutoff_force_adj) {
                 actions.bow_force *= pow(m_K, 2-cat);
-                actions_file->category(total_samples*dt, cat);
+                cats_file->category(total_samples*dt, cat);
+            } else {
+                cats_file->category(total_samples*dt, CATEGORY_NULL);
             }
         }
     }

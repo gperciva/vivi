@@ -28,19 +28,26 @@ class ExamineAutoWidget(QtGui.QFrame):
 	def examine(self, type, st, dyn):
 		self.st = st
 		self.dyn = dyn
-		self.ui.label.setText("Examining: type %s   string %i   dynamic %i"
-			% (type, st, dyn))
+
+		text = utils.st_to_text(self.st) + " string "
+		self.ui.string_label.setText(text)
+
+		text = utils.dyn_to_text(self.dyn)
+		self.ui.dyn_label.setText(text)
+
 
 		if type == "stable":
 			self.setup_stable()
-			
+			self.ui.examine_type_label.setText("stable")
+
 		self.show()
 
 
 	def setup_stable(self):
 		bbd = shared.dyns.get_distance(self.dyn)
 		bv = shared.dyns.get_velocity(self.dyn)
-		files = glob.glob("auto/stable_%i_0.000_%.3f_?????_%.3f_*.wav"
+		# FIXME: use training dir for this!
+		files = glob.glob("cache/works/stable_%i_0.000_%.3f_?????_%.3f_*.wav"
 			% (self.st, bbd, bv))
 		files.sort()
 
@@ -75,9 +82,8 @@ class ExamineAutoWidget(QtGui.QFrame):
 		#self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
 		self.table.action_play.connect(self.table_play)
-		self.table.action_train.connect(self.table_train)
-		self.table.clear_select.connect(self.clear_select)
-		self.table.select_cell.connect(self.select_plot)
+		self.table.select_previous.connect(self.clear_select)
+		self.table.select_new.connect(self.select_plot)
 
 		num_rows = len(files)/3
 		self.table.clearContents()
@@ -98,7 +104,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 				for k, filename in enumerate(counts):
 					for fm in range(3):
 						examine = examine_note_widget.ExamineNoteWidget()
-						examine.load_file(filename)
+						examine.load_file(filename[0:-4])
 						to_find = "finger_midi_index %i" % fm
 						examine.load_note(to_find)
 						col = 3*i+fm
@@ -144,7 +150,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 		col = self.table.currentColumn()
 		if row >= 0 and col >= 0:
 			examine = self.examines[row][col]
-			return examine.examine_note.wavfile, examine.examine_note.note_text
+			return examine.examine_note.basename, examine.examine_note.note_text
 		return None
 
 #	def keyPressEvent(self, event):

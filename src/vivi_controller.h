@@ -53,6 +53,7 @@ private:
     // optional (maybe?  TODO: check)
     MonoWav *wavfile;
     ActionsFile *actions_file;
+    ActionsFile *cats_file;
     Ears *ears[NUM_STRINGS][NUM_DYNAMICS];
 
 

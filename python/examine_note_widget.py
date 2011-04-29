@@ -29,61 +29,21 @@ class ExamineNoteWidget():
 
 	def load_file(self, filename):
 		self.examine_note.load_file(filename)
-		# FIXME: debug only
-		#self.plot_actions.set_data(
-		#	self.examine_note.note_forces,
-		#	self.examine_note.note_cats_out,
-		#)
 
-	# old function
-	#def load_note(self, lily_line, lily_col):
-	#	status = self.examine_note.load_note(lily_line, lily_col)
 	def load_note(self, text):
 		status = self.examine_note.load_note(text)
 		if status:
 			self.plot_actions.set_data(
-				self.examine_note.note_force_cat
+				self.examine_note.note_forces,
+				self.examine_note.note_cats,
 				)
 		else:
 			self.note_label.setText("Not a rehearsed note!")
 		return status
 
-	def showHelp(self, text):
-		self.note_label.setText(text)
-
-	def show_note_info(self):
-		disp = ''
-		disp += "Note: st %i\tfinger %.3f\t\t\t" %(
-			self.examine_note.note_st,
-			self.examine_note.note_finger)
-		disp += "  pos %.3f\tvel %.3f\n" %(
-			self.examine_note.note_pos,
-			self.examine_note.note_vel)
-
-#		disp += "\n"
-#		disp += utils.visualize_cats(
-#			self.examine_note.note_cats_out, 20)
-#		disp += "\n"
-#		disp += utils.visualize_cats(
-#			self.examine_note.note_cats_in, 20)
-#		disp += "\n"
-#
-#		disp += "forces (unsorted):"
-#		for i in range(len(self.examine_note.note_forces)):
-#			f = self.examine_note.note_forces[i]
-#			if (i % 16) == 0:
-#				disp += '\n'
-#			disp += "  %.2f" % (f)
-		#disp += '\n'
-		#disp += "median force: %.3f" % self.examine_note.note_force_median
-		self.note_label.setText(disp)
-
-	def opinion(self, cat):
-		self.examine_note.opinion(cat)
-
 	def play(self):
-		print "examine note widget play", self.examine_note.wavfile
-		if not self.examine_note.wavfile:
+		print "examine note widget play", self.examine_note.basename
+		if not self.examine_note.basename:
 			return
 		if self.plot_actions.has_selection():
 			print "has selection"
@@ -94,7 +54,7 @@ class ExamineNoteWidget():
 		else:
 			start = self.examine_note.note_start
 			dur = self.examine_note.note_length
-		utils.play(self.examine_note.wavfile,
+		utils.play(self.examine_note.basename+'.wav',
 			start, dur)
 
 	def get_zoom_seconds(self):

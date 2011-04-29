@@ -149,14 +149,14 @@ void Ears::predict_wavfile(const char *wav_in_filename,
 
     get_info_file(wav_in_filename);
     ActionsFile *cats_out = new ActionsFile(cats_out_filename);
-    cats_out->comment("wav_in_filename");
+    cats_out->comment(wav_in_filename);
 
     ticks_count = 0;
     while (audio_input->getctrl("SoundFileSource/gextract_src/mrs_bool/hasData")->isTrue())
     {
         net->tick();
-        ticks_count++;
         cats_out->category(ticks_count*dh, getClass());
+        ticks_count++;
     }
     delete cats_out;
 //zz

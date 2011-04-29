@@ -111,17 +111,26 @@ class TrainingDir:
 			params.bow_velocity)
 		count = 0
 		potential_filename = os.path.join(self.works_dir, base_basename)
+		# resolve any "hash" collisions
+		# FIXME: this doesn't work with cache dir!
 		while os.path.exists(potential_filename+'%04i'%count+'.wav'):
 			count += 1
 			if count >= 1000:
 				print "Vivi error: training_dir: 999 files with same params!"
 				break
-		filename = potential_filename + ('%04i' % count) + '.wav'
+		filename = potential_filename + ('%04i' % count)
 		return filename
 
 	def move_works_to_train(self, src):
 		dest = src.replace(self.works_dir, self.train_dir)
 		os.rename(src+'.wav', dest+'.wav')
 		os.rename(src+'.actions', dest+'.actions')
+		return dest
+
+	def get_cats_name(self, filename):
+		if filename.startswith(self.train_dir):
+			dest = filename.replace(self.train_dir, self.works_dir)
+		else:
+			dest = filename
 		return dest
 

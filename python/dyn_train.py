@@ -316,8 +316,7 @@ class DynTrain(QtGui.QFrame):
 
 	def basic_prep(self):
 		if self.basic_trained:
-			self.process_step.emit()
-			return
+			return 0
 		num_steps = 1
 		self.state.prep(state.BASIC_TRAINING, [num_steps])
 		return num_steps
@@ -367,10 +366,11 @@ class DynTrain(QtGui.QFrame):
 		else:
 			os.remove(self.train_filename+".wav")
 			os.remove(self.train_filename+".actions")
-			self.basic_train_end()
-			return
 		if self.state.job_type == state.BASIC_TRAINING:
-			self.basic_train_next()
+			if cat >= 0:
+				self.basic_train_next()
+			else:
+				self.basic_train_end()
 		else:
 			self.train_over()
 
@@ -550,10 +550,11 @@ class DynTrain(QtGui.QFrame):
 		self.train_filename = wavfile
 		shared.judge.judged_cat.connect(self.judged_cat)
 		shared.judge.display()
-		shared.judge.user_judge(wavfile[0:-4])
+		shared.judge.user_judge(wavfile)
 
 	def delete_file(self, filename):
 		self.coll.delete(filename+'.wav')
+		self.judged_main_num = self.coll.num_main()
 		self.set_modified()
 		self.display()
 

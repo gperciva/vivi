@@ -14,9 +14,9 @@ class PlotActions(QtGui.QWidget):
 		self.mouse_x_end = -1
 		self.highlight(False)
 
-	def set_data(self, force_cat):
-		self.forces = [x[0] for x in force_cat]
-		self.cats = [x[1] for x in force_cat]
+	def set_data(self, forces, cats):
+		self.forces = [x[1] for x in forces]
+		self.cats = [x[1] for x in cats]
 		self.mouse_x_begin = -1
 		self.mouse_x_end = -1
 		self.update()
@@ -94,14 +94,16 @@ class PlotActions(QtGui.QWidget):
 		prev_x = left_margin
 		prev_y = self.forces[0]*yscale + yoffset
 		for i, force in enumerate(self.forces):
-			cat = self.cats[i]
-
 			x = i*xscale + left_margin
 			y = self.forces[i]*yscale + yoffset
 			painter.setPen(QtCore.Qt.black)
 			painter.drawLine(prev_x, prev_y, x, y)
 			prev_x = x
 			prev_y = y
+
+		for i, cat in enumerate(self.cats):
+			x = i*xscale + left_margin
+			y = self.forces[i]*yscale + yoffset
 
 			if (cat == 0) or (cat == 4):
 				direction = (2-cat)/2
@@ -111,6 +113,8 @@ class PlotActions(QtGui.QWidget):
 				direction = 2-cat
 				painter.setPen(QtCore.Qt.blue)
 				self.arrow(painter, x, y, direction)
+			prev_x = x
+			prev_y = y
 
 	def arrow(self, painter, x, y, direction):
 		painter.drawLine(x, y, x+2, y+direction*10)

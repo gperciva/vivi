@@ -137,9 +137,7 @@ class DynBackend(QtCore.QThread):
 		self.ears.set_predict_wavfile(mpl_filename)
 		for pair in self.coll_accuracy.coll:
 			filename = pair[0]
-			# TODO: replace with something in training_dir
-			cat_out = filename.replace(".wav", ".cats")
-			cat_out = cat_out.replace("train/", "cache/")
+			cat_out = shared.files.get_cats_name(filename[0:-4])+'.cats'
 			#
 			self.ears.predict_wavfile(filename, cat_out)
 			self.process_step.emit()
@@ -186,7 +184,7 @@ class DynBackend(QtCore.QThread):
 
 					self.controller.filesNew(stable_filename)
 					for fmi, finger_midi in enumerate(shared.basic_training.finger_midis):
-						self.controller.comment("stable note, st %i dyn %i finger_midi_index %i finger_midi %.3f"
+						self.controller.comment("stable st %i dyn %i finger_midi_index %i finger_midi %.3f"
 							% (self.st, self.dyn, fmi, finger_midi))
 						self.make_stable(K, count, bow_force, finger_midi, bow_direction)
 						bow_direction *= -1
