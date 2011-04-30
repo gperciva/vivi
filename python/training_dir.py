@@ -2,6 +2,7 @@
 """ Manipulating files in the training directory. """
 import os
 import shared  # for AudioParams
+import glob # for lists of files and dyns
 
 class TrainingDir:
 	""" convenience class for training directory. """
@@ -111,9 +112,10 @@ class TrainingDir:
 			params.bow_velocity)
 		count = 0
 		potential_filename = os.path.join(self.works_dir, base_basename)
+		train_dir_filrname = os.path.join(self.train_dir, base_basename)
 		# resolve any "hash" collisions
-		# FIXME: this doesn't work with cache dir!
-		while os.path.exists(potential_filename+'%04i'%count+'.wav'):
+		while ( os.path.exists(potential_filename+'%04i'%count+'.wav') or
+				os.path.exists(train_dir_filename+'%04i'%count+'.wav')):
 			count += 1
 			if count >= 1000:
 				print "Vivi error: training_dir: 999 files with same params!"
@@ -133,4 +135,13 @@ class TrainingDir:
 		else:
 			dest = filename
 		return dest
+
+	def get_stable_files(self, st, dyn):
+		bbd = shared.dyns.get_distance(dyn)
+		bv  = shared.dyns.get_velocity(dyn)
+		filename_pattern = str("stable_%i_0.000_%.3f_?????_%.3f_*.wav"
+			% (st, bbd, bv))
+		files = glob.glob(os.path.join(self.works_dir, filename_pattern))
+		files.sort()
+		return files
 

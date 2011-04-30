@@ -18,6 +18,8 @@ import operator
 import math
 import scipy
 
+import os
+
 CALCULATE_TRAINING = 1
 CHECK_ACCURACY = 2
 LEARN_ATTACKS = 3
@@ -25,10 +27,10 @@ LEARN_STABLE = 4
 
 ATTACK_FORCE_STEPS = 10
 
-STABLE_STEPS = 3
+STABLE_STEPS = 5
 STABLE_REPS = 3
-STABLE_MIN = 1.00
-STABLE_MAX = 1.20
+STABLE_MIN = 1.01
+STABLE_MAX = 1.50
 
 from PyQt4 import QtCore
 
@@ -167,6 +169,10 @@ class DynBackend(QtCore.QThread):
 			self.st, 'main', self.dyn)
 		self.controller.load_ears_training(self.st, self.dyn,
 			mpl_filename)
+
+		oldfiles = shared.files.get_stable_files(self.st, self.dyn)
+		for filename in oldfiles:
+			os.remove(filename)
 
 		for K in scipy.linspace(STABLE_MIN, STABLE_MAX, STABLE_STEPS):
 			# start counting at 1 due to "if 0" in training_dir

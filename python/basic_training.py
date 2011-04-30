@@ -47,14 +47,18 @@ class Basic:
 
 	def get_between(self, forces, cats, cat):
 		combo = zip(forces, cats)
+		# FIXME: what to do about judgdments of "unknown"?
 		higher = map(lambda(x):x[0],
 				filter(lambda(x):x[1]>cat, combo))
 		lower = map(lambda(x):x[0],
 				filter(lambda(x):x[1]<cat, combo))
+		#print higher, lower
 		mean = (min(higher) + max(lower)) / 2.0
 		return mean
 
 	def get_missing_force(self, forces, cats):
+		#print forces
+		#print cats
 		### start in the "middle-ish"
 		if not forces:
 			return 1.0

@@ -17,6 +17,9 @@ const double DH = EARS_HOPSIZE * dt;
 const double BASIC_VELOCITY_STDDEV = 0.02;
 const double BASIC_FORCE_STDDEV = 0.02;
 
+// used elsewhere
+const double MIN_VELOCITY_FACTOR = 0.9;
+
 
 ViviController::ViviController() {
 
@@ -214,7 +217,7 @@ void ViviController::note(PhysicalActions actions_get,
     actions.bow_bridge_distance = actions_get.bow_bridge_distance;
     // don't copy bow_velocity!
     m_velocity_target = actions_get.bow_velocity;
-    m_velocity_cutoff_force_adj = m_velocity_target / 2.0;
+    m_velocity_cutoff_force_adj = m_velocity_target * MIN_VELOCITY_FACTOR;
     // other setup
     m_st = actions.string_number;
     m_dyn = round(actions_get.dynamic);

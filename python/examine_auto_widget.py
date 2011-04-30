@@ -11,6 +11,10 @@ import shared
 import examine_note_widget
 import table_play_widget
 
+# FIXME: temp for debugging
+import scipy
+
+
 class ExamineAutoWidget(QtGui.QFrame):
 	select_note = QtCore.pyqtSignal()
 
@@ -44,76 +48,100 @@ class ExamineAutoWidget(QtGui.QFrame):
 
 
 	def setup_stable(self):
-		bbd = shared.dyns.get_distance(self.dyn)
-		bv = shared.dyns.get_velocity(self.dyn)
-		# FIXME: use training dir for this!
-		files = glob.glob("cache/works/stable_%i_0.000_%.3f_?????_%.3f_*.wav"
-			% (self.st, bbd, bv))
-		files.sort()
+		files = shared.files.get_stable_files(self.st, self.dyn)
 
-		self.data = {}
-		# TODO: really bad abuse of dictionaries
-		for i, datum in enumerate(files):
-			params, extra, count = shared.files.get_audio_params_extra(datum)
-			if not params.bow_force in self.data:
-				self.data[params.bow_force] = {}
-			bf = self.data[params.bow_force]
-			if not extra in bf:
-				bf[extra] = []
-			counts = bf[extra]
-			counts.append(datum)
+		# 3 notes per file, 9 notes per line
+		num_rows = 3*len(files)/9
 
-		forces_initial = self.data.keys()
-		forces_initial.sort()
+		# initialize 2d array
+		self.examines = []
+		for i in range(num_rows):
+			self.examines.append([])
+			for j in range(9):
+				examine = examine_note_widget.ExamineNoteWidget(
+					examine_note_widget.PLOT_STABLE)
+				self.examines[i].append(examine)
 
+		# variables about the files
+		finger_midi_indices= range(3)
+		self.forces_initial = []
+		self.extras = []
+		self.counts = []
+
+		# get info about the files
+		for filename in files:
+			params, extra, count = shared.files.get_audio_params_extra(filename)
+			force = params.bow_force
+			if not force in self.forces_initial:
+				self.forces_initial.append(force)
+			if not extra in self.extras:
+				self.extras.append(extra)
+			if not count in self.counts:
+				self.counts.append(count)
+
+			# and setup self.examines
+			row = 3*self.extras.index(extra) + self.counts.index(count)
+			col_base = 3*self.forces_initial.index(force)
+			for fmi in finger_midi_indices:
+				col = col_base+fmi
+#				print row, col, fmi, filename
+				self.examines[row][col].load_file(filename[0:-4])
+				to_find = "finger_midi_index %i" % fmi
+				self.examines[row][col].load_note(to_find)
+
+		# setup table and gui
 		self.table = table_play_widget.TablePlayWidget(self, [
-			str("Low: %.3f" % forces_initial[0]),
-			"", "",
-			str("Middle: %.3f" % forces_initial[1]),
-			"", "",
-			str("High: %.3f" % forces_initial[2]),
-			"", "",
+			str("Low: %.3f" % self.forces_initial[0]),
+			"low 4", "low 7",
+			str("Middle: %.3f" % self.forces_initial[1]),
+			"mid 4", "mid 7",
+			str("High: %.3f" % self.forces_initial[2]),
+			"high 4", "high 7",
 			])
 		# clear previous widget if exists
 		if self.ui.verticalLayout.count() == 2:
 			self.ui.verticalLayout.takeAt(1)
 
 		self.ui.verticalLayout.addWidget(self.table)
-		#self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
 		self.table.action_play.connect(self.table_play)
 		self.table.select_previous.connect(self.clear_select)
 		self.table.select_new.connect(self.select_plot)
 
+
 		num_rows = len(files)/3
 		self.table.clearContents()
 		self.table.setRowCount(num_rows)
-		self.examines = [None]*num_rows
+
 		for i in range(num_rows):
-			self.examines[i] = []
+			item = QtGui.QTableWidgetItem()
+			mod = i % 3 + 1
+			item.setText(str("%.2f-%i" % (self.extras[i/3], mod)))
+			self.table.setVerticalHeaderItem(i, item)
 
-		# TODO: really bad abuse of dictionaries
-		keys_bf = self.data.keys()
-		keys_bf.sort()
-		for i, bf in enumerate(keys_bf):
-			keys_extra = self.data[bf].keys()
-			keys_extra.sort()
-			for j, extra in enumerate(keys_extra):
-				counts = self.data[bf][extra]
 
-				for k, filename in enumerate(counts):
-					for fm in range(3):
-						examine = examine_note_widget.ExamineNoteWidget()
-						examine.load_file(filename[0:-4])
-						to_find = "finger_midi_index %i" % fm
-						examine.load_note(to_find)
-						col = 3*i+fm
-						row = 3*j+k
-						#print row, col
-						self.table.setCellWidget(row, col, examine.plot_actions)
-						self.table.setRowHeight(row, 600.0/9)
+		# populate table
+		for row in range(num_rows):
+			for col in range(9):
+				self.table.setCellWidget(row, col,
+					self.examines[row][col].plot_actions)
+				self.table.setRowHeight(row, 50.0)
 
-						self.examines[row].append(examine)
+		return
+		# FIXME: move this somewhere else
+		for i in range(num_rows):
+			values = []
+			muls = 1.0
+			for j in range(9):
+				val = self.examines[i][j].plot_actions.stability
+				mul = 1.0 - val
+				muls *= mul
+				values.append(val)
+			print ("%.3f\t%.3f\t%.3f" % (
+				scipy.mean(values), scipy.median(values), mul
+			))
+			if i%3 == 2:
+				print
 
 		#self.setFocus()
 		self.show()
@@ -122,7 +150,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 	def table_play(self):
 		row = self.table.currentRow()
 		col = self.table.currentColumn()
-		print "table_play:", row, col
+		#print "table_play:", row, col
 		if row >= 0 and col >= 0:
 			self.examines[row][col].play()
 
@@ -143,6 +171,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 
 	def select_plot(self, row, col):
 		self.examines[row][col].plot_actions.highlight(True)
+		#print self.examines[row][col].examine_note.basename
 		self.select_note.emit()
 
 	def get_selected_filename(self):
