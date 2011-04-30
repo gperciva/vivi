@@ -112,7 +112,7 @@ class TrainingDir:
 			params.bow_velocity)
 		count = 0
 		potential_filename = os.path.join(self.works_dir, base_basename)
-		train_dir_filrname = os.path.join(self.train_dir, base_basename)
+		train_dir_filename = os.path.join(self.train_dir, base_basename)
 		# resolve any "hash" collisions
 		while ( os.path.exists(potential_filename+'%04i'%count+'.wav') or
 				os.path.exists(train_dir_filename+'%04i'%count+'.wav')):

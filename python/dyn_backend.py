@@ -30,7 +30,7 @@ ATTACK_FORCE_STEPS = 10
 STABLE_STEPS = 5
 STABLE_REPS = 3
 STABLE_MIN = 1.01
-STABLE_MAX = 1.50
+STABLE_MAX = 1.10
 
 from PyQt4 import QtCore
 
@@ -192,6 +192,8 @@ class DynBackend(QtCore.QThread):
 					for fmi, finger_midi in enumerate(shared.basic_training.finger_midis):
 						self.controller.comment("stable st %i dyn %i finger_midi_index %i finger_midi %.3f"
 							% (self.st, self.dyn, fmi, finger_midi))
+
+
 						self.make_stable(K, count, bow_force, finger_midi, bow_direction)
 						bow_direction *= -1
 					self.controller.filesClose()

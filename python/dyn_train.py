@@ -289,11 +289,11 @@ class DynTrain(QtGui.QFrame):
 		elif job_type == state.ACCURACY:
 			self.dyn_backend.check_accuracy()
 		elif job_type == state.STABLE:
-			#low_force = min(self.get_forces(2))
-			#high_force = max(self.get_forces(4))
-			low_force = scipy.mean(self.get_forces(2))
+			low_force = min(self.get_forces(2))
+			high_force = max(self.get_forces(4))
+			#low_force = scipy.mean(self.get_forces(2))
 			middle_force = scipy.mean(self.get_forces(3))
-			high_force = scipy.mean(self.get_forces(4))
+			#high_force = scipy.mean(self.get_forces(4))
 			self.dyn_backend.learn_stable([low_force, middle_force, high_force])
 		elif job_type == state.ACCURACY:
 			self.learn_accuracy()
@@ -304,6 +304,9 @@ class DynTrain(QtGui.QFrame):
 	def finished_step(self, job_type, job_index):
 		if job_type == state.SVM:
 			self.modified_training = False
+			# FIXME: make a bunch of subsequent ones modified
+			# as well.  Change modified_foo to a generic system
+			# using ints
 		elif job_type == state.ACCURACY:
 			self.accuracy = self.dyn_backend.accuracy
 			self.modified_accuracy = False

@@ -155,10 +155,20 @@ class ExamineNote:
 		os.system(cmd)
 		# create .actions
 		out = open(filename+'.actions', 'w')
-		out.write(self.note_text)
 		out.write(self.note_prelim_line)
+		# TODO: clean this up!
+		first_seconds = -1
 		for line in self.note_lines:	
-			out.write(line)
+			splitline = line.split()
+			seconds = float(splitline[1])
+			if seconds >= start:
+				if first_seconds < 0:
+					first_seconds = seconds
+				seconds = seconds - first_seconds
+ 				if seconds <= dur:
+					splitline[1] = str(seconds)
+					done_line = "\t".join(splitline) + "\n"
+					out.write(done_line)
 		out.close()
 
 		return filename

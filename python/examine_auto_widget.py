@@ -126,6 +126,14 @@ class ExamineAutoWidget(QtGui.QFrame):
 				self.table.setCellWidget(row, col,
 					self.examines[row][col].plot_actions)
 				self.table.setRowHeight(row, 50.0)
+				if col % 3 == 0 and col > 0:
+					self.examines[row][col].plot_actions.set_border([0,0,0,1])
+				if col % 3 == 2 and col < 8:
+					self.examines[row][col].plot_actions.set_border([0,1,0,0])
+				if row % 3 == 0 and row > 0:
+					self.examines[row][col].plot_actions.set_border([1,0,0,0])
+				if row % 3 == 2 and row < 8:
+					self.examines[row][col].plot_actions.set_border([0,0,1,0])
 
 		return
 		# FIXME: move this somewhere else

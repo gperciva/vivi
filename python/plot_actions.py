@@ -13,6 +13,7 @@ class PlotActions(QtGui.QWidget):
 		self.mouse_x_begin = -1
 		self.mouse_x_end = -1
 		self.highlight(False)
+		self.border_extra = [0,0,0,0]
 
 	def set_data(self, forces, cats):
 		self.forces = [x[1] for x in forces]
@@ -66,14 +67,33 @@ class PlotActions(QtGui.QWidget):
 			self.back = QtCore.Qt.lightGray
 		self.update()
 
+	def set_border(self, border_extra):
+		for i, b in enumerate(border_extra):
+			if b==1:
+				self.border_extra[i] = 1
+			elif b==-1:
+				self.border_extra[i] = 0
+
 	def paintEvent(self, event):
 		if not self.forces:
 			return
 		painter = QtGui.QPainter(self)
+
 		# bad way of drawing the background, but I don't
 		# feel like wading through more API docs to find
 		# the right way
-		painter.fillRect(1, 1, self.width()-1, self.height()-1, self.back)
+		painter.fillRect(0, 0, self.width(), self.height(), self.back)
+
+		# draw any extra borders
+		if self.border_extra[0]:
+			painter.drawLine(0,0,self.width()-1,0)
+		if self.border_extra[1]:
+			painter.drawLine(self.width()-1,0,self.width()-1,self.height()-1)
+		if self.border_extra[2]:
+			painter.drawLine(self.width()-1,self.height()-1, 0, self.height()-1)
+		if self.border_extra[3]:
+			painter.drawLine(0, self.height()-1, 0, 0)
+
 
 		if self.has_selection():
 			self.mouseDraw(painter)

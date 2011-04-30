@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>78</width>
-    <height>155</height>
+    <height>165</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,7 +39,8 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>10</pointsize>
+       <family>Century Schoolbook L</family>
+       <pointsize>11</pointsize>
        <weight>75</weight>
        <italic>true</italic>
        <bold>true</bold>
