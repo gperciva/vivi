@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-#import collections
-
 import shared
 
 finger_midis = [0.0, 4.0, 7.0]
@@ -21,44 +19,56 @@ class Basic:
 		self.dyn = dyn
 		self.coll = coll
 
-	def get_distance_velocity(self, dyn):
-		bbd = dynamics.BOW_BRIDGE_DISTANCES[dyn]
-		bv  = dynamics.BOW_VELOCITIES[dyn]
-		return bbd, bv
-
 	def get_matching_fingers(self):
 		forces = [[],[],[]]
 		cats = [[],[],[]]
+		unknowns = [[],[],[]]
 		# "level" parameters
-		l_bbd = shared.dyns.get_distance(self.dyn)
-		l_bv  = shared.dyns.get_velocity(self.dyn)
+		bbd = shared.dyns.get_distance(self.dyn)
+		bv  = shared.dyns.get_velocity(self.dyn)
 
-		for pair in self.coll.coll:
+		for pair in self.coll.get_items(-1):
 			params = shared.files.get_audio_params(pair[0])
-			if ((abs(params.bow_bridge_distance - l_bbd) < EPSILON)
-			    and (abs(params.bow_velocity - l_bv) < EPSILON)):
+			if ((abs(params.bow_bridge_distance - bbd) < EPSILON)
+			    and (abs(params.bow_velocity - bv) < EPSILON)):
 				for i in range(3):
 					if (abs(params.finger_midi
 						- finger_midis[i]) < EPSILON):
 						cat = int(pair[1][0])
-						cats[i].append(cat)
-						forces[i].append(params.bow_force)
-		return forces, cats
+						if cat < 6:
+							cats[i].append(cat)
+							forces[i].append(params.bow_force)
+						else:
+							unknowns[i].append(params.bow_force)
+		return forces, cats, unknowns
 
-	def get_between(self, forces, cats, cat):
+	def get_between(self, forces, cats, cat, unknowns):
+		# get extremes
 		combo = zip(forces, cats)
-		# FIXME: what to do about judgdments of "unknown"?
-		higher = map(lambda(x):x[0],
+		higher_list = map(lambda(x):x[0],
 				filter(lambda(x):x[1]>cat, combo))
-		lower = map(lambda(x):x[0],
+		lower_list = map(lambda(x):x[0],
 				filter(lambda(x):x[1]<cat, combo))
-		#print higher, lower
-		mean = (min(higher) + max(lower)) / 2.0
-		return mean
+		higher = min(higher_list)
+		lower = max(lower_list)
+		# deal with unknowns
+		unknown_between = filter(lambda(x):x>lower and x<higher, unknowns)
+		# TODO: rewrite this in functional style
+		between = [lower] + unknown_between + [higher]
+		distances = []
+		for i in range(len(between)-1):
+			distance = between[i+1] - between[i]
+			distances.append(distance)
+		biggest_distance = max(distances)
+		biggest_distance_index = distances.index(biggest_distance)
 
-	def get_missing_force(self, forces, cats):
+		force = between[biggest_distance_index] + biggest_distance/2.0
+		return force
+
+	def get_missing_force(self, forces, cats, unknowns):
 		#print forces
 		#print cats
+		#print unknowns
 		### start in the "middle-ish"
 		if not forces:
 			return 1.0
@@ -69,20 +79,20 @@ class Basic:
 			return 0.5 * min(forces)
 		### fill in missing
 		if not 3 in cats:
-			return self.get_between(forces, cats, 3)
+			return self.get_between(forces, cats, 3, unknowns)
 		if not 4 in cats:
-			return self.get_between(forces, cats, 4)
+			return self.get_between(forces, cats, 4, unknowns)
 		if not 2 in cats:
-			return self.get_between(forces, cats, 2)
+			return self.get_between(forces, cats, 2, unknowns)
 		return 0
 
 	def get_next_basic(self):
-		forces, cats = self.get_matching_fingers()
+		forces, cats, unknowns = self.get_matching_fingers()
 		finger_midi = -1
 		force = -1
 		for i in range(3):
 			finger_midi = finger_midis[i]
-			force = self.get_missing_force(forces[i], cats[i])
+			force = self.get_missing_force(forces[i], cats[i], unknowns[i])
 			if force > 0:
 				break
 		if force > 0:

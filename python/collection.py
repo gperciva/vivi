@@ -74,7 +74,9 @@ class Collection:
 		self.sort()
 		to_return = []
 		for pair in self.coll:
-			if int(pair[1][0]) == cat:
+			if cat < 0:
+				to_return.append(pair)
+			elif int(pair[1][0]) == cat:
 				to_return.append(pair)
 		return to_return
 
