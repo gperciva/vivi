@@ -6,15 +6,15 @@ import glob # for lists of files and dyns
 
 class TrainingDir:
 	""" convenience class for training directory. """
-	def __init__(self, training_dirname, cache_dirname):
+	def __init__(self, training_dirname, cache_dirname, final_dirname):
 		def ensure_dir_exists(x):
 			if not os.path.isdir(x):
 				os.makedirs(x)
-		map(ensure_dir_exists, [training_dirname] +
+		map(ensure_dir_exists, [training_dirname] + [final_dirname] +
 							   map(lambda(x): os.path.join(cache_dirname, x),
-						 	       ["", "final", "inter", "works"]))
+						 	       ["", "other", "inter", "works"]))
 		self.train_dir = os.path.normpath(training_dirname)
-		self.final_dir = os.path.join(cache_dirname, "final")
+		self.final_dir = os.path.normpath(final_dirname)
 		self.inter_dir = os.path.join(cache_dirname, "inter")
 		self.works_dir = os.path.join(cache_dirname, "works")
 

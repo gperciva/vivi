@@ -24,7 +24,9 @@ import string_train_all
 
 class ViviMainwindow(QtGui.QMainWindow):
 	""" Main window of Vivi, the Virtual Violinist. """
-	def __init__(self, training_dirname, cache_dirname, ly_filename, skill):
+	def __init__(self,
+			training_dirname, cache_dirname, final_dirname,
+			ly_filename, skill):
 		self.app = QtGui.QApplication([])
 		QtGui.QMainWindow.__init__(self)
 
@@ -48,7 +50,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 
 		## setup shared
 		shared.files = shared.training_dir.TrainingDir(
-			training_dirname, cache_dirname)
+			training_dirname, cache_dirname, final_dirname)
 		shared.basic = shared.basic_training.Basic()
 		shared.judge = shared.judge_audio.JudgeAudio(self.ui.verticalLayout)
 		shared.dyns  = shared.dynamics.Dynamics()

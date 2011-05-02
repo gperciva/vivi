@@ -16,8 +16,11 @@ def get_options():
 	import optparse
 	parser = optparse.OptionParser()
 	parser.add_option("-c", "--cache_dir", dest="cache_dir",
-		default="cache/",
+		default="/tmp/vivi-cache/",
 		help="Directory for cache of automatic training files", metavar="DIR")
+	parser.add_option("-f", "--final_dir", dest="final_dir",
+		default="final/",
+		help="Directory for output of training", metavar="DIR")
 	parser.add_option("-d", "--dir", dest="train_dir",
 		default="train/",
 		help="Directory for training files", metavar="DIR")
@@ -33,8 +36,9 @@ def main():
 	""" Runs Vivi."""
 	opts, args = get_options()
 
-	vivi_main = vivi_mainwindow.ViviMainwindow(opts.train_dir,
-		opts.cache_dir, opts.lily_file, int(opts.skill))
+	vivi_main = vivi_mainwindow.ViviMainwindow(
+		opts.train_dir, opts.cache_dir, opts.final_dir,
+		opts.lily_file, int(opts.skill))
 	sys.exit(vivi_main.app.exec_())
 
 if __name__ == "__main__":
