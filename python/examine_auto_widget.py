@@ -79,8 +79,13 @@ class ExamineAutoWidget(QtGui.QFrame):
 			if not count in self.counts:
 				self.counts.append(count)
 
+		num_counts = len(self.counts)
+
+		for filename in files:
+			params, extra, count = shared.files.get_audio_params_extra(filename)
+			force = params.bow_force
 			# and setup self.examines
-			row = 3*self.extras.index(extra) + self.counts.index(count)
+			row = num_counts*self.extras.index(extra) + self.counts.index(count)
 			col_base = 3*self.forces_initial.index(force)
 			for fmi in finger_midi_indices:
 				col = col_base+fmi
@@ -109,14 +114,13 @@ class ExamineAutoWidget(QtGui.QFrame):
 		self.table.select_new.connect(self.select_plot)
 
 
-		num_rows = len(files)/3
 		self.table.clearContents()
 		self.table.setRowCount(num_rows)
 
 		for i in range(num_rows):
 			item = QtGui.QTableWidgetItem()
-			mod = i % 3 + 1
-			item.setText(str("%.2f-%i" % (self.extras[i/3], mod)))
+			mod = i % num_counts + 1
+			item.setText(str("%.2f-%i" % (self.extras[i/num_counts], mod)))
 			self.table.setVerticalHeaderItem(i, item)
 
 
@@ -130,9 +134,9 @@ class ExamineAutoWidget(QtGui.QFrame):
 					self.examines[row][col].plot_actions.set_border([0,0,0,1])
 				if col % 3 == 2 and col < 8:
 					self.examines[row][col].plot_actions.set_border([0,1,0,0])
-				if row % 3 == 0 and row > 0:
+				if row % num_counts == 0 and row > 0:
 					self.examines[row][col].plot_actions.set_border([1,0,0,0])
-				if row % 3 == 2 and row < 8:
+				if row % num_counts == (num_counts-1) and row < num_rows:
 					self.examines[row][col].plot_actions.set_border([0,0,1,0])
 
 		return

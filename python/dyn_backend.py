@@ -27,10 +27,12 @@ LEARN_STABLE = 4
 
 ATTACK_FORCE_STEPS = 10
 
-STABLE_STEPS = 5
-STABLE_REPS = 3
+STABLE_STEPS = 9
+STABLE_REPS = 5
 STABLE_MIN = 1.01
-STABLE_MAX = 1.10
+STABLE_MAX = 1.20
+
+STABLE_LENGTH = 0.75
 
 from PyQt4 import QtCore
 
@@ -194,24 +196,23 @@ class DynBackend(QtCore.QThread):
 							% (self.st, self.dyn, fmi, finger_midi))
 
 
-						self.make_stable(K, count, bow_force, finger_midi, bow_direction)
+						#self.make_stable(K, count, bow_force, finger_midi, bow_direction)
+						params = vivi_controller.PhysicalActions()
+						params.string_number = self.st
+						params.dynamic = self.dyn
+						params.finger_position = utils.midi2pos(finger_midi)
+						params.bow_force = bow_force
+						params.bow_bridge_distance = shared.dyns.get_distance(self.dyn)
+						params.bow_velocity = bow_direction * shared.dyns.get_velocity(self.dyn)
+
+						self.controller.note(params, K, STABLE_LENGTH)
+
 						bow_direction *= -1
 					self.controller.filesClose()
 					self.process_step.emit()
 
 
 
-	def make_stable(self, K, count, bow_force, finger_midi, bow_direction):
-		PLAY_LENGTH = 0.75
-		params = vivi_controller.PhysicalActions()
-		params.string_number = self.st
-		params.dynamic = self.dyn
-		params.finger_position = utils.midi2pos(finger_midi)
-		params.bow_force = bow_force
-		params.bow_bridge_distance = shared.dyns.get_distance(self.dyn)
-		params.bow_velocity = bow_direction * shared.dyns.get_velocity(self.dyn)
-
-		self.controller.note(params, K, PLAY_LENGTH)
 
 #zz
 	### interface with controller

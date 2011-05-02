@@ -74,9 +74,9 @@ class Basic:
 			return 1.0
 		### get extremes
 		if not 5 in cats:
-			return 2.0 * max(forces)
+			return 2.0 * max(forces+unknowns)
 		if not 1 in cats:
-			return 0.5 * min(forces)
+			return 0.5 * min(forces+unknowns)
 		### fill in missing
 		if not 3 in cats:
 			return self.get_between(forces, cats, 3, unknowns)
