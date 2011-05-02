@@ -192,18 +192,22 @@ class DynTrain(QtGui.QFrame):
 		else:
 			self.ui.num_trained_label.setBackgroundRole(
 				QtGui.QPalette.Window)
+
 		if self.modified_accuracy:
-			self.ui.accuracy_label.setBackgroundRole(
-				QtGui.QPalette.Highlight)
+			# TODO: really bad way of highlighting!
+			# but QPushButtons don't seem
+			# to have a nice way to highlight!
+			self.ui.accuracy_label.setStyleSheet(
+				"background-color: darkBlue; color: white;")
 		else:
-			self.ui.accuracy_label.setBackgroundRole(
-				QtGui.QPalette.Window)
+			self.ui.accuracy_label.setStyleSheet("")
+
 		if self.modified_stable:
-			self.ui.force_factor.setBackgroundRole(
-				QtGui.QPalette.Highlight)
+			self.ui.force_factor.setStyleSheet(
+				"background-color: darkBlue; color: white;")
 		else:
-			self.ui.force_factor.setBackgroundRole(
-				QtGui.QPalette.Window)
+			self.ui.force_factor.setStyleSheet("")
+
 		if self.modified_attack:
 			self.ui.force_init1.setBackgroundRole(
 				QtGui.QPalette.Highlight)
@@ -304,12 +308,15 @@ class DynTrain(QtGui.QFrame):
 	def finished_step(self, job_type, job_index):
 		if job_type == state.SVM:
 			self.modified_training = False
-			# FIXME: make a bunch of subsequent ones modified
-			# as well.  Change modified_foo to a generic system
-			# using ints
 		elif job_type == state.ACCURACY:
 			self.accuracy = self.dyn_backend.accuracy
 			self.modified_accuracy = False
+		elif job_type == state.STABLE:
+			# TODO: get value
+			self.modified_stable = False
+		elif job_type == state.ATTACKS:
+			# TODO: get value
+			self.modified_attacks = False
 		self.display()
 
 

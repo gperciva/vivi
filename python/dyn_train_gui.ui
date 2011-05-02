@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>78</width>
-    <height>165</height>
+    <height>174</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -91,9 +91,6 @@
      </property>
      <property name="text">
       <string>98%</string>
-     </property>
-     <property name="flat">
-      <bool>false</bool>
      </property>
     </widget>
    </item>
