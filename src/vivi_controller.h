@@ -16,6 +16,8 @@ extern "C" {
 // TODO: move to artifastring?
 const unsigned int NUM_STRINGS = 4;
 
+const unsigned int CATS_MEAN_LENGTH = 4;
+
 typedef struct {
     unsigned int string_number;
     double dynamic; // to allow interpolation
@@ -55,6 +57,9 @@ private:
     ActionsFile *actions_file;
     ActionsFile *cats_file;
     Ears *ears[NUM_STRINGS][NUM_DYNAMICS];
+
+	int cats[CATS_MEAN_LENGTH]; // TODO: to test mean
+	int cats_index;
 
 
     PhysicalActions actions;

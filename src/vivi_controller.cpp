@@ -40,6 +40,10 @@ ViviController::ViviController() {
             ears[i][j] = NULL;
         }
     }
+    for (unsigned int i=0; i<CATS_MEAN_LENGTH; i++) {
+		cats[i] = 0;
+    }
+	cats_index = 0;
     reset();
 }
 
@@ -288,19 +292,43 @@ inline void ViviController::hop(unsigned int num_samples) {
 
     ears[m_st][m_dyn]->listenShort(buf);
     int cat = ears[m_st][m_dyn]->getClass();
+	// TODO: sort this out as well
+	if (num_samples < EARS_HOPSIZE) {
+      total_samples += num_samples;
+      note_samples  += num_samples;
+		return;
+    }
+    cats[cats_index] = cat;
+	cats_index++;
+	if (cats_index == CATS_MEAN_LENGTH) {
+		cats_index = 0;
+	}
+	double cat_avg = 0.0;
+	int cat_ok = 1;
+    for (unsigned int i=0; i<CATS_MEAN_LENGTH; i++) {
+		if (cats[i] < 0) {
+			cat_ok = 0;
+		}
+		cat_avg += cats[i];
+    }
+	cat_avg /= CATS_MEAN_LENGTH;
     // TODO: sort out this conditional
-    if (cat != CATEGORY_NULL) {
+    if (cat_avg >= 0) {
         if (m_velocity_cutoff_force_adj > 0) {
             if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
                 // adjust bow force
-                actions.bow_force *= pow(m_K, 2-cat);
+if (cat_ok) {
+                actions.bow_force *= pow(m_K, 2-cat_avg);
+}
                 cats_file->category(total_samples*dt, cat);
             } else {
                 cats_file->category(total_samples*dt, CATEGORY_NULL);
 			}
         } else {
             if (actions.bow_velocity < m_velocity_cutoff_force_adj) {
-                actions.bow_force *= pow(m_K, 2-cat);
+if (cat_ok) {
+                actions.bow_force *= pow(m_K, 2-cat_avg);
+}
                 cats_file->category(total_samples*dt, cat);
             } else {
                 cats_file->category(total_samples*dt, CATEGORY_NULL);
@@ -310,7 +338,7 @@ inline void ViviController::hop(unsigned int num_samples) {
 
     // after processing
     total_samples += num_samples;
-    note_samples += num_samples;
+    note_samples  += num_samples;
 }
 
 void ViviController::comment(const char *text) {

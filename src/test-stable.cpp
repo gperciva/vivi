@@ -16,13 +16,13 @@ int main() {
     params.bow_bridge_distance = dynamics->get_distance(0);
     params.bow_velocity = dynamics->get_velocity(0);
 
-    double K = 1.1;
+    double K = 1.05;
     unsigned int dyn = 0;
 
     viviController->filesNew("stable-test");
     viviController->comment("Stable test, 0 0");
     viviController->load_ears_training(params.string_number, dyn,
-                                       "train/0_0.mpl");
+                                       "cache/final/0_0.mpl");
     viviController->note(params, K, PLAY);
     //}
 
