@@ -3,6 +3,7 @@
 import os
 import shared  # for AudioParams
 import glob # for lists of files and dyns
+import shutil # for cross-device move
 
 class TrainingDir:
 	""" convenience class for training directory. """
@@ -125,8 +126,8 @@ class TrainingDir:
 
 	def move_works_to_train(self, src):
 		dest = src.replace(self.works_dir, self.train_dir)
-		os.rename(src+'.wav', dest+'.wav')
-		os.rename(src+'.actions', dest+'.actions')
+		shutil.move(src+'.wav', dest+'.wav')
+		shutil.move(src+'.actions', dest+'.actions')
 		return dest
 
 	def get_cats_name(self, filename):

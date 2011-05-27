@@ -27,8 +27,8 @@ LEARN_STABLE = 4
 
 ATTACK_FORCE_STEPS = 10
 
-STABLE_STEPS = 9
-STABLE_REPS = 5
+STABLE_STEPS = 5
+STABLE_REPS = 3
 STABLE_MIN = 1.01
 STABLE_MAX = 1.20
 
@@ -176,12 +176,14 @@ class DynBackend(QtCore.QThread):
 		for filename in oldfiles:
 			os.remove(filename)
 
+		#print self.stable_forces
 		for K in scipy.linspace(STABLE_MIN, STABLE_MAX, STABLE_STEPS):
 			# start counting at 1 due to "if 0" in training_dir
 			for count in range(1,STABLE_REPS+1):
 				for fi in range(3):
 					bow_direction = 1
-					bow_force = self.stable_forces[fi]
+					# TODO: bow force varies, so this is fake?
+					bow_force = self.stable_forces[0][fi]
 					# FIXME: oh god ick
 					ap = shared.AudioParams( self.st, 0,
 						shared.dyns.get_distance(self.dyn),
@@ -192,6 +194,7 @@ class DynBackend(QtCore.QThread):
 
 					self.controller.filesNew(stable_filename)
 					for fmi, finger_midi in enumerate(shared.basic_training.finger_midis):
+						bow_force = self.stable_forces[fmi][fi]
 						self.controller.comment("stable st %i dyn %i finger_midi_index %i finger_midi %.3f"
 							% (self.st, self.dyn, fmi, finger_midi))
 

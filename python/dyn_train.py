@@ -293,12 +293,13 @@ class DynTrain(QtGui.QFrame):
 		elif job_type == state.ACCURACY:
 			self.dyn_backend.check_accuracy()
 		elif job_type == state.STABLE:
-			low_force = min(self.get_forces(2))
-			high_force = max(self.get_forces(4))
-			#low_force = scipy.mean(self.get_forces(2))
-			middle_force = scipy.mean(self.get_forces(3))
-			#high_force = scipy.mean(self.get_forces(4))
-			self.dyn_backend.learn_stable([low_force, middle_force, high_force])
+			finger_forces = []
+			for fm in [0, 4, 7]:
+				low_force = max(self.get_forces_finger(1, fm))
+				middle_force = scipy.mean(self.get_forces_finger(3,fm))
+				high_force = min(self.get_forces_finger(5, fm))
+				finger_forces.append( [low_force, middle_force, high_force] )
+			self.dyn_backend.learn_stable(finger_forces)
 		elif job_type == state.ACCURACY:
 			self.learn_accuracy()
 		else:
@@ -512,10 +513,12 @@ class DynTrain(QtGui.QFrame):
 #				force_min = force
 #		self.dyn_backend.learn_attacks(force_min, force_max)
 
-	def get_forces(self, cat):
+	def get_forces_finger(self, cat, finger_midi):
 		forces = map(
 			lambda(x): shared.files.get_audio_params(x[0]).bow_force,
-			self.coll.get_items(cat))
+			filter(lambda(y):
+				shared.files.get_audio_params(y[0]).finger_midi == finger_midi,
+				self.coll.get_items(cat)))
 		return forces
 
 

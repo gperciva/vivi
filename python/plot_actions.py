@@ -79,24 +79,8 @@ class PlotActions(QtGui.QWidget):
 			return
 		painter = QtGui.QPainter(self)
 
-		# bad way of drawing the background, but I don't
-		# feel like wading through more API docs to find
-		# the right way
-		painter.fillRect(0, 0, self.width(), self.height(), self.back)
-
-		# draw any extra borders
-		if self.border_extra[0]:
-			painter.drawLine(0,0,self.width()-1,0)
-		if self.border_extra[1]:
-			painter.drawLine(self.width()-1,0,self.width()-1,self.height()-1)
-		if self.border_extra[2]:
-			painter.drawLine(self.width()-1,self.height()-1, 0, self.height()-1)
-		if self.border_extra[3]:
-			painter.drawLine(0, self.height()-1, 0, 0)
-
-
-		if self.has_selection():
-			self.mouseDraw(painter)
+		self.draw_background(painter)
+		self.draw_selection(painter)
 
 		maxforce = max(self.forces)
 
@@ -106,20 +90,13 @@ class PlotActions(QtGui.QWidget):
 
 		left_margin = 10
 		right_margin = 10
+		xoffset = left_margin
 		xscale = (float(self.width() - left_margin - right_margin)
 					/ len(self.forces))
 		yoffset = height - top_margin
 		yscale = (-(height - top_margin - bottom_margin)) / maxforce
 
-		prev_x = left_margin
-		prev_y = self.forces[0]*yscale + yoffset
-		for i, force in enumerate(self.forces):
-			x = i*xscale + left_margin
-			y = self.forces[i]*yscale + yoffset
-			painter.setPen(QtCore.Qt.black)
-			painter.drawLine(prev_x, prev_y, x, y)
-			prev_x = x
-			prev_y = y
+		self.draw_force_line(painter, xoffset, xscale, yoffset, yscale)
 
 		for i, cat in enumerate(self.cats):
 			x = i*xscale + left_margin
@@ -136,15 +113,43 @@ class PlotActions(QtGui.QWidget):
 			prev_x = x
 			prev_y = y
 
+	def draw_background(self, painter):
+		# bad way of drawing the background, but I don't
+		# feel like wading through more API docs to find
+		# the right way
+		painter.fillRect(0, 0, self.width(), self.height(), self.back)
+
+		# draw any extra borders
+		if self.border_extra[0]:
+			painter.drawLine(0,0,self.width()-1,0)
+		if self.border_extra[1]:
+			painter.drawLine(self.width()-1,0,self.width()-1,self.height()-1)
+		if self.border_extra[2]:
+			painter.drawLine(self.width()-1,self.height()-1, 0, self.height()-1)
+		if self.border_extra[3]:
+			painter.drawLine(0, self.height()-1, 0, 0)
+
+
+	def draw_force_line(self, painter, xoffset, xscale, yoffset, yscale):
+		painter.setPen(QtCore.Qt.black)
+		prev_x = xoffset
+		prev_y = self.forces[0]*yscale + yoffset
+		for i, force in enumerate(self.forces):
+			x = i*xscale + xoffset
+			y = self.forces[i]*yscale + yoffset
+			painter.drawLine(prev_x, prev_y, x, y)
+			prev_x = x
+			prev_y = y
+
+
 	def arrow(self, painter, x, y, direction):
 		painter.drawLine(x, y, x+2, y+direction*10)
 		painter.drawLine(x, y, x-2, y+direction*10)
 
 
-	def mouseDraw(self, painter):
-		width = self.mouse_x_end - self.mouse_x_begin
-		painter.fillRect(self.mouse_x_begin, 0,
-			width, self.height()-1,
-			QtCore.Qt.yellow)
-
+	def draw_selection(self, painter):
+		if self.has_selection():
+			width = self.mouse_x_end - self.mouse_x_begin
+			painter.fillRect(self.mouse_x_begin, 0, width, self.height()-1,
+				QtCore.Qt.yellow)
 

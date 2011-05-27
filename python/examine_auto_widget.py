@@ -90,6 +90,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 			for fmi in finger_midi_indices:
 				col = col_base+fmi
 #				print row, col, fmi, filename
+				print filename
 				self.examines[row][col].load_file(filename[0:-4])
 				to_find = "finger_midi_index %i" % fmi
 				self.examines[row][col].load_note(to_find)
@@ -138,6 +139,26 @@ class ExamineAutoWidget(QtGui.QFrame):
 					self.examines[row][col].plot_actions.set_border([1,0,0,0])
 				if row % num_counts == (num_counts-1) and row < num_rows:
 					self.examines[row][col].plot_actions.set_border([0,0,1,0])
+
+		# find "most stable" rows
+		print "stables:"
+		for block in range(num_rows/num_counts):
+			block_vals = []
+			for col_block in range(3):
+				vals = []
+				for count in range(num_counts):
+					cvs = []
+					for col_i in range(3):
+						row = num_counts*block + count
+						col = 3*col_block+col_i
+						cv = self.examines[row][col].plot_actions.stability
+						cvs.append(cv)
+					vals.append( scipy.median(cvs) )
+			#	row_stable = self.examines[row][0].plot_actions.stability
+				#print vals
+				row_stable = scipy.mean(vals)
+				block_vals.append(row_stable)
+			print block, "%.3f" % scipy.mean(block_vals)
 
 		return
 		# FIXME: move this somewhere else

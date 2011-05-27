@@ -70,9 +70,11 @@ class PlotStable(plot_actions.PlotActions):
 	def paintEvent(self, event):
 		if not self.forces:
 			return
-		plot_actions.PlotActions.paintEvent(self, event)
-
 		painter = QtGui.QPainter(self)
+#		plot_actions.PlotActions.paintEvent(self, event)
+
+		self.draw_background(painter)
+		self.draw_selection(painter)
 
 		maxforce = max(self.forces)
 		top_margin = 10
@@ -80,19 +82,21 @@ class PlotStable(plot_actions.PlotActions):
 		height = self.height()
 		left_margin = 10
 		right_margin = 10
+		xoffset = left_margin
 		xscale = (float(self.width() - left_margin - right_margin)
 					/ len(self.forces))
 		yoffset = height - top_margin
 		yscale = (-(height - top_margin - bottom_margin)) / maxforce
 
+		self.draw_force_line(painter, xoffset, xscale, yoffset, yscale)
 
 		for i, cat in enumerate(self.cats_means):
 			x = i*xscale + left_margin
 			y = self.forces[i]*yscale + yoffset
-			if cat < 2:
-				y += 0.1*self.height()
-			if cat > 2:
-				y += -0.1*self.height()
+#			if cat < 2:
+#				y += 0.1*self.height()
+#			if cat > 2:
+#				y += -0.1*self.height()
 
 			if (cat == 0) or (cat == 4):
 				direction = (2-cat)/2
