@@ -153,3 +153,23 @@ class PlotActions(QtGui.QWidget):
 			painter.fillRect(self.mouse_x_begin, 0, width, self.height()-1,
 				QtCore.Qt.yellow)
 
+	def draw_max_force(self, painter):
+		painter.setPen(QtCore.Qt.blue)
+		maxforce = max(self.forces)
+		painter.drawText( 15, 15,
+			"Initial force: %.3f" % maxforce)
+#		force_bar_height = maxforce / 12.0*self.height()
+#		painter.fillRect(2, self.height() - force_bar_height - 4,
+#			2, force_bar_height,
+#			QtCore.Qt.green)
+
+	def draw_init_force(self, painter):
+		painter.setPen(QtCore.Qt.blue)
+		maxforce = self.forces[0]
+		painter.drawText( 15, 15,
+			"Initial force: %.3f" % maxforce)
+#		force_bar_height = maxforce / 12.0*self.height()
+#		painter.fillRect(2, self.height() - force_bar_height - 4,
+#			2, force_bar_height,
+#			QtCore.Qt.green)
+

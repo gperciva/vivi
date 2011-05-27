@@ -111,4 +111,6 @@ class PlotStable(plot_actions.PlotActions):
 		painter.drawText( 50, self.height()-5,
 			"%.3f" % self.stability)
 
+		#self.draw_max_force(painter)
+#		self.draw_init_force(painter)
 

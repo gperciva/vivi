@@ -12,7 +12,7 @@ import examine_note_widget
 import table_play_widget
 
 # FIXME: temp for debugging
-import scipy
+import scipy.stats
 
 
 class ExamineAutoWidget(QtGui.QFrame):
@@ -29,9 +29,11 @@ class ExamineAutoWidget(QtGui.QFrame):
 		self.dyn = None
 
 
-	def examine(self, type, st, dyn):
+	def examine(self, type, st, dyn, task_stable):
 		self.st = st
 		self.dyn = dyn
+
+		self.task_stable = task_stable
 
 		text = utils.st_to_text(self.st) + " string "
 		self.ui.string_label.setText(text)
@@ -48,60 +50,17 @@ class ExamineAutoWidget(QtGui.QFrame):
 
 
 	def setup_stable(self):
-		files = shared.files.get_stable_files(self.st, self.dyn)
+		if not self.task_stable.examines:
+			self.task_stable.get_stable_files_info()
 
-		# 3 notes per file, 9 notes per line
-		num_rows = 3*len(files)/9
-
-		# initialize 2d array
-		self.examines = []
-		for i in range(num_rows):
-			self.examines.append([])
-			for j in range(9):
-				examine = examine_note_widget.ExamineNoteWidget(
-					examine_note_widget.PLOT_STABLE)
-				self.examines[i].append(examine)
-
-		# variables about the files
-		finger_midi_indices= range(3)
-		self.forces_initial = []
-		self.extras = []
-		self.counts = []
-
-		# get info about the files
-		for filename in files:
-			params, extra, count = shared.files.get_audio_params_extra(filename)
-			force = params.bow_force
-			if not force in self.forces_initial:
-				self.forces_initial.append(force)
-			if not extra in self.extras:
-				self.extras.append(extra)
-			if not count in self.counts:
-				self.counts.append(count)
-
-		num_counts = len(self.counts)
-
-		for filename in files:
-			params, extra, count = shared.files.get_audio_params_extra(filename)
-			force = params.bow_force
-			# and setup self.examines
-			row = num_counts*self.extras.index(extra) + self.counts.index(count)
-			col_base = 3*self.forces_initial.index(force)
-			for fmi in finger_midi_indices:
-				col = col_base+fmi
-#				print row, col, fmi, filename
-				print filename
-				self.examines[row][col].load_file(filename[0:-4])
-				to_find = "finger_midi_index %i" % fmi
-				self.examines[row][col].load_note(to_find)
-
+		### CUT
 		# setup table and gui
 		self.table = table_play_widget.TablePlayWidget(self, [
-			str("Low: %.3f" % self.forces_initial[0]),
+			str("Low: %.3f" % self.task_stable.forces_initial[0]),
 			"low 4", "low 7",
-			str("Middle: %.3f" % self.forces_initial[1]),
+			str("Middle: %.3f" % self.task_stable.forces_initial[1]),
 			"mid 4", "mid 7",
-			str("High: %.3f" % self.forces_initial[2]),
+			str("High: %.3f" % self.task_stable.forces_initial[2]),
 			"high 4", "high 7",
 			])
 		# clear previous widget if exists
@@ -115,15 +74,19 @@ class ExamineAutoWidget(QtGui.QFrame):
 		self.table.select_new.connect(self.select_plot)
 
 
+		num_rows = self.task_stable.num_rows
+		num_counts = self.task_stable.num_counts
+
 		self.table.clearContents()
 		self.table.setRowCount(num_rows)
 
 		for i in range(num_rows):
 			item = QtGui.QTableWidgetItem()
 			mod = i % num_counts + 1
-			item.setText(str("%.2f-%i" % (self.extras[i/num_counts], mod)))
+			item.setText(str("%.2f-%i" % (self.task_stable.extras[i/num_counts], mod)))
 			self.table.setVerticalHeaderItem(i, item)
 
+		self.examines = self.task_stable.examines
 
 		# populate table
 		for row in range(num_rows):
@@ -139,45 +102,6 @@ class ExamineAutoWidget(QtGui.QFrame):
 					self.examines[row][col].plot_actions.set_border([1,0,0,0])
 				if row % num_counts == (num_counts-1) and row < num_rows:
 					self.examines[row][col].plot_actions.set_border([0,0,1,0])
-
-		# find "most stable" rows
-		print "stables:"
-		for block in range(num_rows/num_counts):
-			block_vals = []
-			for col_block in range(3):
-				vals = []
-				for count in range(num_counts):
-					cvs = []
-					for col_i in range(3):
-						row = num_counts*block + count
-						col = 3*col_block+col_i
-						cv = self.examines[row][col].plot_actions.stability
-						cvs.append(cv)
-					vals.append( scipy.median(cvs) )
-			#	row_stable = self.examines[row][0].plot_actions.stability
-				#print vals
-				row_stable = scipy.mean(vals)
-				block_vals.append(row_stable)
-			print block, "%.3f" % scipy.mean(block_vals)
-
-		return
-		# FIXME: move this somewhere else
-		for i in range(num_rows):
-			values = []
-			muls = 1.0
-			for j in range(9):
-				val = self.examines[i][j].plot_actions.stability
-				mul = 1.0 - val
-				muls *= mul
-				values.append(val)
-			print ("%.3f\t%.3f\t%.3f" % (
-				scipy.mean(values), scipy.median(values), mul
-			))
-			if i%3 == 2:
-				print
-
-		#self.setFocus()
-		self.show()
 
 
 	def table_play(self):

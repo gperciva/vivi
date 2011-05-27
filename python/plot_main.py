@@ -14,12 +14,6 @@ class PlotMain(plot_actions.PlotActions):
 		painter = QtGui.QPainter(self)
 
 		maxforce = max(self.forces)
-		painter.drawText( 15, self.height()-5,
-			"Max force: %.3f" % maxforce)
-		force_bar_height = maxforce / 12.0*self.height()
-		painter.fillRect(2, self.height() - force_bar_height - 4,
-			2, force_bar_height,
-			QtCore.Qt.green)
-
+		self.draw_max_force(painter)
 
 

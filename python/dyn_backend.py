@@ -20,19 +20,15 @@ import scipy
 
 import os
 
+import examine_note_widget
+import task_stable
+
 CALCULATE_TRAINING = 1
 CHECK_ACCURACY = 2
 LEARN_ATTACKS = 3
 LEARN_STABLE = 4
 
 ATTACK_FORCE_STEPS = 10
-
-STABLE_STEPS = 5
-STABLE_REPS = 3
-STABLE_MIN = 1.01
-STABLE_MAX = 1.20
-
-STABLE_LENGTH = 0.75
 
 from PyQt4 import QtCore
 
@@ -49,6 +45,9 @@ class DynBackend(QtCore.QThread):
 		#self.ears = shared.listen[self.st][self.dyn]
 		self.controller = controller
 		self.ears = self.controller.getEars(self.st, self.dyn)
+
+		self.task_stable = task_stable.TaskStable(self.st, self.dyn,
+			self.controller)
 
 		#self.practice = practice
 
@@ -158,8 +157,7 @@ class DynBackend(QtCore.QThread):
 		self.condition.wakeOne()
 
 	def learn_stable_steps(self):
-		#return 2 * STABLE_STEPS + 1
-		return (STABLE_STEPS * STABLE_REPS * 3) + 1
+		return (task_stable.STABLE_STEPS * task_stable.STABLE_REPS * 3) + 1
 
 	def learn_stable(self, stable_forces):
 		self.state = LEARN_STABLE
@@ -167,55 +165,8 @@ class DynBackend(QtCore.QThread):
 		self.condition.wakeOne()
 
 	def learn_stable_thread(self):
-		mpl_filename = shared.files.get_mpl_filename(
-			self.st, 'main', self.dyn)
-		self.controller.load_ears_training(self.st, self.dyn,
-			mpl_filename)
-
-		oldfiles = shared.files.get_stable_files(self.st, self.dyn)
-		for filename in oldfiles:
-			os.remove(filename)
-
-		#print self.stable_forces
-		for K in scipy.linspace(STABLE_MIN, STABLE_MAX, STABLE_STEPS):
-			# start counting at 1 due to "if 0" in training_dir
-			for count in range(1,STABLE_REPS+1):
-				for fi in range(3):
-					bow_direction = 1
-					# TODO: bow force varies, so this is fake?
-					bow_force = self.stable_forces[0][fi]
-					# FIXME: oh god ick
-					ap = shared.AudioParams( self.st, 0,
-						shared.dyns.get_distance(self.dyn),
-						bow_force,
-						bow_direction*shared.dyns.get_velocity(self.dyn))
-					stable_filename = shared.files.make_stable_filename(
-						ap, K, count)
-
-					self.controller.filesNew(stable_filename)
-					for fmi, finger_midi in enumerate(shared.basic_training.finger_midis):
-						bow_force = self.stable_forces[fmi][fi]
-						self.controller.comment("stable st %i dyn %i finger_midi_index %i finger_midi %.3f"
-							% (self.st, self.dyn, fmi, finger_midi))
-
-
-						#self.make_stable(K, count, bow_force, finger_midi, bow_direction)
-						params = vivi_controller.PhysicalActions()
-						params.string_number = self.st
-						params.dynamic = self.dyn
-						params.finger_position = utils.midi2pos(finger_midi)
-						params.bow_force = bow_force
-						params.bow_bridge_distance = shared.dyns.get_distance(self.dyn)
-						params.bow_velocity = bow_direction * shared.dyns.get_velocity(self.dyn)
-
-						self.controller.note(params, K, STABLE_LENGTH)
-
-						bow_direction *= -1
-					self.controller.filesClose()
-					self.process_step.emit()
-
-
-
+		self.task_stable.set_emit(self.process_step)
+		self.most_stable = self.task_stable.get_stable(self.stable_forces)
 
 #zz
 	### interface with controller

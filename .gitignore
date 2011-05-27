@@ -3,4 +3,4 @@ build/
 .sconsign.dblite
 config.log
 train/
-cache/
+final/

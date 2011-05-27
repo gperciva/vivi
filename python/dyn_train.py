@@ -313,7 +313,7 @@ class DynTrain(QtGui.QFrame):
 			self.accuracy = self.dyn_backend.accuracy
 			self.modified_accuracy = False
 		elif job_type == state.STABLE:
-			# TODO: get value
+			self.force_factor = self.dyn_backend.most_stable
 			self.modified_stable = False
 		elif job_type == state.ATTACKS:
 			# TODO: get value
@@ -549,7 +549,8 @@ class DynTrain(QtGui.QFrame):
 			self.accuracy, self.coll)
 
 	def click_force_factor(self, event):
-		self.examine.examine("stable", self.st, self.dyn)
+		self.examine.examine("stable", self.st, self.dyn,
+			self.dyn_backend.task_stable)
 
 	def examine_auto_select_note(self):
 		note_filename_text = self.examine.get_selected_filename()
