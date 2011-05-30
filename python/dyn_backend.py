@@ -20,7 +20,6 @@ import scipy
 
 import os
 
-import examine_note_widget
 import task_stable
 
 CALCULATE_TRAINING = 1

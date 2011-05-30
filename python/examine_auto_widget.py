@@ -86,13 +86,23 @@ class ExamineAutoWidget(QtGui.QFrame):
 			item.setText(str("%.2f-%i" % (self.task_stable.extras[i/num_counts], mod)))
 			self.table.setVerticalHeaderItem(i, item)
 
-		self.examines = self.task_stable.examines
-
+		self.examines = []
+		for row in range(num_rows):
+			examines_row = []
+			for col in range(9):
+				examines_row.append(None)
+			self.examines.append( examines_row )
+					
 		# populate table
 		for row in range(num_rows):
 			for col in range(9):
+				examine = examine_note_widget.ExamineNoteWidget(
+					shared.examine_note_widget.PLOT_STABLE)
+				examine.set_examine_note( self.task_stable.notes[row][col] )
+				self.examines[row][col] = examine
+
 				self.table.setCellWidget(row, col,
-					self.examines[row][col].plot_actions)
+					examine.plot_actions)
 				self.table.setRowHeight(row, 50.0)
 				if col % 3 == 0 and col > 0:
 					self.examines[row][col].plot_actions.set_border([0,0,0,1])

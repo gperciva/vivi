@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 
 import os
+import math
+
 import scipy
 
 import shared
 import vivi_controller
 import utils
-import examine_note_widget
-import operator
+
+import note_actions_cats
 
 STABLE_STEPS = 5
-STABLE_REPS = 3
+STABLE_REPS = 1
 STABLE_MIN = 1.00
 STABLE_MAX = 1.10
 
@@ -39,6 +41,7 @@ class TaskStable():
 		self.remove_previous_files()
 		self.make_stable_files()
 		self.examine_stable_files()
+		#print "learned new K: ", self.most_stable
 		return self.most_stable
 
 	def remove_previous_files(self):
@@ -111,33 +114,33 @@ class TaskStable():
 
 		self.num_counts = len(self.counts)
 
-		if not self.examines:
-			self.examines = []
-			# initialize 2d array
-			for i in range(self.num_rows):
-				self.examines.append([])
-				for j in range(9):
-					examine = examine_note_widget.ExamineNoteWidget(
-						examine_note_widget.PLOT_STABLE)
-					self.examines[i].append(examine)
+		# initialize 2d array
+		self.notes = []
+		for i in range(self.num_rows):
+			self.notes.append([])
+			for j in range(9):
+				self.notes[i].append(None)
 
-			for filename in self.files:
-				params, extra, count = shared.files.get_audio_params_extra(filename)
-				force = params.bow_force
-				# and setup self.examines
-				row = self.num_counts*self.extras.index(extra) + self.counts.index(count)
-				col_base = 3*self.forces_initial.index(force)
-				for fmi in self.finger_midi_indices:
-					col = col_base+fmi
-#					print row, col, fmi, filename
-					self.examines[row][col].load_file(filename[0:-4])
-					to_find = "finger_midi_index %i" % fmi
-					self.examines[row][col].load_note(to_find)
+		for filename in self.files:
+			params, extra, count = shared.files.get_audio_params_extra(filename)
+			force = params.bow_force
+
+			# and setup self.examines
+			row = self.num_counts*self.extras.index(extra) + self.counts.index(count)
+			col_base = 3*self.forces_initial.index(force)
+			for fmi in self.finger_midi_indices:
+				col = col_base+fmi
+#				print row, col, fmi, filename
+				nac = note_actions_cats.NoteActionsCats()
+				nac.load_file(filename[0:-4])
+				to_find = "finger_midi_index %i" % fmi
+				nac.load_note(to_find)
+				stability = self.get_stability(nac.note_cats_means)
+				self.notes[row][col] = (nac, stability)
 
 
 	def examine_stable_files(self):
 		self.get_stable_files_info()
-
 
 		# find "most stable" rows
 		candidates = []
@@ -150,7 +153,8 @@ class TaskStable():
 					for col_i in range(3):
 						row = self.num_counts*block + count
 						col = 3*col_block+col_i
-						cv = self.examines[row][col].plot_actions.stability
+#						cv = self.examines[row][col].plot_actions.stability
+						cv = self.notes[row][col][1]
 						cvs.append(cv)
 					vals.append( scipy.stats.gmean(cvs) )
 			#	row_stable = self.examines[row][0].plot_actions.stability
@@ -159,10 +163,37 @@ class TaskStable():
 				block_vals.append(row_stable)
 			#print "%.2f\t%.3f" % (self.extras[block], scipy.gmean(block_vals)),
 			#print "\t%.3f" % (scipy.std(block_vals))
-			candidates.append( (self.extras[block],
-				scipy.stats.gmean(block_vals)) )
-		desc_candidates = sorted(candidates, key=operator.itemgetter(1))
-		print desc_candidates
-		self.most_stable = desc_candidates[-1][0]
+			candidates.append( 
+				(scipy.stats.gmean(block_vals), self.extras[block]) )
+		candidates.sort()
+		#print candidates
+		self.most_stable = candidates[-1][1]
 
+	def get_stability(self,cats):
+		direction = 1
+		areas = []
+		area = []
+		zeros = 1
+		for cat in cats:
+			if cat < 0:
+				continue
+			err = 2-cat
+			if err == 0:
+				continue
+			if err * direction > 0:
+				area.append(err)
+			else:
+				if area:
+					areas.append(area)
+				area = []
+				area.append(err)
+				direction = math.copysign(1, err)
+				zeros += 1
+		if area:
+			areas.append(area)
+		stable = 1.0
+		for a in areas:
+			area_fitness = 1.0 / math.sqrt(len(a))
+			stable *= area_fitness
+		return stable
 

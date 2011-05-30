@@ -5,7 +5,7 @@ from PyQt4 import QtGui, QtCore
 import utils
 import shared
 
-import examine_note
+import note_actions_cats
 
 import plot_actions
 import plot_main
@@ -33,8 +33,21 @@ class ExamineNoteWidget():
 		#parent.layout().addWidget(self.plot_actions, 1)
 		#self.note_layout.addWidget(self.plot_actions, 1)
 
-		self.examine_note = examine_note.ExamineNote()
+		self.examine_note = None
 		self.got_zoom = False
+
+	def set_examine_note(self, nac):
+		self.examine_note = nac[0]
+		self.plot_actions.set_data(
+			self.examine_note.note_forces,
+			self.examine_note.note_cats,
+		)
+		if self.plot_type == PLOT_STABLE:
+			self.plot_actions.set_stability(nac[1],
+				self.examine_note.note_cats_means)
+
+	def new_examine_note(self):
+		self.examine_note = note_actions_cats.NoteActionsCats()
 
 	def load_file(self, filename):
 		self.examine_note.load_file(filename)
@@ -49,51 +62,7 @@ class ExamineNoteWidget():
 		else:
 			self.note_label.setText("Not a rehearsed note!")
 
-		# FIXME: move elsewhere
-		if self.plot_type == PLOT_STABLE:
-			self.plot_actions.set_stability(
-				self.get_stability(self.examine_note.note_cats))
 		return status
-
-# FIXME: move elsewhere
-	def get_stability(self,cats):
-		direction = 1
-		areas = []
-		area = []
-		for seconds, cat in cats:
-			if cat < 0:
-				continue
-			err = 2-cat
-			if err == 0:
-				continue
-			if err * direction > 0:
-				area.append(err)
-			else:
-				if area:
-					areas.append(area)
-				area = []
-				area.append(err)
-				direction = math.copysign(1, err)
-		if area:
-			areas.append(area)
-		stable = 1.0
-		for a in areas:
-			area_fitness = 1.0 / len(a)
-			stable *= area_fitness
-		return stable
-
-		blah = 0.0
-		num = 0
-		for sec, cat in cats:
-			if cat < 0:
-				continue
-			err = 2-cat
-			if err != 0:
-				#blah += err**2
-				blah += 1
-			num += 1
-		blah = blah / num
-		return blah
 
 
 	def play(self):

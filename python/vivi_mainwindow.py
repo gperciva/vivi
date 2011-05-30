@@ -55,8 +55,9 @@ class ViviMainwindow(QtGui.QMainWindow):
 		shared.judge = shared.judge_audio.JudgeAudio(self.ui.verticalLayout)
 		shared.dyns  = shared.dynamics.Dynamics()
 		shared.examine_main = shared.examine_note_widget.ExamineNoteWidget(
-			#shared.examine_note_widget.PLOT_MAIN)
-			shared.examine_note_widget.PLOT_STABLE)
+			shared.examine_note_widget.PLOT_MAIN)
+			#shared.examine_note_widget.PLOT_STABLE)
+		shared.examine_main.new_examine_note()
 		shared.examine_main.plot_actions.setMinimumHeight(100)
 		shared.examine_main.plot_actions.highlight(True)
 		self.ui.verticalLayout.addWidget(shared.examine_main.plot_actions)

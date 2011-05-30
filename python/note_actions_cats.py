@@ -1,13 +1,10 @@
 #!/usr/bin/python
 
-import os.path
-
-import utils
 import shared
 
-HOPSIZE = shared.vivi_controller.EARS_HOPSIZE
+HOP_SECONDS = 44100.0 / shared.vivi_controller.EARS_HOPSIZE
 
-class ExamineNote:
+class NoteActionsCats:
 	def __init__(self):
 		self.basename = None
 		self.lines = []
@@ -18,6 +15,7 @@ class ExamineNote:
 		self.note_cat_lines = []
 		self.note_forces = []
 		self.note_cats = []
+		self.note_cats_means = []
 		self.note_skip = 0
 
 	def reset_note(self):
@@ -27,15 +25,16 @@ class ExamineNote:
 		self.note_cat_lines = []
 		self.note_forces = []
 		self.note_cats = []
+		self.note_cats_means = []
 		self.note_skip = 0
 
 	def load_file(self, filename):
 		self.basename = filename
 		self.lines = open(self.basename+'.actions').readlines()
 		cats_name = shared.files.get_cats_name(filename)
-		if os.path.exists(cats_name+'.cats'):
+		try:
 			self.cat_lines = open(cats_name+'.cats').readlines()
-		else:
+		except:
 			self.cat_lines = []
 		self.reset_note()
 
@@ -95,6 +94,7 @@ class ExamineNote:
 
 		self.note_forces = self.get_note_forces()
 		self.note_cats = self.get_note_cats()
+		self.note_cats_means = self.get_note_cats_means(self.note_cats)
 
 		if len(self.note_cats) < len(self.note_forces):
 			self.note_cats.append((0,0))
@@ -129,6 +129,25 @@ class ExamineNote:
 				cats.append( (seconds, cat) )
 		return cats
 
+	def get_note_cats_means(self, cats):
+		# get cat_means
+		note_cats_means = []
+		length = shared.vivi_controller.CATS_MEAN_LENGTH
+		filt = [-1] * length
+		filt_index = 0
+		for seconds, c in cats:
+			filt[filt_index] = c
+			filt_index += 1
+			if filt_index == length:
+				filt_index = 0
+			if -1 in filt:
+				note_cats_means.append(-1)
+			else:
+				mean = float(sum(filt)) / length
+				mean = int(round(mean))
+				note_cats_means.append(mean)
+		return note_cats_means
+
 	def get_seconds(self, start, dur):
 		start_sec = self.note_start + start*self.note_length
 		dur_sec = dur*self.note_length
@@ -137,10 +156,8 @@ class ExamineNote:
 	def make_zoom_file(self, start, dur):
 		force = 0.0
 		# TODO: generalize
-		starthop = int((start-self.note_start)
-				*44100.0/HOPSIZE)
-		endhop = starthop+int( dur
-				*44100.0/HOPSIZE)
+		starthop = int((start-self.note_start) * HOP_SECONDS)
+		endhop = starthop+int( dur * HOP_SECONDS )
 		for i in range(starthop, endhop):
 			force += self.note_forces[i][1]
 		force /= (endhop - starthop)
