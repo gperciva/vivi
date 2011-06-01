@@ -18,7 +18,7 @@ const double BASIC_VELOCITY_STDDEV = 0.02;
 const double BASIC_FORCE_STDDEV = 0.02;
 
 // used elsewhere
-const double MIN_VELOCITY_FACTOR = 0.9;
+const double MIN_VELOCITY_FACTOR = 0.5;
 
 
 ViviController::ViviController() {
@@ -34,16 +34,12 @@ ViviController::ViviController() {
 
     wavfile = NULL;
     actions_file = NULL;
-	cats_file = NULL;
+    cats_file = NULL;
     for (unsigned int i=0; i<NUM_STRINGS; i++) {
         for (unsigned int j=0; j<NUM_DYNAMICS; j++) {
             ears[i][j] = NULL;
         }
     }
-    for (unsigned int i=0; i<CATS_MEAN_LENGTH; i++) {
-		cats[i] = 0;
-    }
-	cats_index = 0;
     reset();
 }
 
@@ -66,6 +62,11 @@ void ViviController::reset() {
     violin->reset();
     // only action that matters; others are overwritten anyway
     actions.bow_velocity = 0;
+
+    for (unsigned int i=0; i<CATS_MEAN_LENGTH; i++) {
+        cats[i] = -1;
+    }
+    cats_index = 0;
 }
 
 Ears* ViviController::getEars(unsigned int st, unsigned int dyn) {
@@ -129,7 +130,7 @@ bool ViviController::filesNew(const char *filenames_base) {
     filename.assign(filenames_base);
     filename.append(".actions");
     actions_file = new ActionsFile(filename.c_str());
-	// cats file
+    // cats file
     filename.assign(filenames_base);
     filename.append(".cats");
     cats_file = new ActionsFile(filename.c_str());
@@ -292,46 +293,51 @@ inline void ViviController::hop(unsigned int num_samples) {
 
     ears[m_st][m_dyn]->listenShort(buf);
     int cat = ears[m_st][m_dyn]->getClass();
-	// TODO: sort this out as well
-	if (num_samples < EARS_HOPSIZE) {
-      total_samples += num_samples;
-      note_samples  += num_samples;
-		return;
+    // TODO: sort this out as well
+    if (num_samples < EARS_HOPSIZE) {
+        total_samples += num_samples;
+        note_samples  += num_samples;
+        return;
     }
+    // write cat to file if speed is enough
+    if (m_velocity_cutoff_force_adj > 0) {
+        if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
+            cats_file->category(total_samples*dt, cat);
+        } else {
+            cats_file->category(total_samples*dt, CATEGORY_NULL);
+        }
+    } else {
+        if (actions.bow_velocity < m_velocity_cutoff_force_adj) {
+            cats_file->category(total_samples*dt, cat);
+        } else {
+            cats_file->category(total_samples*dt, CATEGORY_NULL);
+        }
+    }
+    // record cat, calculate cat_avg
     cats[cats_index] = cat;
-	cats_index++;
-	if (cats_index == CATS_MEAN_LENGTH) {
-		cats_index = 0;
-	}
-	double cat_avg = 0.0;
-	int cat_ok = 1;
-    for (unsigned int i=0; i<CATS_MEAN_LENGTH; i++) {
-		if (cats[i] < 0) {
-			cat_ok = 0;
-		}
-		cat_avg += cats[i];
+    cats_index++;
+    if (cats_index == CATS_MEAN_LENGTH) {
+        cats_index = 0;
     }
-	cat_avg /= CATS_MEAN_LENGTH;
+    double cat_avg = 0.0;
+    int cat_ok = 1;
+    for (unsigned int i=0; i<CATS_MEAN_LENGTH; i++) {
+        if (cats[i] < 0) {
+            cat_ok = 0;
+        }
+        cat_avg += cats[i];
+    }
+    cat_avg /= CATS_MEAN_LENGTH;
     // TODO: sort out this conditional
-    if (cat_avg >= 0) {
+    if (cat_ok == 1) {
         if (m_velocity_cutoff_force_adj > 0) {
             if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
                 // adjust bow force
-if (cat_ok) {
                 actions.bow_force *= pow(m_K, 2-cat_avg);
-}
-                cats_file->category(total_samples*dt, cat);
-            } else {
-                cats_file->category(total_samples*dt, CATEGORY_NULL);
-			}
+            }
         } else {
             if (actions.bow_velocity < m_velocity_cutoff_force_adj) {
-if (cat_ok) {
                 actions.bow_force *= pow(m_K, 2-cat_avg);
-}
-                cats_file->category(total_samples*dt, cat);
-            } else {
-                cats_file->category(total_samples*dt, CATEGORY_NULL);
             }
         }
     }
