@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import subprocess
-#import levels
 
 #import utils
 import shared
@@ -151,13 +150,11 @@ class DynBackend(QtCore.QThread):
 
 
 	def learn_attacks_steps(self):
-		#return 3*2*task_attack.FORCE_STEPS + 1
-		return task_attack.REPS*task_attack.FORCE_STEPS + 1
+		return 3*task_attack.REPS*task_attack.FORCE_STEPS + 1
 
-	def learn_attacks(self, min_force, max_force):
+	def learn_attacks(self, finger_forces):
 		#self.performer.load_forces()
-		self.attack_min = min_force
-		self.attack_max = max_force
+		self.attack_forces = finger_forces
 		self.state = LEARN_ATTACKS
 		self.condition.wakeOne()
 
@@ -273,7 +270,7 @@ class DynBackend(QtCore.QThread):
 
 	def learn_attacks_thread(self):
 		self.best_attack = self.task_attack.get_attack(
-			self.attack_min, self.attack_max)
+			self.attack_forces)
 		return
 		# need to reload training files from disk
 		mpl_filename = shared.files.get_mpl_filename(

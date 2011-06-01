@@ -62,7 +62,10 @@ class TrainingDir:
 			params.bow_bridge_distance,
 			params.bow_force,
 			params.bow_velocity)
-		if extra:
+		# ick
+		if extra and not count:
+			basename += "_%i" % (extra)
+		elif extra:
 			basename += "_%.3f" % (extra)
 		if count:
 			basename += "_%i" % (count)
@@ -141,6 +144,15 @@ class TrainingDir:
 		bbd = shared.dyns.get_distance(dyn)
 		bv  = shared.dyns.get_velocity(dyn)
 		filename_pattern = str("stable_%i_0.000_%.3f_?????_%.3f_*.wav"
+			% (st, bbd, bv))
+		files = glob.glob(os.path.join(self.works_dir, filename_pattern))
+		files.sort()
+		return files
+
+	def get_attack_files(self, st, dyn):
+		bbd = shared.dyns.get_distance(dyn)
+		bv  = shared.dyns.get_velocity(dyn)
+		filename_pattern = str("attack_%i_?????_%.3f_?????_%.3f_*.wav"
 			% (st, bbd, bv))
 		files = glob.glob(os.path.join(self.works_dir, filename_pattern))
 		files.sort()

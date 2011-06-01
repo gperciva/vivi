@@ -320,9 +320,15 @@ class DynTrain(QtGui.QFrame):
 				finger_forces.append( [low_force, middle_force, high_force] )
 			self.dyn_backend.learn_stable(finger_forces)
 		elif job_type == state.ATTACKS:
-			low_force = max(self.get_forces(1))
-			high_force = max(self.get_forces(5)) # yes, highest
-			self.dyn_backend.learn_attacks(low_force, high_force)
+			finger_forces = []
+			for fm in [0, 4, 7]:
+				# yes, reversed
+				low_force = min(self.get_forces_finger(1, fm))
+				middle_force = scipy.mean(self.get_forces_finger(3,fm))
+				high_force = max(self.get_forces_finger(5, fm))
+				finger_forces.append( [low_force, middle_force, high_force] )
+			self.dyn_backend.task_attack.set_K(self.force_factor)
+			self.dyn_backend.learn_attacks(finger_forces)
 		else:
 			print "ERROR dyn_train: job type not recognized!"
 
