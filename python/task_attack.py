@@ -11,10 +11,12 @@ import utils
 
 import note_actions_cats
 
-FORCE_STEPS = 5
+FORCE_STEPS = 10
 REPS = 3
 
 ATTACK_LENGTH = 0.75
+
+DEBUG_SKIP_BUILD_FIXME = False
 
 
 class TaskAttack():
@@ -27,6 +29,9 @@ class TaskAttack():
 		self.best_attacks = [0, 0, 0] # a "null" value
 		self.K = 1.0
 
+		self.notes = None
+		self.forces = None
+
 
 	def set_emit(self, emit):
 		self.process_step = emit
@@ -35,8 +40,9 @@ class TaskAttack():
 		self.K = K
 
 	def get_attack(self, attack_forces):
-		self.remove_previous_files()
-		self.make_attack_files(attack_forces)
+		if not DEBUG_SKIP_BUILD_FIXME:
+			self.remove_previous_files()
+			self.make_attack_files(attack_forces)
 		self.get_attack_files_info()
 		return self.best_attacks
 
@@ -90,14 +96,19 @@ class TaskAttack():
 		self.files = shared.files.get_attack_files(self.st, self.dyn)
 		# awkward splitting
 		self.finger_files = []
+		self.finger_forces = []
 		for fmi, fm in enumerate(shared.basic_training.finger_midis):
 			finger_attacks = []
+			finger_forces = []
 			for filename in self.files:
-				params = shared.files.get_audio_params(filename)
+				params, count = shared.files.get_audio_params_count(filename)
 				if params.finger_midi == fm:
 					finger_attacks.append(filename)
+					if count == 1:
+						finger_forces.append(params.bow_force)
 				#print filename
 			self.finger_files.append(finger_attacks)
+			self.finger_forces.append(finger_forces)
 
 		# TODO: generalize?
 		self.num_rows = len(self.finger_files[0])
@@ -119,7 +130,7 @@ class TaskAttack():
 				cats_means = nac.note_cats_means
 				att = self.portion_attack(cats_means)
 				mse = self.mse(att)
-				self.notes[row][col] = (filename, mse)
+				self.notes[row][col] = (nac, mse, filename)
 
 #		for n in self.notes:
 #			print n
@@ -128,13 +139,14 @@ class TaskAttack():
 			cands = []
 			for block in range(len(self.notes)/REPS):
 				params = shared.files.get_audio_params(
-					self.notes[REPS*block][col][0])
+					self.notes[REPS*block][col][2])
 				bow_force = params.bow_force
 				vals = []
 				for count in range(REPS):
 					row = REPS*block + count
 					val = self.notes[row][col]
-					vals.append(val[1])
+					if val[1] > 0:
+						vals.append(val[1])
 				val = scipy.stats.gmean(vals)
 				cands.append( (val, block, bow_force) )
 			cands.sort()

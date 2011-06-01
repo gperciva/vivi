@@ -73,7 +73,9 @@ class DynTrain(QtGui.QFrame):
 		self.ui.modify.clicked.connect(self.set_modified)
 		self.ui.force_factor.clicked.connect(self.click_force_factor)
 		self.ui.accuracy_label.clicked.connect(self.click_accuracy)
-
+		self.ui.force_init1.clicked.connect(self.click_force1)
+		self.ui.force_init2.clicked.connect(self.click_force2)
+		self.ui.force_init3.clicked.connect(self.click_force3)
 
 		### setup variables
 		self.judged_main_num = 0
@@ -604,4 +606,16 @@ class DynTrain(QtGui.QFrame):
 		self.judged_main_num = self.coll.num_main()
 		self.set_modified()
 		self.display()
+
+	def click_force1(self):
+		self.examine.examine("attack", self.st, self.dyn,
+			self.dyn_backend.task_attack, 1)
+
+	def click_force2(self):
+		self.examine.examine("attack", self.st, self.dyn,
+			self.dyn_backend.task_attack, 2)
+
+	def click_force3(self):
+		self.examine.examine("attack", self.st, self.dyn,
+			self.dyn_backend.task_attack, 3)
 

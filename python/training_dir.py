@@ -106,6 +106,14 @@ class TrainingDir:
 		count = int(params[6])
 		return audio_params, extra, count
 
+	def get_audio_params_count(self, filename):
+		audio_params = self.get_audio_params(filename)
+		basename = os.path.splitext(os.path.basename(filename))[0]
+		params = basename.split('_')[1:]
+		count = int(params[5])
+		return audio_params, count
+
+
 	def make_zoom_filename(self, params):
 		""" save "zoomed" audio to a .wav file. """
 		base_basename = "audio_%i_%.3f_%.3f_%.3f_%.3f_z_" % (

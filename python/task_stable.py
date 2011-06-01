@@ -12,7 +12,7 @@ import utils
 import note_actions_cats
 
 STABLE_STEPS = 5
-STABLE_REPS = 1
+STABLE_REPS = 3
 STABLE_MIN = 1.00
 STABLE_MAX = 1.10
 
@@ -155,7 +155,8 @@ class TaskStable():
 						col = 3*col_block+col_i
 #						cv = self.examines[row][col].plot_actions.stability
 						cv = self.notes[row][col][1]
-						cvs.append(cv)
+						if cv > 0:
+							cvs.append(cv)
 					vals.append( scipy.stats.gmean(cvs) )
 			#	row_stable = self.examines[row][0].plot_actions.stability
 				#print vals

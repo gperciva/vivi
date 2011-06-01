@@ -14,6 +14,8 @@ import table_play_widget
 # FIXME: temp for debugging
 import scipy.stats
 
+import task_attack
+
 
 class ExamineAutoWidget(QtGui.QFrame):
 	select_note = QtCore.pyqtSignal()
@@ -29,31 +31,91 @@ class ExamineAutoWidget(QtGui.QFrame):
 		self.dyn = None
 
 
-	def examine(self, type, st, dyn, task_stable):
+	def examine(self, type, st, dyn, task_stable, finger=None):
 		self.st = st
 		self.dyn = dyn
 
-		self.task_stable = task_stable
-
 		text = utils.st_to_text(self.st) + " string "
+		if finger:
+			text += "      " + str(finger) + "       "
 		self.ui.string_label.setText(text)
 
 		text = utils.dyn_to_text(self.dyn)
 		self.ui.dyn_label.setText(text)
 
-
 		if type == "stable":
+			self.task_stable = task_stable
 			self.setup_stable()
 			self.ui.examine_type_label.setText("stable")
+		elif type == "attack":
+			self.task_attack = task_stable # oh god ick
+			self.setup_attack(finger)
+			self.ui.examine_type_label.setText("attack")
 
 		self.show()
+
+	def setup_attack(self, finger):
+		if not self.task_attack.notes:
+			self.task_attack.get_attack_files_info()
+
+		num_rows = self.task_attack.num_rows
+		num_counts = task_attack.REPS
+
+		forces_strings = map(str, self.task_attack.finger_forces[finger-1])
+		# setup table and gui
+		self.table = table_play_widget.TablePlayWidget(self,
+			forces_strings)
+
+		# clear previous widget if exists
+		if self.ui.verticalLayout.count() == 2:
+			self.ui.verticalLayout.takeAt(1)
+
+		self.ui.verticalLayout.addWidget(self.table)
+
+		self.table.action_play.connect(self.table_play)
+		self.table.select_previous.connect(self.clear_select)
+		self.table.select_new.connect(self.select_plot)
+
+		self.table.clearContents()
+		self.table.setRowCount(3)
+
+		self.examines = []
+		for row in range(num_counts):
+			examines_row = []
+			for col in range(num_rows/3):
+				examines_row.append(None)
+			self.examines.append( examines_row )
+					
+		# populate table
+		for row in range(num_counts):
+			# oh god ick: names of rows vs. cols
+			for col in range(num_rows/3):
+				examine = examine_note_widget.ExamineNoteWidget(
+					shared.examine_note_widget.PLOT_ATTACK)
+
+				en_col = finger-1
+				en_row = col*num_counts + row
+				examine.set_examine_note( self.task_attack.notes[en_row][en_col] )
+				self.examines[row][col] = examine
+
+				self.table.setCellWidget(row, col,
+					examine.plot_actions)
+				self.table.setRowHeight(row, 50.0)
+				if col % 1 == 0 and col > 0:
+					self.examines[row][col].plot_actions.set_border([0,0,0,1])
+				if col % 1 == 0 and col < 3:
+					self.examines[row][col].plot_actions.set_border([0,1,0,0])
+				if row % num_counts == 0 and row > 0:
+					self.examines[row][col].plot_actions.set_border([1,0,0,0])
+				if row % num_counts == (num_counts-1) and row < num_rows:
+					self.examines[row][col].plot_actions.set_border([0,0,1,0])
+
 
 
 	def setup_stable(self):
 		if not self.task_stable.examines:
 			self.task_stable.get_stable_files_info()
 
-		### CUT
 		# setup table and gui
 		self.table = table_play_widget.TablePlayWidget(self, [
 			str("Low: %.3f" % self.task_stable.forces_initial[0]),

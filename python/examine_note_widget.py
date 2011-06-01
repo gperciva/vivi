@@ -10,12 +10,14 @@ import note_actions_cats
 import plot_actions
 import plot_main
 import plot_stable
+import plot_attack
 
 import math
 
 PLOT_ACTIONS = 1
 PLOT_MAIN = 2
 PLOT_STABLE = 3
+PLOT_ATTACK = 4
 
 class ExamineNoteWidget():
 	#def __init__(self, parent):
@@ -28,6 +30,8 @@ class ExamineNoteWidget():
 			self.plot_actions = plot_actions.PlotActions()
 		elif plot_type == PLOT_STABLE:
 			self.plot_actions = plot_stable.PlotStable()
+		elif plot_type == PLOT_ATTACK:
+			self.plot_actions = plot_attack.PlotAttack()
 		else:
 			self.plot_actions = plot_actions.PlotActions()
 		#parent.layout().addWidget(self.plot_actions, 1)
@@ -37,12 +41,20 @@ class ExamineNoteWidget():
 		self.got_zoom = False
 
 	def set_examine_note(self, nac):
-		self.examine_note = nac[0]
-		self.plot_actions.set_data(
-			self.examine_note.note_forces,
-			self.examine_note.note_cats,
-		)
 		if self.plot_type == PLOT_STABLE:
+			self.examine_note = nac[0]
+			self.plot_actions.set_data(
+				self.examine_note.note_forces,
+				self.examine_note.note_cats,
+			)
+			self.plot_actions.set_stability(nac[1],
+				self.examine_note.note_cats_means)
+		if self.plot_type == PLOT_ATTACK:
+			self.examine_note = nac[0]
+			self.plot_actions.set_data(
+				self.examine_note.note_forces,
+				self.examine_note.note_cats,
+			)
 			self.plot_actions.set_stability(nac[1],
 				self.examine_note.note_cats_means)
 
