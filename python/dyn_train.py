@@ -215,6 +215,15 @@ class DynTrain(QtGui.QFrame):
 				QtGui.QPalette.Highlight)
 			self.ui.force_init3.setBackgroundRole(
 				QtGui.QPalette.Highlight)
+			# TODO: really bad way of highlighting!
+			# but QPushButtons don't seem
+			# to have a nice way to highlight!
+			self.ui.force_init1.setStyleSheet(
+				"background-color: darkBlue; color: white;")
+			self.ui.force_init2.setStyleSheet(
+				"background-color: darkBlue; color: white;")
+			self.ui.force_init3.setStyleSheet(
+				"background-color: darkBlue; color: white;")
 		else:
 			self.ui.force_init1.setBackgroundRole(
 				QtGui.QPalette.Window)
@@ -222,6 +231,15 @@ class DynTrain(QtGui.QFrame):
 				QtGui.QPalette.Window)
 			self.ui.force_init3.setBackgroundRole(
 				QtGui.QPalette.Window)
+			# TODO: really bad way of highlighting!
+			# but QPushButtons don't seem
+			# to have a nice way to highlight!
+			self.ui.force_init1.setStyleSheet(
+				"")
+			self.ui.force_init2.setStyleSheet(
+				"")
+			self.ui.force_init3.setStyleSheet(
+				"")
 
 	def set_modified(self):
 		self.modified_training = True
@@ -276,6 +294,7 @@ class DynTrain(QtGui.QFrame):
 	### bulk processing state
 	def process_step_emit(self):
 		self.process_step.emit()
+		#print "dyn train emit", self.st, self.dyn, self.state.jobs, self.state.job_index
 		self.state.step()
 
 	def start(self):
@@ -300,8 +319,10 @@ class DynTrain(QtGui.QFrame):
 				high_force = min(self.get_forces_finger(5, fm))
 				finger_forces.append( [low_force, middle_force, high_force] )
 			self.dyn_backend.learn_stable(finger_forces)
-		elif job_type == state.ACCURACY:
-			self.learn_accuracy()
+		elif job_type == state.ATTACKS:
+			low_force = max(self.get_forces(1))
+			high_force = max(self.get_forces(5)) # yes, highest
+			self.dyn_backend.learn_attacks(low_force, high_force)
 		else:
 			print "ERROR dyn_train: job type not recognized!"
 
@@ -316,8 +337,9 @@ class DynTrain(QtGui.QFrame):
 			self.force_factor = self.dyn_backend.most_stable
 			self.modified_stable = False
 		elif job_type == state.ATTACKS:
-			# TODO: get value
-			self.modified_attacks = False
+			# TODO
+			self.force_init = self.dyn_backend.best_attack
+			self.modified_attack = False
 		self.display()
 
 
@@ -482,7 +504,7 @@ class DynTrain(QtGui.QFrame):
 		elif not self.modified_attack:
 			return 0
 		num_steps = self.dyn_backend.learn_attacks_steps()
-		self.state.prep(state.ACCURACY, [num_steps])
+		self.state.prep(state.ATTACKS, [num_steps])
 		return num_steps
 
 	def learn_stable_steps(self):
@@ -521,6 +543,11 @@ class DynTrain(QtGui.QFrame):
 				self.coll.get_items(cat)))
 		return forces
 
+	def get_forces(self, cat):
+		forces = map(
+			lambda(x): shared.files.get_audio_params(x[0]).bow_force,
+				self.coll.get_items(cat))
+		return forces
 
 
 #	def process_step_emit(self):

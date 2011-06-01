@@ -21,6 +21,7 @@ import scipy
 import os
 
 import task_stable
+import task_attack
 
 CALCULATE_TRAINING = 1
 CHECK_ACCURACY = 2
@@ -47,6 +48,10 @@ class DynBackend(QtCore.QThread):
 
 		self.task_stable = task_stable.TaskStable(self.st, self.dyn,
 			self.controller)
+		self.task_stable.set_emit(self.process_step)
+		self.task_attack = task_attack.TaskAttack(self.st, self.dyn,
+			self.controller)
+		self.task_attack.set_emit(self.process_step)
 
 		#self.practice = practice
 
@@ -146,10 +151,11 @@ class DynBackend(QtCore.QThread):
 
 
 	def learn_attacks_steps(self):
-		return 3*2*ATTACK_FORCE_STEPS + 1
+		#return 3*2*task_attack.FORCE_STEPS + 1
+		return task_attack.REPS*task_attack.FORCE_STEPS + 1
 
 	def learn_attacks(self, min_force, max_force):
-		self.performer.load_forces()
+		#self.performer.load_forces()
 		self.attack_min = min_force
 		self.attack_max = max_force
 		self.state = LEARN_ATTACKS
@@ -164,7 +170,6 @@ class DynBackend(QtCore.QThread):
 		self.condition.wakeOne()
 
 	def learn_stable_thread(self):
-		self.task_stable.set_emit(self.process_step)
 		self.most_stable = self.task_stable.get_stable(self.stable_forces)
 
 #zz
@@ -267,6 +272,8 @@ class DynBackend(QtCore.QThread):
 
 
 	def learn_attacks_thread(self):
+		self.best_attack = self.task_attack.get_attack(
+			self.attack_min, self.attack_max)
 		return
 		# need to reload training files from disk
 		mpl_filename = shared.files.get_mpl_filename(

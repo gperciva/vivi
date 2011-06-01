@@ -184,14 +184,14 @@ class StringTrain(QtGui.QFrame):
 		jobs = []
 		for st in range(NUM_DYNS):
 			jobs.append(self.dyns[st].learn_stable_steps())
-		self.state.prep(state.ACCURACY, jobs)
+		self.state.prep(state.STABLE, jobs)
 		return sum(jobs)
 
 	def learn_attacks_steps(self):
 		jobs = []
 		for st in range(NUM_DYNS):
 			jobs.append(self.dyns[st].learn_attacks_steps())
-		self.state.prep(state.ACCURACY, jobs)
+		self.state.prep(state.ATTACKS, jobs)
 		return sum(jobs)
 
 
