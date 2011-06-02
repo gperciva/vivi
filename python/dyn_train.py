@@ -39,10 +39,7 @@ import compare_coll
 BASIC_SECONDS = 0.3
 BASIC_SKIP = 0.5
 
-
-OPINION_END = 1
-OPINION_CONTINUE = 2
-OPINION_QUIT = 3
+NEEDS_BASIC_COLOR = "pink"
 
 
 class DynTrain(QtGui.QFrame):
@@ -59,15 +56,6 @@ class DynTrain(QtGui.QFrame):
 		self.ui = dyn_train_gui.Ui_dyn_train_box()
 		self.ui.setupUi(self)
 		parent.addWidget(self)
-		if self.dyn == 0:
-			text = 'f'
-		elif self.dyn == 1:
-			text = 'mf'
-		elif self.dyn == 2:
-			text = 'mp'
-		elif self.dyn == 3:
-			text = 'p'
-		self.ui.dyn_type.setText(text)
 
 		#self.mousePressEvent = self.click
 		self.ui.modify.clicked.connect(self.set_modified)
@@ -152,6 +140,7 @@ class DynTrain(QtGui.QFrame):
 	def display(self):
 		if not self.judged_main_num:
 			self.setEnabled(False)
+			self.ui.dyn_type.setText(utils.dyn_to_text(self.dyn))
 			self.ui.num_trained_label.setText("")
 			self.ui.accuracy_label.setText("")
 			self.ui.force_factor.setText("")
@@ -159,6 +148,14 @@ class DynTrain(QtGui.QFrame):
 			self.ui.force_init2.setText("")
 			self.ui.force_init3.setText("")
 			return
+
+		if self.basic_trained:
+			self.ui.dyn_type.setText(utils.dyn_to_text(self.dyn))
+		else:
+			self.ui.dyn_type.setText(
+				"<font color=\"%s\">%s</font>" %
+				(NEEDS_BASIC_COLOR, utils.dyn_to_text(self.dyn)))
+
 		self.setEnabled(True)
 		self.ui.num_trained_label.setText(str(self.judged_main_num))
 		if self.accuracy >= 0:
@@ -271,8 +268,7 @@ class DynTrain(QtGui.QFrame):
 			self.force_init = [-1.0, -1.0, -1.0]
 			self.force_factor = 1.0
 		# do we need any basic training?
-		shared.basic.set_collection(self.st, self.dyn, self.coll)
-		if not shared.basic.get_next_basic():
+		if not shared.basic.get_next_basic(self.dyn, self.coll):
 			self.basic_trained = True
 		self.display()
 
@@ -363,7 +359,6 @@ class DynTrain(QtGui.QFrame):
 		return num_steps
 
 	def basic_train(self):
-		shared.basic.set_collection(self.st, self.dyn, self.coll)
 		shared.judge.judged_cat.connect(self.judged_cat)
 		self.basic_train_next()
 
@@ -605,6 +600,10 @@ class DynTrain(QtGui.QFrame):
 		self.coll.delete(filename+'.wav')
 		self.judged_main_num = self.coll.num_main()
 		self.set_modified()
+		if not shared.basic.get_next_basic():
+			self.basic_trained = True
+		else:
+			self.basic_trained = False
 		self.display()
 
 	def click_force1(self):

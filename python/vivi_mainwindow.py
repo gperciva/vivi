@@ -157,6 +157,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 			self.rehearse()
 
 	def save_training(self):
+		print "vivi mainwindow save"
 		self.string_train.save()
 
 

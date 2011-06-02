@@ -9,27 +9,17 @@ EPSILON = 1e-3
 
 class Basic:
 	def __init__(self):
-		self.st = -1
-		self.dyn = -1
-		self.coll = None
+		pass
 
-	def set_collection(self, st, dyn, coll):
-		""" Gives a collection to Basic for analysis.
-		    Remember that passing a list is by reference!"""
-		self.st = st
-		self.dyn = dyn
-		self.coll = coll
-
-	def get_matching_fingers(self):
+	def get_matching_fingers(self, dyn, coll):
 		forces = [[],[],[]]
 		cats = [[],[],[]]
 		unknowns = [[],[],[]]
 		# "level" parameters
-#		bbd = shared.dyns.get_distance(self.dyn)
-		bbd = dynamics.get_distance(self.dyn)
-		bv  = dynamics.get_velocity(self.dyn)
+		bbd = dynamics.get_distance(dyn)
+		bv  = dynamics.get_velocity(dyn)
 
-		for pair in self.coll.get_items(-1):
+		for pair in coll.get_items(-1):
 			params = shared.files.get_audio_params(pair[0])
 			if ((abs(params.bow_bridge_distance - bbd) < EPSILON)
 			    and (abs(params.bow_velocity - bv) < EPSILON)):
@@ -68,9 +58,6 @@ class Basic:
 		return force
 
 	def get_missing_force(self, forces, cats, unknowns):
-		#print forces
-		#print cats
-		#print unknowns
 		### start in the "middle-ish"
 		if not forces:
 			return 1.0
@@ -86,19 +73,17 @@ class Basic:
 			return self.get_between(forces, cats, 4, unknowns)
 		if not 2 in cats:
 			return self.get_between(forces, cats, 2, unknowns)
-		return 0
+		return None
 
-	def get_next_basic(self):
-		forces, cats, unknowns = self.get_matching_fingers()
-		finger_midi = -1
-		force = -1
-		for i in range(3):
-			finger_midi = finger_midis[i]
+	def get_next_basic(self, dyn, coll):
+		""" the 'main' function of Basic; it returns the
+			(force, finger_midi) that should next be judged by the
+			human, or None if no training is needed. """
+		forces, cats, unknowns = self.get_matching_fingers(dyn, coll)
+		for i, finger_midi in enumerate(finger_midis):
 			force = self.get_missing_force(forces[i], cats[i], unknowns[i])
-			if force > 0:
-				break
-		if force > 0:
-			return (force, finger_midi)
+			if force:
+				return (finger_midi, force)
 		return None
 
 

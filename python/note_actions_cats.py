@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import shared
+import os
 
 HOP_SECONDS = 44100.0 / shared.vivi_controller.EARS_HOPSIZE
 
