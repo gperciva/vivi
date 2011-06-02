@@ -2,26 +2,20 @@
 #include "dynamics.h"
 #include <math.h>
 
-#include <stdio.h>
+//#include <stdio.h>
 
 const double BOW_BRIDGE_DISTANCES [NUM_DYNAMICS] =
     {0.08, 0.10, 0.12, 0.14};
 const double BOW_VELOCITIES [NUM_DYNAMICS] =
     {0.40, 0.33, 0.26, 0.20};
 
-Dynamics::Dynamics() {
-}
-
-Dynamics::~Dynamics() {
-}
-
 /*
  I haven't thought about it; this just comes from:
  http://en.wikipedia.org/wiki/Linear_interpolation
 */
-inline double Dynamics::interpolate(const double x,
-                                    const double x0, const double y0,
-                                    const double x1, const double y1)
+inline double interpolate(const double x,
+                          const double x0, const double y0,
+                          const double x1, const double y1)
 {
     if ((x1-x0) == 0) {
         return y0;
@@ -30,7 +24,8 @@ inline double Dynamics::interpolate(const double x,
     }
 }
 
-double Dynamics::get_distance(double dyn) {
+
+double get_distance(double dyn) {
     const unsigned int x0 = floor(dyn);
     const unsigned int x1 = ceil(dyn);
     return interpolate(dyn,
@@ -38,12 +33,13 @@ double Dynamics::get_distance(double dyn) {
                        x1, BOW_BRIDGE_DISTANCES [x1]);
 }
 
-double Dynamics::get_velocity(double dyn) {
+double get_velocity(double dyn) {
     const unsigned int x0 = floor(dyn);
     const unsigned int x1 = ceil(dyn);
     return interpolate(dyn,
                        x0, BOW_VELOCITIES [x0],
                        x1, BOW_VELOCITIES [x1]);
 }
+
 
 

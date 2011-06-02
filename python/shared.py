@@ -32,9 +32,6 @@ basic = None
 # I have to import vivi_controller here for some unknown reason!
 import vivi_controller
 
-import dynamics
-dyns = None
-
 
 import examine_note_widget
 examine_main = None

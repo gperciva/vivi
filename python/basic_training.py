@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import shared
+import dynamics
 
 finger_midis = [0.0, 4.0, 7.0]
 
@@ -24,8 +25,9 @@ class Basic:
 		cats = [[],[],[]]
 		unknowns = [[],[],[]]
 		# "level" parameters
-		bbd = shared.dyns.get_distance(self.dyn)
-		bv  = shared.dyns.get_velocity(self.dyn)
+#		bbd = shared.dyns.get_distance(self.dyn)
+		bbd = dynamics.get_distance(self.dyn)
+		bv  = dynamics.get_velocity(self.dyn)
 
 		for pair in self.coll.get_items(-1):
 			params = shared.files.get_audio_params(pair[0])

@@ -53,7 +53,6 @@ class ViviMainwindow(QtGui.QMainWindow):
 			training_dirname, cache_dirname, final_dirname)
 		shared.basic = shared.basic_training.Basic()
 		shared.judge = shared.judge_audio.JudgeAudio(self.ui.verticalLayout)
-		shared.dyns  = shared.dynamics.Dynamics()
 		shared.examine_main = shared.examine_note_widget.ExamineNoteWidget(
 			shared.examine_note_widget.PLOT_MAIN)
 			#shared.examine_note_widget.PLOT_STABLE)
