@@ -45,9 +45,6 @@ class CompareColl(QtGui.QFrame):
 		button.clicked.connect(self.table_row_delete)
 
 
-	def set_string_train(self, string_train):
-		self.string_train = string_train
-
 	def display(self):
 		text = utils.st_to_text(self.st) + " string "
 		self.ui.string_label.setText(text)
@@ -87,13 +84,6 @@ class CompareColl(QtGui.QFrame):
 			wavfile = self.data[row][2]
 			utils.play(wavfile)
 
-	def table_delete_row(self):
-		row = self.table.currentRow()
-		if row >= 0:
-			wavfile = self.data[row][2]
-			self.table.removeRow(row)
-			self.string_train.delete_file(self.st, self.dyn, wavfile)
-
 	def get_selected_filename(self):
 		row = self.table.currentRow()
 		col = self.table.currentColumn()
@@ -111,6 +101,9 @@ class CompareColl(QtGui.QFrame):
 
 	def table_row_delete(self):
 		filename = self.get_selected_filename()
+		row = self.table.currentRow()
+		self.table.removeRow(row)
+		self.data.pop(row)
 		self.row_delete.emit(filename)
 
 	def table_row_retrain(self):
