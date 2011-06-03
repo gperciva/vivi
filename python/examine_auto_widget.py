@@ -64,8 +64,8 @@ class ExamineAutoWidget(QtGui.QFrame):
 			forces_strings)
 
 		# clear previous widget if exists
-		if self.ui.verticalLayout.count() == 2:
-			self.ui.verticalLayout.takeAt(1)
+		if self.ui.verticalLayout.count() == 3:
+			self.ui.verticalLayout.takeAt(2)
 
 		self.ui.verticalLayout.addWidget(self.table)
 
@@ -73,6 +73,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 		self.table.select_previous.connect(self.clear_select)
 		self.table.select_new.connect(self.select_plot)
 		self.table.action_quit.connect(self.table_quit)
+		self.ui.button_play.clicked.connect(self.table_play)
 
 		self.table.clearContents()
 		self.table.setRowCount(3)
@@ -124,8 +125,8 @@ class ExamineAutoWidget(QtGui.QFrame):
 			"high 4", "high 7",
 			])
 		# clear previous widget if exists
-		if self.ui.verticalLayout.count() == 2:
-			self.ui.verticalLayout.takeAt(1)
+		if self.ui.verticalLayout.count() == 3:
+			self.ui.verticalLayout.takeAt(2)
 
 		self.ui.verticalLayout.addWidget(self.table)
 
@@ -133,6 +134,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 		self.table.select_previous.connect(self.clear_select)
 		self.table.select_new.connect(self.select_plot)
 		self.table.action_quit.connect(self.table_quit)
+		self.ui.button_play.clicked.connect(self.table_play)
 
 
 		num_rows = self.task_stable.num_rows

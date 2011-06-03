@@ -34,6 +34,16 @@ class CompareColl(QtGui.QFrame):
 		self.table.action_retrain.connect(self.table_row_retrain)
 		self.table.action_quit.connect(self.table_quit)
 		self.table.itemSelectionChanged.connect(self.selection_changed)
+		self.ui.button_play.clicked.connect(self.table_play)
+
+		# add extra buttons
+		button = QtGui.QPushButton("re&train")
+		self.ui.examine_commands.insertWidget(1, button)
+		button.clicked.connect(self.table_row_retrain)
+		button = QtGui.QPushButton("&delete")
+		self.ui.examine_commands.insertWidget(2, button)
+		button.clicked.connect(self.table_row_delete)
+
 
 	def set_string_train(self, string_train):
 		self.string_train = string_train
