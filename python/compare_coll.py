@@ -107,9 +107,11 @@ class CompareColl(QtGui.QFrame):
 		self.row_delete.emit(filename)
 
 	def table_row_retrain(self):
+		# TODO: update display with new category
 		filename = self.get_selected_filename()
 		self.row_retrain.emit(filename)
 
 	def table_quit(self):
+		shared.examine_main.reset()
 		self.close()
 

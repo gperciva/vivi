@@ -40,6 +40,9 @@ class ExamineNoteWidget():
 		self.examine_note = None
 		self.got_zoom = False
 
+	def reset(self):
+		self.plot_actions.reset()
+
 	def set_examine_note(self, nac):
 		if self.plot_type == PLOT_STABLE:
 			self.examine_note = nac[0]

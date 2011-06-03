@@ -219,5 +219,6 @@ class ExamineAutoWidget(QtGui.QFrame):
 		#QtCore.QCoreApplication.sendEvent(event)
 
 	def table_quit(self):
+		shared.examine_main.reset()
 		self.close()
 

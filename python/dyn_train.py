@@ -406,6 +406,8 @@ class DynTrain(QtGui.QFrame):
 			else:
 				self.coll.add_item(self.train_filename+'.wav',
 					collection.categories[cat-1], replace=True)
+				self.compare.compare(self.st, self.dyn,
+					self.accuracy, self.coll)
 			if cat <= 5:
 				self.judged_main_num = self.coll.num_main()
 				self.set_modified()

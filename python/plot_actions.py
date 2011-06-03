@@ -15,6 +15,15 @@ class PlotActions(QtGui.QWidget):
 		self.highlight(False)
 		self.border_extra = [0,0,0,0]
 
+	def reset(self):
+		self.back = QtCore.Qt.white
+		self.forces = []
+		self.cats = []
+		self.mouse_x_begin = -1
+		self.mouse_x_end = -1
+		self.highlight(False)
+		self.border_extra = [0,0,0,0]
+
 	def set_data(self, forces, cats):
 		self.forces = [x[1] for x in forces]
 		self.cats = [x[1] for x in cats]
