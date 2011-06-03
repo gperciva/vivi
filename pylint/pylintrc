@@ -13,7 +13,7 @@
 
 # Python code to execute, usually for sys.path manipulation such as
 # pygtk.require().
-init-hook='import sys; sys.path.append("../build/python/")'
+init-hook='import sys; sys.path.append("../build/python/"); sys.path.append("../python/"); sys.path.append("../build/swig/");'
 
 # Profiled execution.
 profile=no
@@ -179,7 +179,7 @@ bad-functions=map,filter,apply,input
 [VARIABLES]
 
 # Tells whether we should check for unused import in __init__ files.
-init-import=no
+init-import=yes
 
 # A regular expression matching names used for dummy variables (i.e. not used).
 dummy-variables-rgx=_|dummy
@@ -220,7 +220,7 @@ deprecated-modules=regsub,string,TERMIOS,Bastion,rexec
 
 # Create a graph of every (i.e. internal and external) dependencies in the
 # given file (report R0402 must not be disabled)
-import-graph=
+import-graph=dependencies-all.dot
 
 # Create a graph of external dependencies in the given file (report R0402 must
 # not be disabled)
