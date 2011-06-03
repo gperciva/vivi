@@ -26,12 +26,7 @@ judge = None
 import basic_training
 basic = None
 
-# FIXME: to avoid the dreaded
-#   [MRSERR] MarControl::to() -  Incompatible type requested -
-#   expected mrs_string for control  mrs_string/currentlyPlaying
-# I have to import vivi_controller here for some unknown reason!
 import vivi_controller
-
 
 import examine_note_widget
 examine_main = None

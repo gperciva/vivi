@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 """ Main window of Vivi, the Virtual Violinist. """
 
+# FIXME: to avoid the dreaded
+#   [MRSERR] MarControl::to() -  Incompatible type requested -
+#   expected mrs_string for control  mrs_string/currentlyPlaying
+# I have to import vivi_controller here for some unknown reason!
+import vivi_controller
+
+
 #import os
 
 from PyQt4 import QtGui, QtCore

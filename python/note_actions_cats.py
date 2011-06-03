@@ -2,6 +2,7 @@
 
 import shared
 import os
+import dynamics
 
 HOP_SECONDS = 44100.0 / shared.vivi_controller.EARS_HOPSIZE
 
@@ -63,8 +64,8 @@ class NoteActionsCats:
 		self.note_st = int(note_prelim_info[3])
 		self.note_dyn = float(note_prelim_info[5])
 		self.note_finger = round(float(note_prelim_info[7]))
-		self.note_pos = shared.dyns.get_distance(self.note_dyn)
-		self.note_vel = shared.dyns.get_velocity(self.note_dyn)
+		self.note_pos = dynamics.get_distance(self.note_dyn)
+		self.note_vel = dynamics.get_velocity(self.note_dyn)
 		# find beginning of real actions
 		while self.lines[i].startswith('#'):
 			i += 1

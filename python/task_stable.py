@@ -3,11 +3,12 @@
 import os
 import math
 
-import scipy
+import scipy.stats
 
 import shared
 import vivi_controller
 import utils
+import dynamics
 
 import note_actions_cats
 
@@ -65,9 +66,9 @@ class TaskStable():
 					bow_force = self.stable_forces[0][fi]
 					# FIXME: oh god ick
 					ap = shared.AudioParams( self.st, 0,
-						shared.dyns.get_distance(self.dyn),
+						dynamics.get_distance(self.dyn),
 						bow_force,
-						bow_direction*shared.dyns.get_velocity(self.dyn))
+						bow_direction*dynamics.get_velocity(self.dyn))
 					stable_filename = shared.files.make_stable_filename(
 						ap, K, count)
 
@@ -82,8 +83,8 @@ class TaskStable():
 						params.dynamic = self.dyn
 						params.finger_position = utils.midi2pos(finger_midi)
 						params.bow_force = bow_force
-						params.bow_bridge_distance = shared.dyns.get_distance(self.dyn)
-						params.bow_velocity = bow_direction * shared.dyns.get_velocity(self.dyn)
+						params.bow_bridge_distance = dynamics.get_distance(self.dyn)
+						params.bow_velocity = bow_direction * dynamics.get_velocity(self.dyn)
 
 						self.controller.note(params, K, STABLE_LENGTH)
 

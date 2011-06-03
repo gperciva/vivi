@@ -21,7 +21,7 @@ int main() {
     viviController->filesNew("stable-test");
     viviController->comment("Stable test, 0 0");
     viviController->load_ears_training(params.string_number, dyn,
-                                       "cache/final/0_0.mpl");
+                                       "final/0_0.mpl");
     viviController->note(params, K, PLAY);
     //}
 

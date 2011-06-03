@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import shared
+
+import vivi_controller # TODO: importing this first avoids a weird swig crash
 import dynamics
 
 finger_midis = [0.0, 4.0, 7.0]
@@ -83,7 +85,7 @@ class Basic:
 		for i, finger_midi in enumerate(finger_midis):
 			force = self.get_missing_force(forces[i], cats[i], unknowns[i])
 			if force:
-				return (finger_midi, force)
+				return (force, finger_midi)
 		return None
 
 

@@ -9,11 +9,12 @@ import utils
 class JudgeAudio(QtGui.QFrame):
 	judged_cat = QtCore.pyqtSignal(int, name='judged_cat')
 
-	def __init__(self, mainlayout):
+	def __init__(self, main_layout):
 		QtGui.QFrame.__init__(self)
 		self.ui = judge_audio_gui.Ui_Frame()
 		self.ui.setupUi(self)
-		self.mainlayout = mainlayout
+		self.main_layout = main_layout
+		self.use_layout = self.main_layout
 		self.display(show=False)
 
 		self.buttons = QtGui.QButtonGroup(self)
@@ -23,13 +24,13 @@ class JudgeAudio(QtGui.QFrame):
 
 
 	### basic GUI framework
-
-	def display(self, parent=None, position=-1, show=True):
+	def display(self, parent=None, position=-1, show=True, main=False):
+		if main:
+			self.use_layout = self.main_layout
+		elif parent:
+			self.use_layout = parent
 		if show:
-			if parent:
-				parent.insertWidget(position, self)
-			else:
-				self.mainlayout.addWidget(self)
+			self.use_layout.insertWidget(position, self)
 			self.show()
 			self.setFocus()
 		else:
@@ -37,6 +38,8 @@ class JudgeAudio(QtGui.QFrame):
 			self.hide()
 			if self.parent():
 				self.parent().layout().removeWidget(self)
+				if self.use_layout != self.main_layout:
+					self.parent().table_focus()
 			self.setParent(None)
 
 	def clicked(self, event):
@@ -51,6 +54,8 @@ class JudgeAudio(QtGui.QFrame):
 		key = key.lower()
 		if (key >= '0') and (key <= '9'):
 			self.user_key(int(key))
+		elif (key == 'q'):
+			self.user_key(9)
 		else:
 			QtGui.QFrame.keyPressEvent(self, event)
 

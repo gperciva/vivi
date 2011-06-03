@@ -10,6 +10,7 @@ import shared
 
 class CompareColl(QtGui.QFrame):
 	row_delete = QtCore.pyqtSignal(str, name="row_delete")
+	row_retrain = QtCore.pyqtSignal(str, name="row_retrain")
 	
 	def __init__(self):
 		QtGui.QFrame.__init__(self)
@@ -30,6 +31,8 @@ class CompareColl(QtGui.QFrame):
 
 		self.table.action_play.connect(self.table_play)
 		self.table.action_delete.connect(self.table_row_delete)
+		self.table.action_retrain.connect(self.table_row_retrain)
+		self.table.action_quit.connect(self.table_quit)
 		self.table.itemSelectionChanged.connect(self.selection_changed)
 
 	def set_string_train(self, string_train):
@@ -43,8 +46,6 @@ class CompareColl(QtGui.QFrame):
 		self.ui.dyn_label.setText(text)
 
 		self.ui.examine_type_label.setText("collection")
-
-#		self.ui.label.setText(str(label + "%.2f%%"%(self.accuracy)))
 
 	def compare(self, st, dyn, accuracy, coll):
 		self.st = st
@@ -64,40 +65,11 @@ class CompareColl(QtGui.QFrame):
 			table_item = QtGui.QTableWidgetItem(datum[1])
 			table_item.setFont(QtGui.QFont("Andale Mono", 7))
 			self.table.setItem(i, 1, table_item)
-		self.setFocus()
+		self.table_focus()
+
+	def table_focus(self):
+		self.table.setFocus()
 		self.show()
-
-
-
-#	def set_coll(self, i, coll):
-#		self.colls[i] = coll
-#
-#	def check(self, check_st, inner, coll):
-#		self.st = check_st
-#		self.inner = inner
-#		self.coll = coll
-#
-#		self.table.clearContents()
-#		self.table.setRowCount(0)
-#		self.show()
-#		self.setFocus()
-#		self.show_string()
-#
-#	def show_string(self):
-#		self.check_coll.check(self.coll, self.st, self.inner)
-#
-#		self.table.setRowCount(len(self.check_coll.data))
-#		for i, datum in enumerate(self.check_coll.data):
-#			table_item = QtGui.QTableWidgetItem(datum[0])
-#			self.table.setItem(i, 0, table_item)
-#			table_item = QtGui.QTableWidgetItem(datum[1])
-#			table_item.setFont(QtGui.QFont("Andale Mono"))
-#			self.table.setItem(i, 1, table_item)
-#
-#	def basic_train(self):
-#		self.string_train.set_note_label(self.ui.note_label)
-#		self.string_train.basic_train()
-#		self.setFocus()
 
 	def table_play(self):
 		row = self.table.currentRow()
@@ -111,12 +83,6 @@ class CompareColl(QtGui.QFrame):
 			wavfile = self.data[row][2]
 			self.table.removeRow(row)
 			self.string_train.delete_file(self.st, self.dyn, wavfile)
-
-#	def table_info(self):
-#		row = self.table.currentRow()
-#		if row >= 0:
-#			wavfile = self.check_coll.get_filename(row)
-#			self.ui.note_label.setText(wavfile)
 
 	def get_selected_filename(self):
 		row = self.table.currentRow()
@@ -137,4 +103,10 @@ class CompareColl(QtGui.QFrame):
 		filename = self.get_selected_filename()
 		self.row_delete.emit(filename)
 
+	def table_row_retrain(self):
+		filename = self.get_selected_filename()
+		self.row_retrain.emit(filename)
+
+	def table_quit(self):
+		self.close()
 

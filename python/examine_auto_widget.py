@@ -11,9 +11,6 @@ import shared
 import examine_note_widget
 import table_play_widget
 
-# FIXME: temp for debugging
-import scipy.stats
-
 import task_attack
 
 
@@ -75,6 +72,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 		self.table.action_play.connect(self.table_play)
 		self.table.select_previous.connect(self.clear_select)
 		self.table.select_new.connect(self.select_plot)
+		self.table.action_quit.connect(self.table_quit)
 
 		self.table.clearContents()
 		self.table.setRowCount(3)
@@ -134,6 +132,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 		self.table.action_play.connect(self.table_play)
 		self.table.select_previous.connect(self.clear_select)
 		self.table.select_new.connect(self.select_plot)
+		self.table.action_quit.connect(self.table_quit)
 
 
 		num_rows = self.task_stable.num_rows
@@ -216,4 +215,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 		#QtGui.QFrame.keyPressEvent(self.parent, event)
 		#self.parent.keyPressEvent(event)
 		#QtCore.QCoreApplication.sendEvent(event)
+
+	def table_quit(self):
+		self.close()
 

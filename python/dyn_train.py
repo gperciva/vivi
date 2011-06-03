@@ -18,7 +18,7 @@ import utils
 # TODO: **must** import this first, then controller.  No clue why.
 import vivi_controller
 import dynamics
-import vivi_controller
+#import vivi_controller
 
 #import utils
 import shared
@@ -39,7 +39,8 @@ import compare_coll
 BASIC_SECONDS = 0.3
 BASIC_SKIP = 0.5
 
-NEEDS_BASIC_COLOR = "pink"
+#NEEDS_BASIC_COLOR = "pink"
+NEEDS_BASIC_COLOR = "red"
 
 
 class DynTrain(QtGui.QFrame):
@@ -111,6 +112,10 @@ class DynTrain(QtGui.QFrame):
 
 		self.compare = compare_coll.CompareColl()
 		self.compare.row_delete.connect(self.delete_file)
+		self.compare.row_retrain.connect(self.retrain_file)
+
+
+		self.cancel_will_delete = True
 
 		self.display()
 
@@ -364,14 +369,14 @@ class DynTrain(QtGui.QFrame):
 
 
 	def basic_train_next(self):
-		train_params = shared.basic.get_next_basic()
+		train_params = shared.basic.get_next_basic(self.dyn, self.coll)
 		if not train_params:
 			return self.basic_train_end()
 		params = shared.AudioParams(
 			self.st, train_params[1],
-			shared.dyns.get_distance(self.dyn),
+			dynamics.get_distance(self.dyn),
 			train_params[0],
-			shared.dyns.get_velocity(self.dyn))
+			dynamics.get_velocity(self.dyn))
 
 		self.train_filename = shared.files.make_audio_filename(params)
 		physical = self.dyn_backend.get_physical_params(params)
@@ -382,6 +387,7 @@ class DynTrain(QtGui.QFrame):
 
 	def basic_train_end(self):
 		self.basic_trained = True
+		self.display()
 		shared.judge.judged_cat.disconnect(self.judged_cat)
 		shared.judge.display(show=False)
 		self.process_step.emit()
@@ -394,14 +400,19 @@ class DynTrain(QtGui.QFrame):
 		if cat >= 0:
 			self.train_filename = shared.files.move_works_to_train(
 				self.train_filename)
-			self.coll.add_item(self.train_filename+'.wav',
-				collection.categories[cat-1])
+			if self.cancel_will_delete:
+				self.coll.add_item(self.train_filename+'.wav',
+					collection.categories[cat-1])
+			else:
+				self.coll.add_item(self.train_filename+'.wav',
+					collection.categories[cat-1], replace=True)
 			if cat <= 5:
-				self.judged_main_num += 1
+				self.judged_main_num = self.coll.num_main()
 				self.set_modified()
 		else:
-			os.remove(self.train_filename+".wav")
-			os.remove(self.train_filename+".actions")
+			if self.cancel_will_delete:
+				os.remove(self.train_filename+".wav")
+				os.remove(self.train_filename+".actions")
 		if self.state.job_type == state.BASIC_TRAINING:
 			if cat >= 0:
 				self.basic_train_next()
@@ -589,8 +600,8 @@ class DynTrain(QtGui.QFrame):
 			shared.examine_main.load_note(note_filename_text[1])
 
 
-	def train_zoom(self, wavfile):
-		print "train ", wavfile
+	def train_zoom(self, wavfile, cancel_will_delete=True):
+		self.cancel_will_delete = cancel_will_delete
 		self.train_filename = wavfile
 		shared.judge.judged_cat.connect(self.judged_cat)
 		shared.judge.display()
@@ -600,11 +611,24 @@ class DynTrain(QtGui.QFrame):
 		self.coll.delete(filename+'.wav')
 		self.judged_main_num = self.coll.num_main()
 		self.set_modified()
-		if not shared.basic.get_next_basic():
+		if not shared.basic.get_next_basic(self.dyn, self.coll):
 			self.basic_trained = True
 		else:
 			self.basic_trained = False
 		self.display()
+
+	def retrain_file(self, filename):
+		# TODO: passing a python string through a signal turns it into a
+		# QString.  This changes it back to a python string
+		wavfile = str(filename)
+#		self.train_zoom(str(filename), cancel_will_delete=False)
+		self.cancel_will_delete = False
+		self.train_filename = wavfile
+		shared.judge.judged_cat.connect(self.judged_cat)
+		shared.judge.display(self.compare.ui.verticalLayout)
+		shared.judge.user_judge(wavfile)
+#zzz
+
 
 	def click_force1(self):
 		self.examine.examine("attack", self.st, self.dyn,

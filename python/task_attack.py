@@ -3,11 +3,12 @@
 import os
 import math
 
-import scipy
+import scipy.stats
 
 import shared
 import vivi_controller
 import utils
+import dynamics
 
 import note_actions_cats
 
@@ -67,9 +68,9 @@ class TaskAttack():
 					# FIXME: oh god ick
 					ap = shared.AudioParams( self.st,
 						finger_midi,
-						shared.dyns.get_distance(self.dyn),
+						dynamics.get_distance(self.dyn),
 						bow_force,
-						shared.dyns.get_velocity(self.dyn))
+						dynamics.get_velocity(self.dyn))
 					attack_filename = shared.files.make_attack_filename(
 						ap, count)
 #					print attack_filename
@@ -85,8 +86,8 @@ class TaskAttack():
 					params.dynamic = self.dyn
 					params.finger_position = utils.midi2pos(finger_midi)
 					params.bow_force = bow_force
-					params.bow_bridge_distance = shared.dyns.get_distance(self.dyn)
-					params.bow_velocity = shared.dyns.get_velocity(self.dyn)
+					params.bow_bridge_distance = dynamics.get_distance(self.dyn)
+					params.bow_velocity = dynamics.get_velocity(self.dyn)
 
 					self.controller.note(params, self.K, ATTACK_LENGTH)
 					self.controller.filesClose()
