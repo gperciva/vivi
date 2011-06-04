@@ -10,6 +10,7 @@ import shared
 import vivi_controller
 import utils
 import dynamics
+import vivi_types
 
 import note_actions_cats
 
@@ -68,7 +69,7 @@ class TaskStable():
 					# TODO: bow force varies, so this is fake?
 					bow_force = self.stable_forces[0][fi]
 					# FIXME: oh god ick
-					ap = shared.AudioParams( self.st, 0,
+					ap = vivi_types.AudioParams( self.st, 0,
 						dynamics.get_distance(self.dyn),
 						bow_force,
 						bow_direction*dynamics.get_velocity(self.dyn))

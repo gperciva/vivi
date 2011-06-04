@@ -7,10 +7,13 @@ import collection
 
 import scipy
 
+import basic_training
+
 import os # to delete audio files whose judgement was cancelled
 
 #import levels
 import utils
+import vivi_types
 
 # TODO: **must** import ears first, then controller.  No clue why.
 #import ears
@@ -274,7 +277,7 @@ class DynTrain(QtGui.QFrame):
 			self.force_init = [-1.0, -1.0, -1.0]
 			self.force_factor = 1.0
 		# do we need any basic training?
-		if not shared.basic.get_next_basic(self.dyn, self.coll):
+		if not basic_training.get_next_basic(self.dyn, self.coll):
 			self.basic_trained = True
 		self.display()
 
@@ -373,7 +376,7 @@ class DynTrain(QtGui.QFrame):
 		train_params = shared.basic.get_next_basic(self.dyn, self.coll)
 		if not train_params:
 			return self.basic_train_end()
-		params = shared.AudioParams(
+		params = vivi_types.AudioParams(
 			self.st, train_params[1],
 			dynamics.get_distance(self.dyn),
 			train_params[0],

@@ -5,11 +5,13 @@ import math
 
 import scipy.stats
 import dirs
+import basic_training
 
 import shared
 import vivi_controller
 import utils
 import dynamics
+import vivi_types
 
 import note_actions_cats
 
@@ -69,7 +71,7 @@ class TaskAttack():
 				for count in range(1,REPS+1):
 					finger_midi = shared.basic_training.finger_midis[fmi]
 					# FIXME: oh god ick
-					ap = shared.AudioParams( self.st,
+					ap = vivi_types.AudioParams( self.st,
 						finger_midi,
 						dynamics.get_distance(self.dyn),
 						bow_force,
@@ -103,7 +105,7 @@ class TaskAttack():
 		# awkward splitting
 		self.finger_files = []
 		self.finger_forces = []
-		for fmi, fm in enumerate(shared.basic_training.finger_midis):
+		for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
 			finger_attacks = []
 			finger_forces = []
 			for filename in self.files:

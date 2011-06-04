@@ -5,6 +5,8 @@ import os
 import dynamics
 import dirs
 
+import vivi_types
+
 HOP_SECONDS = 44100.0 / shared.vivi_controller.EARS_HOPSIZE
 
 class NoteActionsCats:
@@ -164,7 +166,7 @@ class NoteActionsCats:
 		for i in range(starthop, endhop):
 			force += self.note_forces[i][1]
 		force /= (endhop - starthop)
-		audio_params = shared.AudioParams(
+		audio_params = vivi_types.AudioParams(
 			self.note_st, self.note_finger, self.note_pos,
 			force, self.note_vel)
 		filename = dirs.files.make_zoom_filename(audio_params)

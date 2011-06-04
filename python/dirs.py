@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-""" Manipulating files in the training directory. """
+""" Manipulating files in Vivi's directories. """
 import os
-import shared  # for AudioParams
-import glob # for lists of files and dyns
-import shutil # for cross-device move
+import shutil
+import glob
+
+import vivi_types
 
 #pylint: disable=C0103,R0201
 files = None
@@ -100,7 +101,7 @@ class ViviDirs:
 		""" parameters extracted from a .wav filename. """
 		basename = os.path.splitext(os.path.basename(filename))[0]
 		params = basename.split('_')[1:]
-		audio_params = shared.AudioParams(
+		audio_params = vivi_types.AudioParams(
 			int(params[0]), float(params[1]),
 			float(params[2]), float(params[3]), float(params[4]))
 		return audio_params
