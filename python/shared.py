@@ -17,8 +17,8 @@ AudioParams = collections.namedtuple('AudioParams', """
 #	bow_force
 #""")
 
-import training_dir
-files = None
+#import training_dir
+#files = None
 
 import judge_audio
 judge = None

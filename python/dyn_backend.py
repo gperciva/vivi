@@ -10,6 +10,7 @@ import shared
 import vivi_controller
 
 import utils
+import dirs
 
 #import scipy
 import operator
@@ -102,9 +103,9 @@ class DynBackend(QtCore.QThread):
 
 	def compute_thread(self):
 		self.ears.reset()
-		arff_filename = shared.files.get_arff_filename(
+		arff_filename = dirs.files.get_arff_filename(
 			self.st, 'main', self.dyn)
-		mpl_filename = shared.files.get_mpl_filename(
+		mpl_filename = dirs.files.get_mpl_filename(
 			self.st, 'main', self.dyn)
 
 		self.ears.set_training(self.mf_filename, arff_filename)
@@ -125,7 +126,7 @@ class DynBackend(QtCore.QThread):
 	def check_accuracy_thread(self):
 		### find overall 10-fold cross-validation accuracy
 		cmd = "kea -cl SVM -w %s" % (
-			shared.files.get_arff_filename(
+			dirs.files.get_arff_filename(
 				self.st, 'main', self.dyn))
 		process = subprocess.Popen(cmd, shell=True,
 			stdout=subprocess.PIPE)
@@ -137,13 +138,13 @@ class DynBackend(QtCore.QThread):
 				splitline = line.split()
 				self.accuracy = float(splitline[4])
 		### calculate cats for each file
-		mpl_filename = shared.files.get_mpl_filename(
+		mpl_filename = dirs.files.get_mpl_filename(
 			self.st, 'main', self.dyn)
 		self.ears.reset()
 		self.ears.set_predict_wavfile(mpl_filename)
 		for pair in self.coll_accuracy.coll:
 			filename = pair[0]
-			cat_out = shared.files.get_cats_name(filename[0:-4])+'.cats'
+			cat_out = dirs.files.get_cats_name(filename[0:-4])+'.cats'
 			#
 			self.ears.predict_wavfile(filename, cat_out)
 			self.process_step.emit()
@@ -273,7 +274,7 @@ class DynBackend(QtCore.QThread):
 			self.attack_forces)
 		return
 		# need to reload training files from disk
-		mpl_filename = shared.files.get_mpl_filename(
+		mpl_filename = dirs.files.get_mpl_filename(
 			self.st, 'main', self.dyn)
 		self.practice.set_string_dyn(self.st, self.dyn,
 			mpl_filename)

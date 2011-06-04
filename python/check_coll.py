@@ -4,6 +4,7 @@ import collection
 
 import utils
 import shared
+import dirs
 
 class CheckColl:
 	def __init__(self):
@@ -14,7 +15,7 @@ class CheckColl:
 
 		cats_type = collection.CATS_MAIN
 		cat_text = "main"
-		training_file = shared.files.get_mf_filename(
+		training_file = dirs.files.get_mf_filename(
 			st, cat_text, dyn).replace(".mf", ".mpl")
 
 		for coll_index,pair in enumerate(coll.coll):
@@ -26,7 +27,7 @@ class CheckColl:
 		compare_cat = user_cat-1
 		cats = [0]*5
 
-		cat_out = shared.files.get_cats_name(wavfile[0:-4])
+		cat_out = dirs.files.get_cats_name(wavfile[0:-4])
 		cat_lines = open(cat_out+'.cats').readlines()
 		for line in cat_lines:
 			if line[0] == '#':

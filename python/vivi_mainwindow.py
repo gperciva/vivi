@@ -9,6 +9,7 @@ import vivi_controller
 
 
 #import os
+import dirs
 
 from PyQt4 import QtGui, QtCore
 import vivi_mainwindow_gui
@@ -56,7 +57,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 		self.process_value = 0
 
 		## setup shared
-		shared.files = shared.training_dir.TrainingDir(
+		dirs.files = dirs.ViviDirs(
 			training_dirname, cache_dirname, final_dirname)
 		shared.basic = shared.basic_training.Basic()
 		shared.judge = shared.judge_audio.JudgeAudio(self.ui.verticalLayout)

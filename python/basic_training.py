@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import shared
+import dirs
 
 import vivi_controller # TODO: importing this first avoids a weird swig crash
 import dynamics
@@ -22,7 +23,7 @@ class Basic:
 		bv  = dynamics.get_velocity(dyn)
 
 		for pair in coll.get_items(-1):
-			params = shared.files.get_audio_params(pair[0])
+			params = dirs.files.get_audio_params(pair[0])
 			if ((abs(params.bow_bridge_distance - bbd) < EPSILON)
 			    and (abs(params.bow_velocity - bv) < EPSILON)):
 				for i in range(3):

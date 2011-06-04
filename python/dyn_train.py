@@ -15,6 +15,7 @@ import utils
 # TODO: **must** import ears first, then controller.  No clue why.
 #import ears
 
+import dirs
 # TODO: **must** import this first, then controller.  No clue why.
 import vivi_controller
 import dynamics
@@ -122,7 +123,7 @@ class DynTrain(QtGui.QFrame):
 
 
 #		try:
-#			filename = shared.files.get_forces_filename(self.st, self.dyn)
+#			filename = dirs.files.get_forces_filename(self.st, self.dyn)
 #			att = open(filename).readlines()
 #			self.force_init = []
 #			for i in range(3):
@@ -256,12 +257,12 @@ class DynTrain(QtGui.QFrame):
 		### read collection
 		for cat_type in [collection.CATS_MAIN, collection.CATS_WEIRD]:
 			cat_text = self.coll.get_cat_text(cat_type)
-			filename = shared.files.get_mf_filename(
+			filename = dirs.files.get_mf_filename(
 				self.st, cat_text, self.dyn)
 			self.coll.add_mf_file(filename)
 		self.judged_main_num = self.coll.num_main()
 		### read forces
-		filename = shared.files.get_dyn_data_filename(self.st, self.dyn)
+		filename = dirs.files.get_dyn_data_filename(self.st, self.dyn)
 		try:
 			att = open(filename).readlines()
 			for i in range(3):
@@ -281,12 +282,12 @@ class DynTrain(QtGui.QFrame):
 		### write collection
 		for cat_type in [collection.CATS_WEIRD, collection.CATS_MAIN]:
 			cat_text = self.coll.get_cat_text(cat_type)
-			filename = shared.files.get_mf_filename(
+			filename = dirs.files.get_mf_filename(
 				self.st, cat_text, self.dyn)
 			self.coll.write_mf_file(filename, cat_type)
 		#self.modified = False
 		### write forces
-		filename = shared.files.get_dyn_data_filename(self.st, self.dyn)
+		filename = dirs.files.get_dyn_data_filename(self.st, self.dyn)
 		att = open(filename, 'w')
 		for i in range(3):
 			att.write(str("%.3f\n" % self.force_init[i]))
@@ -309,7 +310,7 @@ class DynTrain(QtGui.QFrame):
 		elif job_type == state.SVM:
 			cat_text = self.coll.get_cat_text(
 				collection.CATS_MAIN)
-			mf_filename = shared.files.get_mf_filename(
+			mf_filename = dirs.files.get_mf_filename(
 				self.st, cat_text, self.dyn)
 			self.dyn_backend.compute_training(mf_filename)
 		elif job_type == state.ACCURACY:
@@ -378,7 +379,7 @@ class DynTrain(QtGui.QFrame):
 			train_params[0],
 			dynamics.get_velocity(self.dyn))
 
-		self.train_filename = shared.files.make_audio_filename(params)
+		self.train_filename = dirs.files.make_audio_filename(params)
 		physical = self.dyn_backend.get_physical_params(params)
 		self.controller.basic(
 			physical, BASIC_SECONDS, BASIC_SKIP,
@@ -398,7 +399,7 @@ class DynTrain(QtGui.QFrame):
 
 	def judged_cat(self, cat):
 		if cat >= 0:
-			self.train_filename = shared.files.move_works_to_train(
+			self.train_filename = dirs.files.move_works_to_train(
 				self.train_filename)
 			if self.cancel_will_delete:
 				self.coll.add_item(self.train_filename+'.wav',
@@ -452,7 +453,7 @@ class DynTrain(QtGui.QFrame):
 #		actions.bow_velocity = audio_params.bow_velocity
 #
 #		self.actions = actions
-#		self.train_filename = shared.files.make_audio_filename(audio_params)
+#		self.train_filename = dirs.files.make_audio_filename(audio_params)
 #		self.controller.basic(
 #			self.actions, BASIC_SECONDS, BASIC_SKIP,
 #			self.train_filename[0:-4])
@@ -543,7 +544,7 @@ class DynTrain(QtGui.QFrame):
 #		force_max = 0.01
 #		force_min = 100.0
 #		for pair in matches:
-#			audio_params = shared.files.get_audio_params(pair[0])
+#			audio_params = dirs.files.get_audio_params(pair[0])
 #			force = audio_params.bow_force
 #			if force_max < force:
 #				force_max = force
@@ -553,15 +554,15 @@ class DynTrain(QtGui.QFrame):
 
 	def get_forces_finger(self, cat, finger_midi):
 		forces = map(
-			lambda(x): shared.files.get_audio_params(x[0]).bow_force,
+			lambda(x): dirs.files.get_audio_params(x[0]).bow_force,
 			filter(lambda(y):
-				shared.files.get_audio_params(y[0]).finger_midi == finger_midi,
+				dirs.files.get_audio_params(y[0]).finger_midi == finger_midi,
 				self.coll.get_items(cat)))
 		return forces
 
 	def get_forces(self, cat):
 		forces = map(
-			lambda(x): shared.files.get_audio_params(x[0]).bow_force,
+			lambda(x): dirs.files.get_audio_params(x[0]).bow_force,
 				self.coll.get_items(cat))
 		return forces
 

@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+""" various convenience utilities """
 
 import os
 import math
 import random
 
 def play(filename, start=None, length=None):
+	""" plays a wav file (optional: part of one) using play(1). """
 #	if start >= 0:
 #		TEMPFILE = '/tmp/vivi-playing.wav'
 #		cmd = "sox %s %s trim %f %f" % (
@@ -23,7 +25,7 @@ def play(filename, start=None, length=None):
 	#cmd = "play -q -t alsa "+filename
 ##	cmd = "mplayer -ao jack -really-quiet "
 	if start >= 0:
-		cmd += " trim %f %f" %(start, length)
+		cmd += " trim %f %f" % (start, length)
 #		cmd += " -ss %f -endpos %f " %(start, length)
 #	cmd += filename
 #	print cmd
@@ -41,19 +43,23 @@ def play(filename, start=None, length=None):
 #	return cats_string
 
 def midi2freq(note):
+	""" midi pitch to frequency """
 	freq = 440.0*pow(2,(note-69)/12.0)
 	return freq
 
 def freq2midi(freq):
+	""" frequency to midi pitch """
 	if freq == 0:
 		return 0
 	note = 69.0 + 12 * math.log( freq/440.0 , 2)
 	return note
 
 def midi2pos(num):
+	""" midi pitch (relative to open string) to string position """
 	return 1.0 - 1.0 / (1.05946309**num)
 
 def pos2midi(pos):
+	""" string position to midi pitch (relative to open string) """
 	return 12.0*math.log(1.0/(1.0 - pos)) / math.log(2.0)
 
 def norm_bounded(mu, sigma):
@@ -76,13 +82,15 @@ def norm_bounded(mu, sigma):
 	return mu
 
 def is_in_list(needle, haystack):
+	""" is needle in the haystack list, returning -1 if not. """
 	try:
 		return haystack.index(needle)
-	except:
+	except ValueError:
 		return -1
 
 
 def dyn_to_level(dyn):
+	""" dynamic number to level (order of basic training) """
 	level = -1
 	if dyn == 0:
 		level = 0
@@ -95,18 +103,20 @@ def dyn_to_level(dyn):
 	return level
 
 def level_to_dyn(level):
+	""" level (order of basic training) to dynamic number """
 	dyn = -1
 	if level == 0:
 		dyn = 0
 	elif level == 1:
 		dyn = 3
-	elif level== 2:
+	elif level == 2:
 		dyn = 1
 	elif level == 3:
 		dyn = 2
 	return dyn
 
 def st_to_text(st):
+	""" string number to text """
 	text = 'X'
 	if st == 0:
 		text = 'G'
@@ -119,6 +129,7 @@ def st_to_text(st):
 	return text
 
 def dyn_to_text(dyn):
+	""" dynamic number to text """
 	text = 'X'
 	if dyn == 0:
 		text = 'f'

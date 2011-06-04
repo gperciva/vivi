@@ -4,6 +4,7 @@ import os
 import math
 
 import scipy.stats
+import dirs
 
 import shared
 import vivi_controller
@@ -48,12 +49,14 @@ class TaskAttack():
 		return self.best_attacks
 
 	def remove_previous_files(self):
-		oldfiles = shared.files.get_attack_files(self.st, self.dyn)
+		bbd = dynamics.get_distance(dyn)
+		bv  = dynamics.get_velocity(dyn)
+		oldfiles = dirs.files.get_task_files("attack", self.st, bbd, bv)
 		for filename in oldfiles:
 			os.remove(filename)
 
 	def make_attack_files(self, attack_forces):
-		mpl_filename = shared.files.get_mpl_filename(
+		mpl_filename = dirs.files.get_mpl_filename(
 			self.st, 'main', self.dyn)
 		self.controller.load_ears_training(self.st, self.dyn,
 			mpl_filename)
@@ -71,7 +74,7 @@ class TaskAttack():
 						dynamics.get_distance(self.dyn),
 						bow_force,
 						dynamics.get_velocity(self.dyn))
-					attack_filename = shared.files.make_attack_filename(
+					attack_filename = dirs.files.make_attack_filename(
 						ap, count)
 #					print attack_filename
 
@@ -94,7 +97,9 @@ class TaskAttack():
 					self.process_step.emit()
 
 	def get_attack_files_info(self):
-		self.files = shared.files.get_attack_files(self.st, self.dyn)
+		bbd = dynamics.get_distance(self.dyn)
+		bv  = dynamics.get_velocity(self.dyn)
+		self.files = dirs.files.get_task_files("attack", self.st, bbd, bv)
 		# awkward splitting
 		self.finger_files = []
 		self.finger_forces = []
@@ -102,7 +107,7 @@ class TaskAttack():
 			finger_attacks = []
 			finger_forces = []
 			for filename in self.files:
-				params, count = shared.files.get_audio_params_count(filename)
+				params, count = dirs.files.get_audio_params_count(filename)
 				if params.finger_midi == fm:
 					finger_attacks.append(filename)
 					if count == 1:
@@ -139,7 +144,7 @@ class TaskAttack():
 		for col in range(len(self.notes[0])):
 			cands = []
 			for block in range(len(self.notes)/REPS):
-				params = shared.files.get_audio_params(
+				params = dirs.files.get_audio_params(
 					self.notes[REPS*block][col][2])
 				bow_force = params.bow_force
 				vals = []

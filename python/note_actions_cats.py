@@ -3,6 +3,7 @@
 import shared
 import os
 import dynamics
+import dirs
 
 HOP_SECONDS = 44100.0 / shared.vivi_controller.EARS_HOPSIZE
 
@@ -33,7 +34,7 @@ class NoteActionsCats:
 	def load_file(self, filename):
 		self.basename = filename
 		self.lines = open(self.basename+'.actions').readlines()
-		cats_name = shared.files.get_cats_name(filename)
+		cats_name = dirs.files.get_cats_name(filename)
 		try:
 			self.cat_lines = open(cats_name+'.cats').readlines()
 		except:
@@ -166,7 +167,7 @@ class NoteActionsCats:
 		audio_params = shared.AudioParams(
 			self.note_st, self.note_finger, self.note_pos,
 			force, self.note_vel)
-		filename = shared.files.make_zoom_filename(audio_params)
+		filename = dirs.files.make_zoom_filename(audio_params)
 
 		# create .wav
 		cmd = 'sox %s %s trim %f %f' % (

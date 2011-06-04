@@ -4,6 +4,7 @@ import os
 import math
 
 import scipy.stats
+import dirs
 
 import shared
 import vivi_controller
@@ -46,12 +47,14 @@ class TaskStable():
 		return self.most_stable
 
 	def remove_previous_files(self):
-		oldfiles = shared.files.get_stable_files(self.st, self.dyn)
+		bbd = dynamics.get_distance(dyn)
+		bv  = dynamics.get_velocity(dyn)
+		oldfiles = dirs.files.get_task_files("stable", self.st, bbd, bv)
 		for filename in oldfiles:
 			os.remove(filename)
 
 	def make_stable_files(self):
-		mpl_filename = shared.files.get_mpl_filename(
+		mpl_filename = dirs.files.get_mpl_filename(
 			self.st, 'main', self.dyn)
 		self.controller.load_ears_training(self.st, self.dyn,
 			mpl_filename)
@@ -69,7 +72,7 @@ class TaskStable():
 						dynamics.get_distance(self.dyn),
 						bow_force,
 						bow_direction*dynamics.get_velocity(self.dyn))
-					stable_filename = shared.files.make_stable_filename(
+					stable_filename = dirs.files.make_stable_filename(
 						ap, K, count)
 
 					self.controller.filesNew(stable_filename)
@@ -93,7 +96,9 @@ class TaskStable():
 					self.process_step.emit()
 
 	def get_stable_files_info(self):
-		self.files = shared.files.get_stable_files(self.st, self.dyn)
+		bbd = dynamics.get_distance(self.dyn)
+		bv  = dynamics.get_velocity(self.dyn)
+		self.files = dirs.files.get_task_files("stable", self.st, bbd, bv)
 		# 3 notes per file, 9 notes per line
 		self.num_rows = 3*len(self.files)/9
 
@@ -104,7 +109,7 @@ class TaskStable():
 		self.counts = []
 		# get info about the files
 		for filename in self.files:
-			params, extra, count = shared.files.get_audio_params_extra(filename)
+			params, extra, count = dirs.files.get_audio_params_extra(filename)
 			force = params.bow_force
 			if not force in self.forces_initial:
 				self.forces_initial.append(force)
@@ -123,7 +128,7 @@ class TaskStable():
 				self.notes[i].append(None)
 
 		for filename in self.files:
-			params, extra, count = shared.files.get_audio_params_extra(filename)
+			params, extra, count = dirs.files.get_audio_params_extra(filename)
 			force = params.bow_force
 
 			# and setup self.examines

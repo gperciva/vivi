@@ -4,23 +4,28 @@ import os
 import shared  # for AudioParams
 import glob # for lists of files and dyns
 import shutil # for cross-device move
-import dynamics
 
-class TrainingDir:
-	""" convenience class for training directory. """
+#pylint: disable=C0103,R0201
+files = None
+
+class ViviDirs:
+	""" Convenience class for directories and files. """
 	def __init__(self, training_dirname, cache_dirname, final_dirname):
-		def ensure_dir_exists(x):
-			if not os.path.isdir(x):
-				os.makedirs(x)
+		""" constructor """
+		def ensure_dir_exists(dirname):
+			""" create the dirname if it does not exist """
+			if not os.path.isdir(dirname):
+				os.makedirs(dirname)
 		map(ensure_dir_exists, [training_dirname] + [final_dirname] +
 							   map(lambda(x): os.path.join(cache_dirname, x),
-						 	       ["", "other", "inter", "works"]))
+						 	       ["", "inter", "works"]))
 		self.train_dir = os.path.normpath(training_dirname)
 		self.final_dir = os.path.normpath(final_dirname)
 		self.inter_dir = os.path.join(cache_dirname, "inter")
 		self.works_dir = os.path.join(cache_dirname, "works")
 
 	def get_basename(self, st, cats_type, dyn):
+		""" used internally to construct 0_0. or wierd_0_0. """
 		if cats_type == 'main':
 			basename = '%i_%i.' % (st, dyn)
 		else:
@@ -56,6 +61,7 @@ class TrainingDir:
 		return filename
 
 	def basename_params(self, base, params, extra=None, count=None):
+		""" used internally to construct various filenames """
 		basename = "%s_%i_%.3f_%.3f_%.3f_%.3f" % (
 			base,
 			params.string_number,
@@ -74,9 +80,9 @@ class TrainingDir:
 		#basename += ".wav"
 		return basename
 
-	def make_stable_filename(self, params, K, count):
+	def make_stable_filename(self, params, stable_K, count):
 		""" .wav file for automatic training of stable K."""
-		basename = self.basename_params("stable", params, K, count)
+		basename = self.basename_params("stable", params, stable_K, count)
 		return os.path.join(self.works_dir, basename)
 
 	def make_attack_filename(self, params, count):
@@ -100,6 +106,8 @@ class TrainingDir:
 		return audio_params
 
 	def get_audio_params_extra(self, filename):
+		""" parameters extracted from a .wav filename, including
+			extra and count. """
 		audio_params = self.get_audio_params(filename)
 		basename = os.path.splitext(os.path.basename(filename))[0]
 		params = basename.split('_')[1:]
@@ -108,6 +116,8 @@ class TrainingDir:
 		return audio_params, extra, count
 
 	def get_audio_params_count(self, filename):
+		""" parameters extracted from a .wav filename, including
+			count. """
 		audio_params = self.get_audio_params(filename)
 		basename = os.path.splitext(os.path.basename(filename))[0]
 		params = basename.split('_')[1:]
@@ -137,33 +147,28 @@ class TrainingDir:
 		return filename
 
 	def move_works_to_train(self, src):
+		""" moves a file from works dir to train dir. """
 		dest = src.replace(self.works_dir, self.train_dir)
 		shutil.move(src+'.wav', dest+'.wav')
 		shutil.move(src+'.actions', dest+'.actions')
 		return dest
 
 	def get_cats_name(self, filename):
+		""" Gets the basename of the .cats file corresponding to a
+			.wav file.  They might both be in the works dir, but
+			if the original .wav file was in the train dir, then
+			the .cats file will be in the works dir instead. """
 		if filename.startswith(self.train_dir):
 			dest = filename.replace(self.train_dir, self.works_dir)
 		else:
 			dest = filename
 		return dest
 
-	def get_stable_files(self, st, dyn):
-		bbd = dynamics.get_distance(dyn)
-		bv  = dynamics.get_velocity(dyn)
-		filename_pattern = str("stable_%i_0.000_%.3f_?????_%.3f_*.wav"
-			% (st, bbd, bv))
-		files = glob.glob(os.path.join(self.works_dir, filename_pattern))
-		files.sort()
-		return files
-
-	def get_attack_files(self, st, dyn):
-		bbd = dynamics.get_distance(dyn)
-		bv  = dynamics.get_velocity(dyn)
-		filename_pattern = str("attack_%i_?????_%.3f_?????_%.3f_*.wav"
-			% (st, bbd, bv))
-		files = glob.glob(os.path.join(self.works_dir, filename_pattern))
-		files.sort()
-		return files
+	def get_task_files(self, taskname, st, bow_bridge_distance, bow_velocity):
+		""" gets stable or attack files. """
+		filename_pattern = str("%s_%i_?????_%.3f_?????_%.3f_*.wav"
+			% (taskname, st, bow_bridge_distance, bow_velocity))
+		task_files = glob.glob(os.path.join(self.works_dir, filename_pattern))
+		task_files.sort()
+		return task_files
 
