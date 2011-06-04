@@ -60,8 +60,8 @@ class ExamineAutoWidget(QtGui.QFrame):
 
 		forces_strings = map(str, self.task_attack.finger_forces[finger-1])
 		# setup table and gui
-		self.table = table_play_widget.TablePlayWidget(self,
-			forces_strings)
+		self.table = table_play_widget.TablePlayWidget(self)
+		self.table.set_column_names(forces_strings)
 
 		# clear previous widget if exists
 		if self.ui.verticalLayout.count() == 3:
@@ -116,7 +116,8 @@ class ExamineAutoWidget(QtGui.QFrame):
 			self.task_stable.get_stable_files_info()
 
 		# setup table and gui
-		self.table = table_play_widget.TablePlayWidget(self, [
+		self.table = table_play_widget.TablePlayWidget(self)
+		self.table.set_column_names([
 			str("Low: %.3f" % self.task_stable.forces_initial[0]),
 			"low 4", "low 7",
 			str("Middle: %.3f" % self.task_stable.forces_initial[1]),

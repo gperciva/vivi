@@ -11,6 +11,7 @@ import vivi_controller
 import utils
 import dynamics
 import vivi_types
+import basic_training
 
 import note_actions_cats
 
@@ -48,8 +49,8 @@ class TaskStable():
 		return self.most_stable
 
 	def remove_previous_files(self):
-		bbd = dynamics.get_distance(dyn)
-		bv  = dynamics.get_velocity(dyn)
+		bbd = dynamics.get_distance(self.dyn)
+		bv  = dynamics.get_velocity(self.dyn)
 		oldfiles = dirs.files.get_task_files("stable", self.st, bbd, bv)
 		for filename in oldfiles:
 			os.remove(filename)
@@ -77,7 +78,7 @@ class TaskStable():
 						ap, K, count)
 
 					self.controller.filesNew(stable_filename)
-					for fmi, finger_midi in enumerate(shared.basic_training.finger_midis):
+					for fmi, finger_midi in enumerate(basic_training.FINGER_MIDIS):
 						bow_force = self.stable_forces[fmi][fi]
 						self.controller.comment("stable st %i dyn %i finger_midi_index %i finger_midi %.3f"
 							% (self.st, self.dyn, fmi, finger_midi))

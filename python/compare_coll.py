@@ -20,8 +20,8 @@ class CompareColl(QtGui.QFrame):
 
 		self.check_coll = check_coll.CheckColl()
 
-		self.table = table_play_widget.TablePlayWidget(self,
-			["cat", "stars"])
+		self.table = table_play_widget.TablePlayWidget(self)
+		self.table.set_column_names(["cat", "stars"])
 		self.table.setColumnWidth(0, 40)
 		self.table.setColumnWidth(1, 360)
 

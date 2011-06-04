@@ -3,8 +3,6 @@
 
 # TODO: this is more complicated than it needs to be.
 
-#pylint: disable=R0201
-
 import operator
 
 CATEGORIES = [
@@ -25,7 +23,7 @@ class Collection:
 	def __init__(self):
 		self.coll = []
 
-	def sort(self):
+	def _sort(self):
 		""" sorts by category """
 		self.coll = sorted(self.coll, key=operator.itemgetter(1, 0))
 
@@ -38,11 +36,11 @@ class Collection:
 		for line in lines:
 			splitline = line.split()
 			self.add_item(splitline[0], splitline[1], False, False)
-		self.sort()
+		self._sort()
 
 	def write_mf_file(self, filename, inout):
 		""" writes a mf file with all items with the appropriate inout categories """
-		self.sort()
+		self._sort()
 		outfile = open(filename, 'w')
 		for pair in self.coll:
 			wavfile = pair[0]
@@ -51,7 +49,8 @@ class Collection:
 				outfile.write(wavfile+'\t'+judgement+'\n')
 		outfile.close()
 
-	def get_cat_text(self, cat_type):
+	@staticmethod
+	def get_cat_text(cat_type):
 		""" returns 'all' or 'weird' or 'main' """
 		if cat_type == CATS_ALL:
 			return 'all'
@@ -61,7 +60,8 @@ class Collection:
 			return 'main'
 		return None
 
-	def is_cat(self, judgement, cat_type):
+	@staticmethod
+	def is_cat(judgement, cat_type):
 		""" is the judgement part of the cat_type """
 		cat = judgement[0]
 		if cat_type == CATS_ALL:
@@ -76,7 +76,7 @@ class Collection:
 
 	def get_items(self, cat):
 		""" returns all pairs matching the category """
-		self.sort()
+		self._sort()
 		to_return = []
 		for pair in self.coll:
 			if cat < 0:

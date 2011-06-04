@@ -12,6 +12,7 @@ import vivi_controller
 import utils
 import dynamics
 import vivi_types
+import basic_training
 
 import note_actions_cats
 
@@ -51,8 +52,8 @@ class TaskAttack():
 		return self.best_attacks
 
 	def remove_previous_files(self):
-		bbd = dynamics.get_distance(dyn)
-		bv  = dynamics.get_velocity(dyn)
+		bbd = dynamics.get_distance(self.dyn)
+		bv  = dynamics.get_velocity(self.dyn)
 		oldfiles = dirs.files.get_task_files("attack", self.st, bbd, bv)
 		for filename in oldfiles:
 			os.remove(filename)
@@ -69,7 +70,7 @@ class TaskAttack():
 			for bow_force in scipy.linspace(force_min, force_max, FORCE_STEPS):
 				# TODO: start counting at 1 due to "if 0" in training_dir
 				for count in range(1,REPS+1):
-					finger_midi = shared.basic_training.finger_midis[fmi]
+					finger_midi = basic_training.FINGER_MIDIS[fmi]
 					# FIXME: oh god ick
 					ap = vivi_types.AudioParams( self.st,
 						finger_midi,

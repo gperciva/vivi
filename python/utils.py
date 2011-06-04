@@ -44,14 +44,14 @@ def play(filename, start=None, length=None):
 
 def midi2freq(note):
 	""" midi pitch to frequency """
-	freq = 440.0*pow(2,(note-69)/12.0)
+	freq = 440.0*pow(2, (note-69)/12.0)
 	return freq
 
 def freq2midi(freq):
 	""" frequency to midi pitch """
 	if freq == 0:
 		return 0
-	note = 69.0 + 12 * math.log( freq/440.0 , 2)
+	note = 69.0 + 12 * math.log(freq/440.0 , 2)
 	return note
 
 def midi2pos(num):
