@@ -6,7 +6,7 @@ import glob
 
 import vivi_types
 
-#pylint: disable=C0103,R0201
+#pylint: disable=C0103
 files = None
 
 class ViviDirs:
@@ -25,7 +25,8 @@ class ViviDirs:
 		self.inter_dir = os.path.join(cache_dirname, "inter")
 		self.works_dir = os.path.join(cache_dirname, "works")
 
-	def get_basename(self, st, cats_type, dyn):
+	@staticmethod
+	def _get_basename(st, cats_type, dyn):
 		""" used internally to construct 0_0. or wierd_0_0. """
 		if cats_type == 'main':
 			basename = '%i_%i.' % (st, dyn)
@@ -36,32 +37,33 @@ class ViviDirs:
 	def get_mf_filename(self, st, cats_type, dyn):
 		""" marsyas collection .mf file. """
 		filename = os.path.join(self.train_dir,
-			self.get_basename(st, cats_type, dyn)
+			self._get_basename(st, cats_type, dyn)
 			+ 'mf')
 		return filename
 
 	def get_arff_filename(self, st, cats_type, dyn):
 		""" weka training .arff file. """
 		filename = os.path.join(self.inter_dir,
-			self.get_basename(st, cats_type, dyn)
+			self._get_basename(st, cats_type, dyn)
 			+ 'arff')
 		return filename
 
 	def get_mpl_filename(self, st, cats_type, dyn):
 		""" saved MarSystems (for training) .mpl file. """
 		filename = os.path.join(self.final_dir,
-			self.get_basename(st, cats_type, dyn)
+			self._get_basename(st, cats_type, dyn)
 			+ 'mpl')
 		return filename
 
 	def get_dyn_data_filename(self, st, dyn):
 		""" trained dynamic .data file. """
 		filename = os.path.join(self.final_dir,
-			self.get_basename(st, 'main', dyn)
+			self._get_basename(st, 'main', dyn)
 			+ 'data')
 		return filename
 
-	def basename_params(self, base, params, extra=None, count=None):
+	@staticmethod
+	def basename_params(base, params, extra=None, count=None):
 		""" used internally to construct various filenames """
 		basename = "%s_%i_%.3f_%.3f_%.3f_%.3f" % (
 			base,
@@ -97,7 +99,8 @@ class ViviDirs:
 		filename = os.path.join(self.works_dir, basename)
 		return filename
 
-	def get_audio_params(self, filename):
+	@staticmethod
+	def get_audio_params(filename):
 		""" parameters extracted from a .wav filename. """
 		basename = os.path.splitext(os.path.basename(filename))[0]
 		params = basename.split('_')[1:]
@@ -172,4 +175,10 @@ class ViviDirs:
 		task_files = glob.glob(os.path.join(self.works_dir, filename_pattern))
 		task_files.sort()
 		return task_files
+
+	@staticmethod
+	def delete_files(files_to_delete):
+		""" deletes files, used to clean out parts of the working dir """
+		for filename in files_to_delete:
+			os.remove(filename)
 

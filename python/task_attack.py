@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-import os
 import math
+
+import task_base
 
 import scipy.stats
 import dirs
@@ -21,15 +22,13 @@ REPS = 3
 
 ATTACK_LENGTH = 0.75
 
-DEBUG_SKIP_BUILD_FIXME = False
 
 
-class TaskAttack():
+class TaskAttack(task_base.TaskBase):
 
-	def __init__(self, st, dyn, controller):
-		self.st = st
-		self.dyn = dyn
-		self.controller = controller
+	def __init__(self, st, dyn, controller, emit):
+		task_base.TaskBase.__init__(self, st, dyn, controller, emit,
+			"attack")
 
 		self.best_attacks = [0, 0, 0] # a "null" value
 		self.K = 1.0
@@ -38,25 +37,14 @@ class TaskAttack():
 		self.forces = None
 
 
-	def set_emit(self, emit):
-		self.process_step = emit
-
 	def set_K(self, K):
 		self.K = K
 
 	def get_attack(self, attack_forces):
-		if not DEBUG_SKIP_BUILD_FIXME:
-			self.remove_previous_files()
-			self.make_attack_files(attack_forces)
+		self._remove_previous_files()
+		self.make_attack_files(attack_forces)
 		self.get_attack_files_info()
 		return self.best_attacks
-
-	def remove_previous_files(self):
-		bbd = dynamics.get_distance(self.dyn)
-		bv  = dynamics.get_velocity(self.dyn)
-		oldfiles = dirs.files.get_task_files("attack", self.st, bbd, bv)
-		for filename in oldfiles:
-			os.remove(filename)
 
 	def make_attack_files(self, attack_forces):
 		mpl_filename = dirs.files.get_mpl_filename(

@@ -220,7 +220,8 @@ deprecated-modules=regsub,string,TERMIOS,Bastion,rexec
 
 # Create a graph of every (i.e. internal and external) dependencies in the
 # given file (report R0402 must not be disabled)
-import-graph=dependencies-all.dot
+#import-graph=dependencies-all.dot
+import-graph=
 
 # Create a graph of external dependencies in the given file (report R0402 must
 # not be disabled)
@@ -228,7 +229,8 @@ ext-import-graph=
 
 # Create a graph of internal dependencies in the given file (report R0402 must
 # not be disabled)
-int-import-graph=
+#int-import-graph=
+int-import-graph=dependencies-all.dot
 
 
 # checks for sign of poor/misdesign:

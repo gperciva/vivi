@@ -406,10 +406,10 @@ class DynTrain(QtGui.QFrame):
 				self.train_filename)
 			if self.cancel_will_delete:
 				self.coll.add_item(self.train_filename+'.wav',
-					collection.categories[cat-1])
+					collection.CATEGORIES[cat-1])
 			else:
 				self.coll.add_item(self.train_filename+'.wav',
-					collection.categories[cat-1], replace=True)
+					collection.CATEGORIES[cat-1], replace=True)
 				self.compare.compare(self.st, self.dyn,
 					self.accuracy, self.coll)
 			if cat <= 5:
@@ -473,10 +473,10 @@ class DynTrain(QtGui.QFrame):
 #		self.judged_main = self.coll.num_main()
 #
 #	def opinion(self, key):
-#		if (key > '0') and (key < str(len(collection.categories)+1)):
+#		if (key > '0') and (key < str(len(collection.CATEGORIES)+1)):
 #			cat = int(key)
 #			self.coll.add_item(self.train_filename,
-#				collection.categories[cat-1])
+#				collection.CATEGORIES[cat-1])
 #			self.set_modified()
 #			#if self.coll.is_cat(key, collection.CATS_MAIN):
 #			#	self.modified_out = True
@@ -493,8 +493,8 @@ class DynTrain(QtGui.QFrame):
 ##		text = ''
 ##		text += "   This violin note needs ______ bow force.\n"
 ##		text += " "
-##		for i in range(len(collection.categories)):
-##			text += "  "+ collection.categories[i]
+##		for i in range(len(collection.CATEGORIES)):
+##			text += "  "+ collection.CATEGORIES[i]
 ##		text += "\n"
 ##		#text += "        (numbers 2 and 4 are identical)\n"
 ##		text += "        9 will quit"

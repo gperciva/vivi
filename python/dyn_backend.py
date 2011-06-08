@@ -47,11 +47,9 @@ class DynBackend(QtCore.QThread):
 		self.ears = self.controller.getEars(self.st, self.dyn)
 
 		self.task_stable = task_stable.TaskStable(self.st, self.dyn,
-			self.controller)
-		self.task_stable.set_emit(self.process_step)
+			self.controller, self.process_step)
 		self.task_attack = task_attack.TaskAttack(self.st, self.dyn,
-			self.controller)
-		self.task_attack.set_emit(self.process_step)
+			self.controller, self.process_step)
 
 		#self.practice = practice
 
@@ -164,11 +162,11 @@ class DynBackend(QtCore.QThread):
 
 	def learn_stable(self, stable_forces):
 		self.state = LEARN_STABLE
-		self.stable_forces = stable_forces
+		self.task_stable.set_forces(stable_forces)
 		self.condition.wakeOne()
 
 	def learn_stable_thread(self):
-		self.most_stable = self.task_stable.get_stable(self.stable_forces)
+		self.most_stable = self.task_stable.calculate_full()
 
 #zz
 	### interface with controller

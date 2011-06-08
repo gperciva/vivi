@@ -1,7 +1,9 @@
 #!/bin/bash
 rm -f *.png *.html *.dot
 GOOD_MODULES=" \
-  ../python/judge_audio.py \
+  ../python/task_stable.py \
+  ../python/task_base.py \
+  ../python/judge_audio_widget.py \
   ../python/table_play_widget.py \
   ../python/basic_training.py \
   ../python/collection.py \

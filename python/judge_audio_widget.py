@@ -1,32 +1,44 @@
 #!/usr/bin/env python
+""" Qt widget for getting user judgement about an audio file """
 
 from PyQt4 import QtGui, QtCore
 import judge_audio_gui
 
 NUM_CATEGORIES = 6 # including "unknown"
-import utils
+import utils # to play sound
 
-class JudgeAudio(QtGui.QFrame):
+#pylint: disable=C0103,R0904
+# I can't change the overriden method names, nor the Qt naming scheme.
+
+class JudgeAudioWidget(QtGui.QFrame):
+	""" Qt widget for getting user judgement about an audio file """
 	judged_cat = QtCore.pyqtSignal(int, name='judged_cat')
 
-	def __init__(self, main_layout):
+	def __init__(self, mainwindow_layout):
+		""" constructor """
 		QtGui.QFrame.__init__(self)
 		self.ui = judge_audio_gui.Ui_Frame()
 		self.ui.setupUi(self)
-		self.main_layout = main_layout
-		self.use_layout = self.main_layout
-		self.display(show=False)
 
+		self.mainwindow_layout = mainwindow_layout
+		self.use_layout = self.mainwindow_layout
+
+		self.judge_filename = None
+
+		# attach buttons to self._clicked
 		self.buttons = QtGui.QButtonGroup(self)
 		for widget in self.ui.groupBox.findChildren(QtGui.QPushButton):
 			self.buttons.addButton(widget)
-		self.buttons.buttonClicked.connect(self.clicked)
+		self.buttons.buttonClicked.connect(self._clicked)
+
+		self.display(show=False)
 
 
 	### basic GUI framework
 	def display(self, parent=None, position=-1, show=True, main=False):
+		""" adds widget to the appropriate parent """
 		if main:
-			self.use_layout = self.main_layout
+			self.use_layout = self.mainwindow_layout
 		elif parent:
 			self.use_layout = parent
 		if show:
@@ -38,39 +50,43 @@ class JudgeAudio(QtGui.QFrame):
 			self.hide()
 			if self.parent():
 				self.parent().layout().removeWidget(self)
-				if self.use_layout != self.main_layout:
+				if self.use_layout != self.mainwindow_layout:
 					self.parent().table_focus()
 			self.setParent(None)
 
-	def clicked(self, event):
-		self.user_key(int(event.objectName()[11]))
+	def _clicked(self, event):
+		""" user clicked on a button inside the widget """
+		self._user_key(int(event.objectName()[11]))
 
 	def keyPressEvent(self, event):
+		""" override default handler """
 		try:
 			key = chr(event.key())
-		except:
+		except ValueError:
 			QtGui.QFrame.keyPressEvent(self, event)
 			return
 		key = key.lower()
 		if (key >= '0') and (key <= '9'):
-			self.user_key(int(key))
+			self._user_key(int(key))
 		elif (key == 'q'):
-			self.user_key(9)
+			self._user_key(9)
 		else:
 			QtGui.QFrame.keyPressEvent(self, event)
 
 
 	### actual code
-	def user_judge(self, train_filename):
-		self.train_filename = train_filename
+	def user_judge(self, judge_filename):
+		""" prompt user to judge this audio file """
+		self.judge_filename = judge_filename
 		self.display()
-		utils.play(self.train_filename+'.wav')
+		utils.play(self.judge_filename+'.wav')
 
-	def user_key(self, key):
+	def _user_key(self, key):
+		""" user pressed this key or button """
 		if (key > 0) and (key <= NUM_CATEGORIES):
 			self.judged_cat.emit(key)
 		elif key == 8:
-			utils.play(self.train_filename+'.wav')
+			utils.play(self.judge_filename+'.wav')
 		elif key == 9:
 			self.judged_cat.emit(-1)
 

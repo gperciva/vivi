@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-import os
 import math
+
+import task_base
 
 import scipy.stats
 import dirs
@@ -23,12 +24,11 @@ STABLE_MAX = 1.10
 STABLE_LENGTH = 0.75
 
 
-class TaskStable():
+class TaskStable(task_base.TaskBase):
 
-	def __init__(self, st, dyn, controller):
-		self.st = st
-		self.dyn = dyn
-		self.controller = controller
+	def __init__(self, st, dyn, controller, emit):
+		task_base.TaskBase.__init__(self, st, dyn, controller, emit,
+			"stable")
 
 		self.most_stable = 1.0 # a "null" value
 		self.stable_forces = None
@@ -36,26 +36,10 @@ class TaskStable():
 
 		self.examines = None
 
-
-	def set_emit(self, emit):
-		self.process_step = emit
-
-	def get_stable(self, forces):
+	def set_forces(self, forces):
 		self.stable_forces = forces
-		self.remove_previous_files()
-		self.make_stable_files()
-		self.examine_stable_files()
-		#print "learned new K: ", self.most_stable
-		return self.most_stable
 
-	def remove_previous_files(self):
-		bbd = dynamics.get_distance(self.dyn)
-		bv  = dynamics.get_velocity(self.dyn)
-		oldfiles = dirs.files.get_task_files("stable", self.st, bbd, bv)
-		for filename in oldfiles:
-			os.remove(filename)
-
-	def make_stable_files(self):
+	def _make_files(self):
 		mpl_filename = dirs.files.get_mpl_filename(
 			self.st, 'main', self.dyn)
 		self.controller.load_ears_training(self.st, self.dyn,
@@ -147,7 +131,7 @@ class TaskStable():
 				self.notes[row][col] = (nac, stability)
 
 
-	def examine_stable_files(self):
+	def _examine_files(self):
 		self.get_stable_files_info()
 
 		# find "most stable" rows
@@ -177,6 +161,7 @@ class TaskStable():
 		candidates.sort()
 		#print candidates
 		self.most_stable = candidates[-1][1]
+		return self.most_stable
 
 	def get_stability(self,cats):
 		direction = 1

@@ -4,7 +4,7 @@
 #import training_dir
 #files = None
 
-import judge_audio
+import judge_audio_widget
 judge = None
 
 import vivi_controller
