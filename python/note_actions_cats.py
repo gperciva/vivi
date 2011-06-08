@@ -102,7 +102,7 @@ class NoteActionsCats:
 		self.note_cats_means = self.get_note_cats_means(self.note_cats)
 
 		if len(self.note_cats) < len(self.note_forces):
-			self.note_cats.append((0,0))
+			self.note_cats.append((0, 0))
 		return True
 
 	def get_note_forces(self):

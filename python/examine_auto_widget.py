@@ -112,7 +112,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 
 
 	def setup_stable(self):
-		if not self.task_stable.examines:
+		if not self.task_stable.notes:
 			self.task_stable.get_stable_files_info()
 
 		# setup table and gui
@@ -138,7 +138,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 		self.ui.button_play.clicked.connect(self.table_play)
 
 
-		num_rows = self.task_stable.num_rows
+		num_rows = len(self.task_stable.notes)
 		num_counts = self.task_stable.num_counts
 
 		self.table.clearContents()

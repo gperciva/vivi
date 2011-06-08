@@ -5,6 +5,8 @@ import os
 import math
 import random
 
+EPSILON_PARAMS = 1e-3
+
 def play(filename, start=None, length=None):
 	""" plays a wav file (optional: part of one) using play(1). """
 #	if start >= 0:
@@ -140,5 +142,9 @@ def dyn_to_text(dyn):
 	elif dyn == 3:
 		text = 'p'
 	return text
+
+def almost_equals(one, two):
+	""" compares two floats to accuracy EPSILON_PARAMS """
+	return abs(one - two) < EPSILON_PARAMS
 
 

@@ -17,10 +17,13 @@ class TaskBase():
 
 	def _remove_previous_files(self):
 		""" remove files from previous computation of task """
-		bbd = dynamics.get_distance(self.dyn)
-		bv  = dynamics.get_velocity(self.dyn)
 		dirs.files.delete_files(
-			dirs.files.get_task_files(self.taskname, self.st, bbd, bv))
+			dirs.files.get_task_files(self.taskname, self.st,
+				dynamics.get_distance(self.dyn),
+				dynamics.get_velocity(self.dyn)))
+
+	def steps_full(self):
+		return 0
 
 	def calculate_full(self):
 		""" does a full (re)calculation of the task """
@@ -29,5 +32,18 @@ class TaskBase():
 		final_answer = self._examine_files()
 		return final_answer
 
+	def _make_files(self):
+		pass
+
+	def _examine_files(self):
+		pass
+
+	def _get_files(self):
+		return dirs.files.get_task_files(self.taskname, self.st,
+			dynamics.get_distance(self.dyn), dynamics.get_velocity(self.dyn))
+
+	def _setup_controller(self):
+		self.controller.load_ears_training(self.st, self.dyn,
+			dirs.files.get_mpl_filename(self.st, 'main', self.dyn))
 
 

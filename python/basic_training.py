@@ -3,42 +3,40 @@
 
 import dirs
 import dynamics
+import utils
 
 FINGER_MIDIS = [0.0, 4.0, 7.0]
-
-EPSILON = 1e-3
-
-def _almost_equals(one, two):
-	""" compares two floats to accuracy EPSILON """
-	return abs(one - two) < EPSILON
 
 def _get_matching_fingers(dyn, coll):
 	""" finds all items in coll that match the dynamic.  Splits
 		matching items into lists matching FINGER_MIDIS pitches."""
-
+	### get all items on the right level
 	def is_level_match(pair, level_bbd, level_bv):
 		""" does a collection pair match the level parameters? """
 		params = dirs.files.get_audio_params(pair[0])
-		return (_almost_equals(params.bow_bridge_distance, level_bbd) and
-			_almost_equals(params.bow_velocity, level_bv))
-
+		return (utils.almost_equals(params.bow_bridge_distance, level_bbd) and
+			utils.almost_equals(params.bow_velocity, level_bv))
 	# "level" parameters
 	bbd = dynamics.get_distance(dyn)
 	bv  = dynamics.get_velocity(dyn)
 	match_level = filter(lambda(pair): is_level_match(pair, bbd, bv),
 						coll.get_items(-1))
 
-	# TODO: functional-ify this
-	# split forces+cats into fingers
+	### split forces+cats into fingers
+	def is_finger_match(pair, finger_midi):
+		""" does a collection pair match the level parameters? """
+		params = dirs.files.get_audio_params(pair[0])
+		return utils.almost_equals(params.finger_midi, finger_midi)
+	# actual splitting
 	forces = [[], [], []]
 	cats = [[], [], []]
 	unknowns = [[], [], []]
 	for pair in match_level:
 		params = dirs.files.get_audio_params(pair[0])
 		for i, fm in enumerate(FINGER_MIDIS):
-			if _almost_equals(params.finger_midi, fm):
+			if is_finger_match(pair, fm):
 				cat = int(pair[1][0])
-				if cat < 6:
+				if cat < 6: # cat is normal
 					cats[i].append(cat)
 					forces[i].append(params.bow_force)
 				else:

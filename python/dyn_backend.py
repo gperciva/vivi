@@ -158,7 +158,7 @@ class DynBackend(QtCore.QThread):
 		self.condition.wakeOne()
 
 	def learn_stable_steps(self):
-		return (task_stable.STABLE_STEPS * task_stable.STABLE_REPS * 3) + 1
+		return self.task_stable.steps_full() + 1
 
 	def learn_stable(self, stable_forces):
 		self.state = LEARN_STABLE

@@ -72,7 +72,7 @@ class ViviDirs:
 			params.bow_bridge_distance,
 			params.bow_force,
 			params.bow_velocity)
-		# ick
+		# TODO: ick, do elsewhere
 		if extra and not count:
 			basename += "_%i" % (extra)
 		elif extra:

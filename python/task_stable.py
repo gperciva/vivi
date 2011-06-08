@@ -1,20 +1,19 @@
 #!/usr/bin/env python
 
 import math
+import scipy.stats
 
 import task_base
 
-import scipy.stats
 import dirs
-
-import shared
-import vivi_controller
-import utils
+import note_actions_cats
 import dynamics
+import vivi_controller
+
+import utils
 import vivi_types
 import basic_training
 
-import note_actions_cats
 
 STABLE_STEPS = 5
 STABLE_REPS = 3
@@ -32,38 +31,37 @@ class TaskStable(task_base.TaskBase):
 
 		self.most_stable = 1.0 # a "null" value
 		self.stable_forces = None
-		self.num_rows = 0
 
-		self.examines = None
+		self.notes = None
 
 	def set_forces(self, forces):
 		self.stable_forces = forces
 
-	def _make_files(self):
-		mpl_filename = dirs.files.get_mpl_filename(
-			self.st, 'main', self.dyn)
-		self.controller.load_ears_training(self.st, self.dyn,
-			mpl_filename)
+	def steps_full(self):
+		return STABLE_STEPS * STABLE_REPS
 
+	def _make_files(self):
+		self._setup_controller()
 
 		for K in scipy.linspace(STABLE_MIN, STABLE_MAX, STABLE_STEPS):
-			# TODO: start counting at 1 due to "if 0" in training_dir
-			for count in range(1,STABLE_REPS+1):
-				for fi in range(3):
+			for count in range(STABLE_REPS):
+				# TODO: this loop could be done in a separate C++ file
+				for force_relative_index in range(3):
 					bow_direction = 1
 					# TODO: bow force varies, so this is fake?
-					bow_force = self.stable_forces[0][fi]
-					# FIXME: oh god ick
-					ap = vivi_types.AudioParams( self.st, 0,
-						dynamics.get_distance(self.dyn),
-						bow_force,
-						bow_direction*dynamics.get_velocity(self.dyn))
+					bow_force = self.stable_forces[0][force_relative_index]
+					# the finger_midi position is fake, as is the
+					# bow force
 					stable_filename = dirs.files.make_stable_filename(
-						ap, K, count)
+						vivi_types.AudioParams(self.st, 0,
+							dynamics.get_distance(self.dyn),
+							bow_force,
+							bow_direction*dynamics.get_velocity(self.dyn)),
+						K, count+1)
 
 					self.controller.filesNew(stable_filename)
 					for fmi, finger_midi in enumerate(basic_training.FINGER_MIDIS):
-						bow_force = self.stable_forces[fmi][fi]
+						bow_force = self.stable_forces[fmi][force_relative_index]
 						self.controller.comment("stable st %i dyn %i finger_midi_index %i finger_midi %.3f"
 							% (self.st, self.dyn, fmi, finger_midi))
 
@@ -76,17 +74,15 @@ class TaskStable(task_base.TaskBase):
 						params.bow_velocity = bow_direction * dynamics.get_velocity(self.dyn)
 
 						self.controller.note(params, K, STABLE_LENGTH)
-
 						bow_direction *= -1
 					self.controller.filesClose()
-					self.process_step.emit()
+				self.process_step.emit()
 
 	def get_stable_files_info(self):
-		bbd = dynamics.get_distance(self.dyn)
-		bv  = dynamics.get_velocity(self.dyn)
-		self.files = dirs.files.get_task_files("stable", self.st, bbd, bv)
+		files = self._get_files()
+
 		# 3 notes per file, 9 notes per line
-		self.num_rows = 3*len(self.files)/9
+		num_rows = 3*len(files)/9
 
 		# variables about the files
 		self.finger_midi_indices = range(3)
@@ -94,7 +90,7 @@ class TaskStable(task_base.TaskBase):
 		self.extras = []
 		self.counts = []
 		# get info about the files
-		for filename in self.files:
+		for filename in files:
 			params, extra, count = dirs.files.get_audio_params_extra(filename)
 			force = params.bow_force
 			if not force in self.forces_initial:
@@ -108,12 +104,12 @@ class TaskStable(task_base.TaskBase):
 
 		# initialize 2d array
 		self.notes = []
-		for i in range(self.num_rows):
+		for i in range(num_rows):
 			self.notes.append([])
 			for j in range(9):
 				self.notes[i].append(None)
 
-		for filename in self.files:
+		for filename in files:
 			params, extra, count = dirs.files.get_audio_params_extra(filename)
 			force = params.bow_force
 
@@ -134,9 +130,10 @@ class TaskStable(task_base.TaskBase):
 	def _examine_files(self):
 		self.get_stable_files_info()
 
+		num_rows = len(self.notes)
 		# find "most stable" rows
 		candidates = []
-		for block in range(self.num_rows/self.num_counts):
+		for block in range(num_rows/self.num_counts):
 			block_vals = []
 			for count in range(self.num_counts):
 				vals = []
