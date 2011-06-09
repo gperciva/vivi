@@ -246,7 +246,7 @@ void ViviController::note(PhysicalActions actions_get,
                          actions.finger_position);
     violin->finger(actions.string_number, actions.finger_position);
 
-    for (unsigned int i = 0; i < seconds/DH-1; i++) {
+    for (int i = 0; i < seconds/DH-1; i++) {
         hop();
         // start deceleration
         if (i > decel_hop) {
@@ -255,9 +255,14 @@ void ViviController::note(PhysicalActions actions_get,
     }
     // finish final "half hop"
     int remaining_samples = seconds*44100.0 - note_samples;
+    // finish final "half hop"
     if (remaining_samples > 0) {
         hop(remaining_samples);
     }
+	// TODO: ick, is this necessary?
+    if (seconds==0.0) {
+		hop(0);
+	}
 
 //zz
 }

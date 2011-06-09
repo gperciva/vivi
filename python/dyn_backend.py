@@ -149,11 +149,11 @@ class DynBackend(QtCore.QThread):
 
 
 	def learn_attacks_steps(self):
-		return 3*task_attack.REPS*task_attack.FORCE_STEPS + 1
+		return self.task_attack.steps_full() + 1
 
 	def learn_attacks(self, finger_forces):
 		#self.performer.load_forces()
-		self.attack_forces = finger_forces
+		self.task_attack.set_forces(finger_forces)
 		self.state = LEARN_ATTACKS
 		self.condition.wakeOne()
 
@@ -180,171 +180,171 @@ class DynBackend(QtCore.QThread):
 		physical.bow_velocity = audio_params.bow_velocity
 		return physical
 
-
-
-		return
-
-		self.practice.set_string_dyn(self.st, self.dyn,
-			mpl_filename)
-
-		lp = levels.level_params[self.level][0]
-		bow_position = lp.bow_position
-		bow_velocity = lp.bow_velocity
-
-		ff_stats = []
-		mult_stable = (STABLE_MAX/STABLE_MIN)**(1.0/ (
-			STABLE_STEPS-1))
-		#step_size = (STABLE_MAX-STABLE_MIN)/float(STABLE_STEPS)
-		for f in range(STABLE_STEPS):
-			#ff = STABLE_MIN + (f)*step_size
-			ff = STABLE_MIN * mult_stable ** (f)
-			med = self.practice.stable(
-				self.dyn,
-				bow_position,
-				bow_velocity,
-				ff,
-				self.force_max)
-			self.process_step.emit()
-			ff_stats.append( (med, ff) )
-		ff_stats.sort()
-
-		# get biggest
-#		ff_min = ff_stats[-1][1] / mult_stable
-#		ff_max = ff_stats[-1][1] * mult_stable
-#		if ff_min < STABLE_MIN:
-#			ff_min = STABLE_MIN
-#		if ff_max > STABLE_MAX:
-#			ff_max = STABLE_MAX
-
-		## zoom in
-#		print "%i zooming in on: %.2f %.2f" %(self.st, ff_min, ff_max)
-#		step_size = (ff_max-ff_min)/float(STABLE_STEPS)
+#
+#
+#		return
+#
+#		self.practice.set_string_dyn(self.st, self.dyn,
+#			mpl_filename)
+#
+#		lp = levels.level_params[self.level][0]
+#		bow_position = lp.bow_position
+#		bow_velocity = lp.bow_velocity
+#
+#		ff_stats = []
+#		mult_stable = (STABLE_MAX/STABLE_MIN)**(1.0/ (
+#			STABLE_STEPS-1))
+#		#step_size = (STABLE_MAX-STABLE_MIN)/float(STABLE_STEPS)
 #		for f in range(STABLE_STEPS):
-#			ff = ff_min + (f)*step_size
+#			#ff = STABLE_MIN + (f)*step_size
+#			ff = STABLE_MIN * mult_stable ** (f)
 #			med = self.practice.stable(
 #				self.dyn,
 #				bow_position,
 #				bow_velocity,
 #				ff,
-#				self.force_min, self.force_max)
+#				self.force_max)
 #			self.process_step.emit()
 #			ff_stats.append( (med, ff) )
 #		ff_stats.sort()
-
-		#print "st %i force_factor:\t%.3f" % (self.st, lowest_ff)
-		# get biggest
-#		self.force_factor = ff_stats[-1][1]
-		# get smallest
-		self.force_factor = ff_stats[0][1]
-
-		#print "st %i force_factor %.3f" %(self.st, self.force_factor)
-#		lowest_std = 999.0 # infinity
+#
+#		# get biggest
+##		ff_min = ff_stats[-1][1] / mult_stable
+##		ff_max = ff_stats[-1][1] * mult_stable
+##		if ff_min < STABLE_MIN:
+##			ff_min = STABLE_MIN
+##		if ff_max > STABLE_MAX:
+##			ff_max = STABLE_MAX
+#
+#		## zoom in
+##		print "%i zooming in on: %.2f %.2f" %(self.st, ff_min, ff_max)
+##		step_size = (ff_max-ff_min)/float(STABLE_STEPS)
+##		for f in range(STABLE_STEPS):
+##			ff = ff_min + (f)*step_size
+##			med = self.practice.stable(
+##				self.dyn,
+##				bow_position,
+##				bow_velocity,
+##				ff,
+##				self.force_min, self.force_max)
+##			self.process_step.emit()
+##			ff_stats.append( (med, ff) )
+##		ff_stats.sort()
+#
+#		#print "st %i force_factor:\t%.3f" % (self.st, lowest_ff)
+#		# get biggest
+##		self.force_factor = ff_stats[-1][1]
+#		# get smallest
+#		self.force_factor = ff_stats[0][1]
+#
+#		#print "st %i force_factor %.3f" %(self.st, self.force_factor)
+##		lowest_std = 999.0 # infinity
+##		for stats in ff_stats:
+##			if lowest_std > stats[2]:
+##				lowest_std = stats[2]
+##		lowest_force =
+##		for stats in ff_stats:
+##			if stats[2] > lowest_std*2:
+##				continue
+#				
+#		log = open('stable-%i-%i.txt'%(self.st, self.dyn), 'w')
+#		logdata = str("# forces:\t%.3f\t%.3f\n" % (
+#			self.force_min, self.force_max))
+#		log.write(logdata)
+#		log.write("#st\tff\tmedian\tvalues\n")
+#		ff_stats = sorted(ff_stats, key=operator.itemgetter(1))
 #		for stats in ff_stats:
-#			if lowest_std > stats[2]:
-#				lowest_std = stats[2]
-#		lowest_force =
-#		for stats in ff_stats:
-#			if stats[2] > lowest_std*2:
-#				continue
-				
-		log = open('stable-%i-%i.txt'%(self.st, self.dyn), 'w')
-		logdata = str("# forces:\t%.3f\t%.3f\n" % (
-			self.force_min, self.force_max))
-		log.write(logdata)
-		log.write("#st\tff\tmedian\tvalues\n")
-		ff_stats = sorted(ff_stats, key=operator.itemgetter(1))
-		for stats in ff_stats:
-			ff = stats[1]
-			med = stats[0]
-			logdata = str("%i\t%.3f\t%.3g\t" % (
-				self.st, ff, med))
-			log.write(logdata)
-			#for fr in stats[2]:
-			#	log.write(str("%.3g\t"%fr))
-			log.write('\n')
-		log.close()
-
+#			ff = stats[1]
+#			med = stats[0]
+#			logdata = str("%i\t%.3f\t%.3g\t" % (
+#				self.st, ff, med))
+#			log.write(logdata)
+#			#for fr in stats[2]:
+#			#	log.write(str("%.3g\t"%fr))
+#			log.write('\n')
+#		log.close()
+#
 
 
 
 	def learn_attacks_thread(self):
-		self.best_attack = self.task_attack.get_attack(
-			self.attack_forces)
+		self.best_attack = self.task_attack.calculate_full()
 		return
-		# need to reload training files from disk
-		mpl_filename = dirs.files.get_mpl_filename(
-			self.st, 'main', self.dyn)
-		self.practice.set_string_dyn(self.st, self.dyn,
-			mpl_filename)
-#		self.performer.make_listen()
 
-		# extra [0] because lp is currently a list
-		# of singleton lists.  :(
-		# however, both items in the list have the same
-		# position and velocity
-		lp = levels.level_params[self.level][0]
-		bow_pos = lp.bow_position
-		bow_vel = lp.bow_velocity
-
-		#print "# learning attacks\t%i\t%.3f\t%.3f" % (st,
-		#	bow_pos, bow_vel)
-		self.bow_st = self.st
-		self.bow_position = bow_pos
-		self.target_velocity = bow_vel
-
-		for fi, finger in enumerate([0, 4, 7]):
-			hops_list = []
-			min_force = self.attack_min
-			max_force = self.attack_max
-			mult_force = (max_force/min_force)**(1.0/ (
-				ATTACK_FORCE_STEPS-1))
-			#add_force = (max_force-min_force) / (force_steps-1)
-
-			for i in range(ATTACK_FORCE_STEPS):
-				force = min_force * mult_force**(i)
-#				print self.st, self.dyn, force
-				num = self.practice.attack(self.dyn,
-					self.bow_position, force,
-					self.target_velocity,
-					self.force_factor,
-					finger)
-				hops_list.append( (num, force) )
-				self.process_step.emit()
-			hops_list.sort()
-
-			# get smallest
-			max_force = hops_list[0][1] * mult_force
-			min_force = hops_list[0][1] / mult_force
-			#print self.st, max_force, min_force
-			if min_force < self.attack_min:
-				min_force = self.attack_min
-			if max_force > self.attack_max:
-				max_force = self.attack_max
-
-			#mult_force = (max_force/min_force)**(1.0/(force_steps-1))
-			add_force = (max_force-min_force) / (
-				ATTACK_FORCE_STEPS-1)
-			for i in range(ATTACK_FORCE_STEPS):
-				#force = min_force * mult_force**(i)
-				force = min_force + add_force*(i)
-				num = self.practice.attack(self.dyn,
-					self.bow_position, force,
-					self.target_velocity,
-					self.force_factor,
-					finger)
-				hops_list.append( (num, force) )
-				self.process_step.emit()
-
-			log = open('attack-%i-%i-%i.txt'%(
-				self.st, self.dyn, finger), 'w')
-			tolog = sorted(hops_list, key=operator.itemgetter(1))
-			for t in tolog:
-				log.write("%.3f\t%.3f\n" %(
-					t[1], t[0]))
-			log.close()
-			hops_list.sort()
-			if hops_list[0][0] == 0:
-				self.force_init[fi] = -1.0
-			else:
-				self.force_init[fi] = hops_list[0][1]
-
+#		# need to reload training files from disk
+#		mpl_filename = dirs.files.get_mpl_filename(
+#			self.st, 'main', self.dyn)
+#		self.practice.set_string_dyn(self.st, self.dyn,
+#			mpl_filename)
+##		self.performer.make_listen()
+#
+#		# extra [0] because lp is currently a list
+#		# of singleton lists.  :(
+#		# however, both items in the list have the same
+#		# position and velocity
+#		lp = levels.level_params[self.level][0]
+#		bow_pos = lp.bow_position
+#		bow_vel = lp.bow_velocity
+#
+#		#print "# learning attacks\t%i\t%.3f\t%.3f" % (st,
+#		#	bow_pos, bow_vel)
+#		self.bow_st = self.st
+#		self.bow_position = bow_pos
+#		self.target_velocity = bow_vel
+#
+#		for fi, finger in enumerate([0, 4, 7]):
+#			hops_list = []
+#			min_force = self.attack_min
+#			max_force = self.attack_max
+#			mult_force = (max_force/min_force)**(1.0/ (
+#				ATTACK_FORCE_STEPS-1))
+#			#add_force = (max_force-min_force) / (force_steps-1)
+#
+#			for i in range(ATTACK_FORCE_STEPS):
+#				force = min_force * mult_force**(i)
+##				print self.st, self.dyn, force
+#				num = self.practice.attack(self.dyn,
+#					self.bow_position, force,
+#					self.target_velocity,
+#					self.force_factor,
+#					finger)
+#				hops_list.append( (num, force) )
+#				self.process_step.emit()
+#			hops_list.sort()
+#
+#			# get smallest
+#			max_force = hops_list[0][1] * mult_force
+#			min_force = hops_list[0][1] / mult_force
+#			#print self.st, max_force, min_force
+#			if min_force < self.attack_min:
+#				min_force = self.attack_min
+#			if max_force > self.attack_max:
+#				max_force = self.attack_max
+#
+#			#mult_force = (max_force/min_force)**(1.0/(force_steps-1))
+#			add_force = (max_force-min_force) / (
+#				ATTACK_FORCE_STEPS-1)
+#			for i in range(ATTACK_FORCE_STEPS):
+#				#force = min_force * mult_force**(i)
+#				force = min_force + add_force*(i)
+#				num = self.practice.attack(self.dyn,
+#					self.bow_position, force,
+#					self.target_velocity,
+#					self.force_factor,
+#					finger)
+#				hops_list.append( (num, force) )
+#				self.process_step.emit()
+#
+#			log = open('attack-%i-%i-%i.txt'%(
+#				self.st, self.dyn, finger), 'w')
+#			tolog = sorted(hops_list, key=operator.itemgetter(1))
+#			for t in tolog:
+#				log.write("%.3f\t%.3f\n" %(
+#					t[1], t[0]))
+#			log.close()
+#			hops_list.sort()
+#			if hops_list[0][0] == 0:
+#				self.force_init[fi] = -1.0
+#			else:
+#				self.force_init[fi] = hops_list[0][1]
+#

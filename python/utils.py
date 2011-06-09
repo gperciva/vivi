@@ -32,7 +32,6 @@ def play(filename, start=None, length=None):
 #	cmd += filename
 #	print cmd
 	# DEBUG
-	print "playing " + filename
 	os.system(cmd)
 
 #def visualize_cats(cats, length=8):

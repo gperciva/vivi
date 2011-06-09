@@ -66,7 +66,7 @@ class NoteActionsCats:
 		note_prelim_info = self.note_prelim_line.split()
 		self.note_st = int(note_prelim_info[3])
 		self.note_dyn = float(note_prelim_info[5])
-		self.note_finger = round(float(note_prelim_info[7]))
+		self.note_finger = round(float(note_prelim_info[9]))
 		self.note_pos = dynamics.get_distance(self.note_dyn)
 		self.note_vel = dynamics.get_velocity(self.note_dyn)
 		# find beginning of real actions

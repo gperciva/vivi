@@ -373,7 +373,7 @@ class DynTrain(QtGui.QFrame):
 
 
 	def basic_train_next(self):
-		train_params = shared.basic.get_next_basic(self.dyn, self.coll)
+		train_params = basic_training.get_next_basic(self.dyn, self.coll)
 		if not train_params:
 			return self.basic_train_end()
 		params = vivi_types.AudioParams(
@@ -617,7 +617,7 @@ class DynTrain(QtGui.QFrame):
 		self.coll.delete(filename+'.wav')
 		self.judged_main_num = self.coll.num_main()
 		self.set_modified()
-		if not shared.basic.get_next_basic(self.dyn, self.coll):
+		if not basic_training.get_next_basic(self.dyn, self.coll):
 			self.basic_trained = True
 		else:
 			self.basic_trained = False

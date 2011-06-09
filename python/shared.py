@@ -15,6 +15,9 @@ examine_main = None
 import lilypond_compile
 lily = None
 
+import music_events
+music = None
+
 #import vivi_controller
 #AudioParams = vivi_controller.PhysicalActions
 

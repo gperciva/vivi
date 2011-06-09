@@ -4,13 +4,18 @@ import glob
 from PyQt4 import QtCore
 
 STATE_COMPILE_LILYPOND = 1
-LILYPOND_COMMAND = "lilypond -dinclude-settings=event-listener.ly %s"
+LILYPOND_COMMAND = "lilypond \
+  -dinclude-settings=event-listener.ly \
+  %s"
+#  -dinclude-settings=reduce-whitespace.ly \
 
 class LilyPondCompile(QtCore.QThread):
 	process_step = QtCore.pyqtSignal()
 	done = QtCore.pyqtSignal()
 	def __init__(self):
 		QtCore.QThread.__init__(self)
+
+		self.ly_basename = None
 
 		self.mutex = QtCore.QMutex()
 		self.condition = QtCore.QWaitCondition()
@@ -49,6 +54,7 @@ class LilyPondCompile(QtCore.QThread):
 		self.remove_old_files(dirname)
 		self.process_step.emit()
 		# make new files
+		# TODO: make them in the vivi-cache/ dir!
 		os.chdir(dirname)
 		cmd = LILYPOND_COMMAND % lily_file
 		os.system(cmd)
@@ -56,4 +62,10 @@ class LilyPondCompile(QtCore.QThread):
 		self.process_step.emit()
 		self.done.emit()
 
+	def get_filename_pdf(self):
+		return self.ly_basename+'.pdf'
+
+	def get_filename_notes(self):
+		notes_files = glob.glob(self.ly_basename+"*.notes")
+		return notes_files
 

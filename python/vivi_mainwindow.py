@@ -20,9 +20,9 @@ import shared
 import string_train_all
 
 #import lily
-#import score_widget
+import score_widget
 
-#import performer_feeder
+import performer_feeder
 
 #import examine_note_widget
 
@@ -120,17 +120,19 @@ class ViviMainwindow(QtGui.QMainWindow):
 		shared.lily.process_step.connect(self.process_step)
 		shared.lily.done.connect(self.finished_ly_compile)
 
-#		self.score = score_widget.ScoreWidget(self.ui.score_scroll_area)
-#		self.score.note_click.connect(self.select_note)
+		self.score = score_widget.ScoreWidget(self.ui.score_scroll_area)
+		self.score.note_click.connect(self.select_note)
+
+		shared.music = shared.music_events.MusicEvents()
 
 #		self.examine = examine_note_widget.ExamineNoteWidget(
 #			self.ui.note_layout)
 #
-#		self.ui.actionRehearse.triggered.connect(self.rehearse)
-#		self.ui.actionListen.triggered.connect(self.play)
-#		self.performer_feeder = performer_feeder.PerformerFeeder()
-#		self.performer_feeder.process_step.connect(self.process_step)
-#		self.performer_feeder.done.connect(self.rehearse_done)
+		self.ui.actionRehearse.triggered.connect(self.rehearse)
+		self.ui.actionListen.triggered.connect(self.play)
+		self.performer_feeder = performer_feeder.PerformerFeeder()
+		self.performer_feeder.process_step.connect(self.process_step)
+		self.performer_feeder.done.connect(self.rehearse_done)
 #
 #		self.movie = vivi_movie.ViviMovie()
 #		self.movie.process_step.connect(self.process_step)
@@ -150,6 +152,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 	def load_ly_file(self, ly_filename):
 		#print ly_filename
 		#self.ly_basename = os.path.splitext(ly_filename)[0]
+		self.ly_basename = ly_filename[:-3]
 		if shared.lily.lily_file_needs_compile(ly_filename):
 			pass
 		if 1:
@@ -159,8 +162,8 @@ class ViviMainwindow(QtGui.QMainWindow):
 			self.finished_ly_compile()
 
 	def finished_ly_compile(self):
-		print "finished compile"
-#		self.score.load_file(self.ly_basename+'.pdf')
+		self.score.load_file(shared.lily.get_filename_pdf())
+		self.performer_feeder.load_file(shared.lily.get_filename_notes())
 #		self.performer_feeder.read_music(self.ly_basename)
 #		self.examine.load_file(self.ly_basename)
 #		if self.only_one:
@@ -205,14 +208,15 @@ class ViviMainwindow(QtGui.QMainWindow):
 		self.progress_dialog("Computing training files", steps)
 
 	def rehearse(self):
-		steps = self.performer_feeder.perform_music(self.ly_basename+'.wav')
+		steps = self.performer_feeder.play_music()
 		self.progress_dialog("Rehearsing music", steps)
 
 	def rehearse_done(self):
-		if self.only_one:
-			self.app.quit()
-		else:
-			self.examine.load_file(self.ly_basename)
+		print "rehearse done"
+#		if self.only_one:
+#			self.app.quit()
+#		else:
+#			self.examine.load_file(self.ly_basename)
 
 #		self.progress_dialog("Rehearsing piece", 4)
 #		self.process_step()

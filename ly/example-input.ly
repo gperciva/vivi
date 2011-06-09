@@ -1,20 +1,8 @@
-\version "2.14.0"
+\version "2.12.3"
+\include "event-listener.ly"
 
-violinone = \relative c' {
-  \key d \major
-  \tempo 4 = 96
-  c'4
-}
-
-\score {
-  <<
-    \new Staff {
-      \set Staff.instrumentName = "violin-1"
-      \set Staff.midiInstrument = "violin"
-      \violinone
-    }
-   >>
-  \layout{}
-  \midi{}
+\relative c' {
+  c4 f d g
+  \grace { e4 } fis2 \grace { g4 a } b2
 }
 

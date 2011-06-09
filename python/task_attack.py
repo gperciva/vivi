@@ -36,23 +36,19 @@ class TaskAttack(task_base.TaskBase):
 		self.notes = None
 		self.forces = None
 
-
 	def set_K(self, K):
 		self.K = K
 
-	def get_attack(self, attack_forces):
-		self._remove_previous_files()
-		self.make_attack_files(attack_forces)
-		self.get_attack_files_info()
-		return self.best_attacks
+	def set_forces(self, forces):
+		self.attack_forces = forces
 
-	def make_attack_files(self, attack_forces):
-		mpl_filename = dirs.files.get_mpl_filename(
-			self.st, 'main', self.dyn)
-		self.controller.load_ears_training(self.st, self.dyn,
-			mpl_filename)
+	def steps_full(self):
+		return FORCE_STEPS * REPS * 3
 
-		for fmi, forces in enumerate(attack_forces):
+	def _make_files(self):
+		self._setup_controller()
+
+		for fmi, forces in enumerate(self.attack_forces):
 			force_min = forces[0]
 			force_max = forces[2]
 			for bow_force in scipy.linspace(force_min, force_max, FORCE_STEPS):
@@ -88,16 +84,18 @@ class TaskAttack(task_base.TaskBase):
 					self.process_step.emit()
 
 	def get_attack_files_info(self):
-		bbd = dynamics.get_distance(self.dyn)
-		bv  = dynamics.get_velocity(self.dyn)
-		self.files = dirs.files.get_task_files("attack", self.st, bbd, bv)
+		self._examine_files()
+
+	def _examine_files(self):
+		files = self._get_files()
+
 		# awkward splitting
 		self.finger_files = []
 		self.finger_forces = []
 		for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
 			finger_attacks = []
 			finger_forces = []
-			for filename in self.files:
+			for filename in files:
 				params, count = dirs.files.get_audio_params_count(filename)
 				if params.finger_midi == fm:
 					finger_attacks.append(filename)
@@ -149,6 +147,7 @@ class TaskAttack(task_base.TaskBase):
 			cands.sort()
 			lowest = cands[0][2]
 			self.best_attacks[col] = lowest
+		return self.best_attacks
 
 
 	def portion_attack(self, values):

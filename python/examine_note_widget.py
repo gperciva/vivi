@@ -81,11 +81,9 @@ class ExamineNoteWidget():
 
 
 	def play(self):
-		print "examine note widget play", self.examine_note.basename
 		if not self.examine_note.basename:
 			return
 		if self.plot_actions.has_selection():
-			print "has selection"
 			start, dur = self.get_zoom_seconds()
 			#print "zoom in on: ", self.examine_note.wavfile
 			#utils.play(self.examine_note.wavfile,
