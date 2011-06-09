@@ -104,7 +104,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 
 
 #		self.setup_training()
-#		self.setup_music()
+		self.setup_music()
 #
 #		self.only_one = False
 #		if ly_filename:
@@ -116,24 +116,24 @@ class ViviMainwindow(QtGui.QMainWindow):
 
 
 	def setup_music(self):
-		self.lily = lily.Lily()
-		self.lily.process_step.connect(self.process_step)
-		self.lily.done.connect(self.finished_ly_compile)
+		shared.lily = shared.lilypond_compile.LilyPondCompile()
+		shared.lily.process_step.connect(self.process_step)
+		shared.lily.done.connect(self.finished_ly_compile)
 
-		self.score = score_widget.ScoreWidget(self.ui.score_scroll_area)
-		self.score.note_click.connect(self.select_note)
+#		self.score = score_widget.ScoreWidget(self.ui.score_scroll_area)
+#		self.score.note_click.connect(self.select_note)
 
-		self.examine = examine_note_widget.ExamineNoteWidget(
-			self.ui.note_layout)
-
-		self.ui.actionRehearse.triggered.connect(self.rehearse)
-		self.ui.actionListen.triggered.connect(self.play)
-		self.performer_feeder = performer_feeder.PerformerFeeder()
-		self.performer_feeder.process_step.connect(self.process_step)
-		self.performer_feeder.done.connect(self.rehearse_done)
-
-		self.movie = vivi_movie.ViviMovie()
-		self.movie.process_step.connect(self.process_step)
+#		self.examine = examine_note_widget.ExamineNoteWidget(
+#			self.ui.note_layout)
+#
+#		self.ui.actionRehearse.triggered.connect(self.rehearse)
+#		self.ui.actionListen.triggered.connect(self.play)
+#		self.performer_feeder = performer_feeder.PerformerFeeder()
+#		self.performer_feeder.process_step.connect(self.process_step)
+#		self.performer_feeder.done.connect(self.rehearse_done)
+#
+#		self.movie = vivi_movie.ViviMovie()
+#		self.movie.process_step.connect(self.process_step)
 
 	def basic_training(self):
 		self.string_train.basic_train()
@@ -148,21 +148,23 @@ class ViviMainwindow(QtGui.QMainWindow):
 ######################### old stuffs
 
 	def load_ly_file(self, ly_filename):
-		self.ly_basename = os.path.splitext(ly_filename)[0]
-		if self.lily.lily_file_needs_compile(ly_filename):
+		#print ly_filename
+		#self.ly_basename = os.path.splitext(ly_filename)[0]
+		if shared.lily.lily_file_needs_compile(ly_filename):
 			pass
 		if 1:
 			self.progress_dialog("Generating score", 2)
-			self.lily.call_lilypond()
+			shared.lily.call_lilypond()
 		else:
 			self.finished_ly_compile()
 
 	def finished_ly_compile(self):
-		self.score.load_file(self.ly_basename+'.pdf')
-		self.performer_feeder.read_music(self.ly_basename)
-		self.examine.load_file(self.ly_basename)
-		if self.only_one:
-			self.rehearse()
+		print "finished compile"
+#		self.score.load_file(self.ly_basename+'.pdf')
+#		self.performer_feeder.read_music(self.ly_basename)
+#		self.examine.load_file(self.ly_basename)
+#		if self.only_one:
+#			self.rehearse()
 
 	def save_training(self):
 		self.string_train.save()
@@ -320,8 +322,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 		elif key == 'z':
 			self.train_zoom()
 		elif key == 'y':
-			#self.open_ly_file('ly/basic/scale-forte.ly')
-			self.open_ly_file('ly/basic/scale-combo.ly')
+			self.open_ly_file('ly/example-input.ly')
 		elif key == 'i':
 			self.open_ly_file('ly/current.ly')
 		elif key == 'u':

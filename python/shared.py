@@ -12,6 +12,9 @@ import vivi_controller
 import examine_note_widget
 examine_main = None
 
+import lilypond_compile
+lily = None
+
 #import vivi_controller
 #AudioParams = vivi_controller.PhysicalActions
 
