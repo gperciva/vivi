@@ -61,11 +61,11 @@ if (not env.GetOption('clean')) and (not env.GetOption('help')):
 		print("Need marsyas!")
 		Exit(1)
 	### test for artifastring
-	status = config.CheckLibWithHeader('artifastring',
-		'violin_instrument.h', 'c++')
-	if not status:
-		print("Need artifastring!")
-		Exit(1)
+	#status = config.CheckLibWithHeader('artifastring',
+	#	'violin_instrument.h', 'c++')
+	#if not status:
+	#	print("Need artifastring!")
+	#	Exit(1)
 
 	### test for swig
 	#
@@ -97,6 +97,8 @@ if (not env.GetOption('clean')) and (not env.GetOption('help')):
 
 ### setup for installing
 env.Alias('install', '$PREFIX')
+env.ParseConfig('pkg-config --cflags --libs artifastring')
+env.ParseConfig('pkg-config --cflags --libs monowav')
 
 Export('env')
 
