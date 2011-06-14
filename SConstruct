@@ -42,8 +42,8 @@ env['vivi_controller_files'] = Split("""
 
 
 env.Append(
-#	CPPFLAGS=Split("-O3 -fPIC -funroll-loops"),
-	CPPFLAGS=Split("-g -fbounds-check -Wall -Wextra"),
+#	CPPFLAGS=Split("-fPIC -O3 -funroll-loops"),
+	CPPFLAGS=Split("-fPIC -g -fbounds-check -Wall -Wextra"),
 	CPPPATH=[
 		"/usr/include/python2.6",
 		],
@@ -98,7 +98,10 @@ if (not env.GetOption('clean')) and (not env.GetOption('help')):
 	#
 	#
 	env = config.Finish()
-	
+
+if not has_swig:
+	print("Need swig and python devel libraries!")
+	Exit(1)
 
 
 ### setup for installing
