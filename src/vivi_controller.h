@@ -8,24 +8,16 @@ class Ears;
 #include "ears.h"
 #include "artifastring/violin_instrument.h"
 #include "dynamics.h" // for NUM_DYNAMICS
+#include "vivi_note_params.h"
 
 extern "C" {
 #include <gsl/gsl_randist.h>
 }
 
 // TODO: move to artifastring?
-const unsigned int NUM_STRINGS = 4;
+const int NUM_STRINGS = 4;
 
-const unsigned int CATS_MEAN_LENGTH = 4;
-
-typedef struct {
-    unsigned int string_number;
-    double dynamic; // to allow interpolation
-    double finger_position;
-    double bow_bridge_distance;
-    double bow_force;
-    double bow_velocity;
-} PhysicalActions;
+const int CATS_MEAN_LENGTH = 4;
 
 class ViviController {
 
@@ -34,8 +26,8 @@ public:
     ~ViviController();
     void reset();
 
-    Ears *getEars(unsigned int st, unsigned int dyn);
-    bool load_ears_training(unsigned int st, unsigned int dyn,
+    Ears *getEars(int st, int dyn);
+    bool load_ears_training(int st, int dyn,
                             const char *training_file);
 
     void filesClose();
@@ -63,18 +55,18 @@ private:
 
 
     PhysicalActions actions;
-    unsigned int m_st;
-    unsigned int m_dyn;
+    int m_st;
+    int m_dyn;
     double m_velocity_target;
     double m_velocity_cutoff_force_adj;
 
     double m_K;
 
-    // ASSUME: we play for a maximum of 27 hours per file
-    unsigned int total_samples;
-    unsigned int note_samples;
+    // ASSUME: we play for a maximum of 13 hours per file
+    int total_samples;
+    int note_samples;
 
-    inline void hop(unsigned int num_samples = EARS_HOPSIZE);
+    inline void hop(int num_samples = EARS_HOPSIZE);
     inline double norm_bounded(double mu, double sigma);
 
     inline double interpolate(const double x,

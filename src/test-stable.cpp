@@ -16,7 +16,7 @@ int main() {
     params.bow_velocity = get_velocity(0);
 
     double K = 1.05;
-    unsigned int dyn = 0;
+    int dyn = 0;
 
     viviController->filesNew("stable-test");
     viviController->comment("Stable test, 0 0");

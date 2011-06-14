@@ -2,6 +2,7 @@
 %{
 #include "ears.h"
 #include "vivi_controller.h"
+#include "vivi_note_params.h"
 %}
 
 /*
@@ -17,4 +18,5 @@ http://stackoverflow.com/questions/2510696/allowing-threads-from-python-after-ca
 
 %include "ears.h"
 %include "vivi_controller.h"
+%include "vivi_note_params.h"
 

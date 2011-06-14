@@ -1,7 +1,7 @@
 #include "actions_file.h"
 #include <string.h>
 
-ActionsFile::ActionsFile(const char *filename, unsigned int buffer_size)
+ActionsFile::ActionsFile(const char *filename, int buffer_size)
 {
     size = buffer_size;
     data = new ActionData[size];
@@ -120,7 +120,7 @@ void ActionsFile::comment(const char *text)
 
 void ActionsFile::writeBuffer()
 {
-    for (unsigned int i = 0; i < index; i++) {
+    for (int i = 0; i < index; i++) {
         ActionData actions = data[i];
         char textline[MAX_LINE_LENGTH];
 

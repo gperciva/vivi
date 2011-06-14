@@ -35,8 +35,8 @@ ViviController::ViviController() {
     wavfile = NULL;
     actions_file = NULL;
     cats_file = NULL;
-    for (unsigned int i=0; i<NUM_STRINGS; i++) {
-        for (unsigned int j=0; j<NUM_DYNAMICS; j++) {
+    for (int i=0; i<NUM_STRINGS; i++) {
+        for (int j=0; j<NUM_DYNAMICS; j++) {
             ears[i][j] = NULL;
         }
     }
@@ -48,8 +48,8 @@ ViviController::~ViviController() {
     gsl_rng_free(random);
     filesClose();
     delete violin;
-    for (unsigned int i=0; i<NUM_STRINGS; i++) {
-        for (unsigned int j=0; j<NUM_DYNAMICS; j++) {
+    for (int i=0; i<NUM_STRINGS; i++) {
+        for (int j=0; j<NUM_DYNAMICS; j++) {
             if (ears[i][j] != NULL) {
                 delete ears[i][j];
             }
@@ -63,20 +63,20 @@ void ViviController::reset() {
     // only action that matters; others are overwritten anyway
     actions.bow_velocity = 0;
 
-    for (unsigned int i=0; i<CATS_MEAN_LENGTH; i++) {
+    for (int i=0; i<CATS_MEAN_LENGTH; i++) {
         cats[i] = -1;
     }
     cats_index = 0;
 }
 
-Ears* ViviController::getEars(unsigned int st, unsigned int dyn) {
+Ears* ViviController::getEars(int st, int dyn) {
     if (ears[st][dyn] == NULL) {
         ears[st][dyn] = new Ears();
     }
     return ears[st][dyn];
 }
 
-bool ViviController::load_ears_training(unsigned int st, unsigned int dyn,
+bool ViviController::load_ears_training(int st, int dyn,
                                         const char *training_file)
 {
     if (ears[st][dyn] == NULL) {
@@ -237,10 +237,10 @@ void ViviController::note(PhysicalActions actions_get,
 
 
     note_samples = 0;
-    unsigned int accel_hops = ceil(fabs(
+    int accel_hops = ceil(fabs(
                                        m_velocity_target
                                        / (MAX_HAND_ACCEL*DH)));
-    unsigned int decel_hop = seconds/DH - accel_hops;
+    int decel_hop = seconds/DH - accel_hops;
 
     actions_file->finger(total_samples*dt, actions.string_number,
                          actions.finger_position);
@@ -267,7 +267,7 @@ void ViviController::note(PhysicalActions actions_get,
 //zz
 }
 
-inline void ViviController::hop(unsigned int num_samples) {
+inline void ViviController::hop(int num_samples) {
     // approach target velocity
     const double dv = m_velocity_target - actions.bow_velocity;
     if (dv > MAX_HAND_ACCEL*DH) {
@@ -326,7 +326,7 @@ inline void ViviController::hop(unsigned int num_samples) {
     }
     double cat_avg = 0.0;
     int cat_ok = 1;
-    for (unsigned int i=0; i<CATS_MEAN_LENGTH; i++) {
+    for (int i=0; i<CATS_MEAN_LENGTH; i++) {
         if (cats[i] < 0) {
             cat_ok = 0;
         }

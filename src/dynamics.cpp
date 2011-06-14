@@ -26,16 +26,16 @@ inline double interpolate(const double x,
 
 
 double get_distance(double dyn) {
-    const unsigned int x0 = floor(dyn);
-    const unsigned int x1 = ceil(dyn);
+    const int x0 = floor(dyn);
+    const int x1 = ceil(dyn);
     return interpolate(dyn,
                        x0, BOW_BRIDGE_DISTANCES [x0],
                        x1, BOW_BRIDGE_DISTANCES [x1]);
 }
 
 double get_velocity(double dyn) {
-    const unsigned int x0 = floor(dyn);
-    const unsigned int x1 = ceil(dyn);
+    const int x0 = floor(dyn);
+    const int x1 = ceil(dyn);
     return interpolate(dyn,
                        x0, BOW_VELOCITIES [x0],
                        x1, BOW_VELOCITIES [x1]);

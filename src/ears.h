@@ -14,16 +14,16 @@
 #include "marsyas/MarSystemManager.h"
 //using namespace std;
 
-//const unsigned int EARS_HOPSIZE = 128;
-const unsigned int EARS_HOPSIZE = 256;
-//const unsigned int EARS_HOPSIZE = 512;
+//const int EARS_HOPSIZE = 128;
+const int EARS_HOPSIZE = 256;
+//const int EARS_HOPSIZE = 512;
 // needs to be at least 1024 for yin pitch
-const unsigned int EARS_WINDOWSIZE = 1024;
+const int EARS_WINDOWSIZE = 1024;
 
 const int CATEGORY_NULL = -1;
 
 
-const unsigned int SAMPLE_RATE = 44100;
+const int SAMPLE_RATE = 44100;
 const double dh = (double) EARS_HOPSIZE / SAMPLE_RATE;
 
 

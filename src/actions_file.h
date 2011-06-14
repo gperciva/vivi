@@ -2,7 +2,7 @@
 #define ACTIONS_FILE
 #include <stdio.h>
 
-const unsigned int MAX_LINE_LENGTH = 256;
+const int MAX_LINE_LENGTH = 256;
 
 class ActionsFile {
 public:
@@ -15,7 +15,7 @@ public:
      * memory it attempted to allocate; if this occurs, it will
      * probably result in an unchecked exception crash.
      */
-    ActionsFile(const char *filename, unsigned int buffer_size=1024);
+    ActionsFile(const char *filename, int buffer_size=1024);
 
     /// @brief writes data to disk before quitting
     ~ActionsFile();
@@ -37,8 +37,8 @@ public:
 private:
     void writeBuffer();
 
-    unsigned int size;
-    unsigned int index;
+    int size;
+    int index;
     FILE *outfile;
 
     enum ActionType {

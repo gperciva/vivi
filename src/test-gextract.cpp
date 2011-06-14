@@ -59,8 +59,8 @@ int main(int argc, char **argv) {
         ears->reset();
         ears->set_predict_buffer(mpl_filename.c_str());
         short* buf = new short[EARS_HOPSIZE];
-        for (unsigned int j=0; j<10; j++) {
-            for (unsigned int i=0; i<EARS_HOPSIZE; i++) {
+        for (int j=0; j<10; j++) {
+            for (int i=0; i<EARS_HOPSIZE; i++) {
                 buf[i] = i % EARS_HOPSIZE;
             }
             ears->listenShort(buf);

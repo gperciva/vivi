@@ -232,7 +232,7 @@ short* Ears::get_hopsize_array() {
 
 //void Ears::listen(double *audio, double *bow_forces) {
 void Ears::listen(double *audio) {
-    for (unsigned int i=0; i<EARS_HOPSIZE; i++) {
+    for (int i=0; i<EARS_HOPSIZE; i++) {
         audio_input_realvec(0,i) = audio[i];
         //listen_buffer->data[0][i] = audio[i];
     }
@@ -243,7 +243,7 @@ void Ears::listen(double *audio) {
 
 void Ears::listenShort(short *audio) {
     //cout<<"listenShort"<<endl;
-    for (unsigned int i=0; i<EARS_HOPSIZE; i++) {
+    for (int i=0; i<EARS_HOPSIZE; i++) {
         audio_input_realvec(0,i) = ((mrs_real) audio[i]) / SHRT_MAX;
     }
     //cout<<"going to load"<<endl;
