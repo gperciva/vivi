@@ -60,6 +60,12 @@ if (not env.GetOption('clean')) and (not env.GetOption('help')):
 	if not status:
 		print("Need marsyas!")
 		Exit(1)
+	### tests for gnu science library
+	status = config.CheckLibWithHeader(['gsl', 'gslcblas'],
+		'gsl/gsl_randist.h', 'c++')
+	if not status:
+		print("Need GNU science library: gsl and/or gslcblas!")
+		Exit(1)
 	### test for artifastring
 	#status = config.CheckLibWithHeader('artifastring',
 	#	'violin_instrument.h', 'c++')
