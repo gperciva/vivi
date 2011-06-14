@@ -6,3 +6,15 @@ http://percival-music.ca/vivi.html
 Sound and video is produced with
 https://github.com/gperciva/artifastring
 
+
+In addition to the packages checked by scons, you need:
+  python-scipy
+
+  sip4  (python sip C++ bindings)
+  python-qt4-dev  (more qt4 python bindings)
+
+  python-poppler-qt4    (compile from source tarball, 0.16.2 works)
+    http://code.google.com/p/python-poppler-qt4/
+
+  sox
+
