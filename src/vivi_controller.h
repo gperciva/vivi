@@ -6,7 +6,7 @@ class MonoWav;
 class ActionsFile;
 class Ears;
 #include "ears.h"
-#include "violin_instrument.h"
+#include "artifastring/violin_instrument.h"
 #include "dynamics.h" // for NUM_DYNAMICS
 
 extern "C" {

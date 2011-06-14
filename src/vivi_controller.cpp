@@ -3,8 +3,8 @@
 #include <time.h>
 #include <math.h>
 
-//#include "violin_instrument.h"
-#include "monowav.h"
+//#include "artifastring/violin_instrument.h"
+#include "artifastring/monowav.h"
 #include "actions_file.h"
 
 // used in normal hops
