@@ -259,12 +259,20 @@ void ViviController::note(PhysicalActions actions_get,
     if (remaining_samples > 0) {
         hop(remaining_samples);
     }
-	// TODO: ick, is this necessary?
-    if (seconds==0.0) {
-		hop(0);
-	}
-
+    bowStop();
 //zz
+}
+
+inline void ViviController::bowStop() {
+    actions.bow_force = 0.0;
+    actions.bow_velocity = 0.0;
+    violin->bow(actions.string_number,
+                actions.bow_bridge_distance,
+                actions.bow_force,
+                actions.bow_velocity);
+    actions_file->bow(total_samples*dt, actions.string_number,
+                      actions.bow_bridge_distance, actions.bow_force,
+                      actions.bow_velocity);
 }
 
 inline void ViviController::hop(int num_samples) {

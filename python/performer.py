@@ -55,9 +55,4 @@ class Performer(QtCore.QObject):
 	def _render_note(self, note):
 		self.controller.note(note.params, 1.05, note.duration)
 
-		# FIXME: quick hack to stop playing the current string
-		note.params.bow_force = 0.0
-		note.params.bow_velocity = 0.0
-		self.controller.note(note.params, 1.05, 0.0)
-
 
