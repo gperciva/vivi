@@ -9,6 +9,10 @@ gextract = env.Program (target='test-gextract',
 	LIBS=["marsyas"],
 )
 
+controllerparams = env.Program(target='test-params',
+	source = (['controller_params.cpp'] + ['test-controller-params.cpp'])
+)
+
 basic = env.Program (target='test-basic',
 	source = (env['vivi_controller_files'] + ['test-basic.cpp']
 		+ ['ears.o', 'actions_file.o', 'dynamics.cpp']),

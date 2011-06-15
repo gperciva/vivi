@@ -31,13 +31,12 @@ class TaskAttack(task_base.TaskBase):
 			"attack")
 
 		self.best_attacks = [0, 0, 0] # a "null" value
-		self.K = 1.0
 
 		self.notes = None
 		self.forces = None
 
 	def set_K(self, K):
-		self.K = K
+		self.controller.set_stable_K(K)
 
 	def set_forces(self, forces):
 		self.attack_forces = forces
@@ -79,7 +78,7 @@ class TaskAttack(task_base.TaskBase):
 					params.bow_bridge_distance = dynamics.get_distance(self.dyn)
 					params.bow_velocity = dynamics.get_velocity(self.dyn)
 
-					self.controller.note(params, self.K, ATTACK_LENGTH)
+					self.controller.note(params, ATTACK_LENGTH)
 					self.controller.filesClose()
 					self.process_step.emit()
 

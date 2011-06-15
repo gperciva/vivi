@@ -44,6 +44,7 @@ class TaskStable(task_base.TaskBase):
 		self._setup_controller()
 
 		for K in scipy.linspace(STABLE_MIN, STABLE_MAX, STABLE_STEPS):
+			self.controller.set_stable_K(K)
 			for count in range(STABLE_REPS):
 				# TODO: this loop could be done in a separate C++ file
 				for force_relative_index in range(3):
@@ -73,7 +74,7 @@ class TaskStable(task_base.TaskBase):
 						params.bow_bridge_distance = dynamics.get_distance(self.dyn)
 						params.bow_velocity = bow_direction * dynamics.get_velocity(self.dyn)
 
-						self.controller.note(params, K, STABLE_LENGTH)
+						self.controller.note(params, STABLE_LENGTH)
 						bow_direction *= -1
 					self.controller.filesClose()
 				self.process_step.emit()

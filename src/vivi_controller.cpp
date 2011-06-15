@@ -87,6 +87,10 @@ bool ViviController::load_ears_training(int st, int dyn,
     return true;
 }
 
+void ViviController::set_stable_K(double K) {
+    m_K = K;
+}
+
 
 inline double ViviController::norm_bounded(double mu, double sigma) {
     if (sigma == 0) {
@@ -212,7 +216,6 @@ void ViviController::basic(PhysicalActions actions_get, double seconds,
 }
 
 void ViviController::note(PhysicalActions actions_get,
-                          double K,
                           double seconds)
 {
     // set up note parameters
@@ -226,7 +229,6 @@ void ViviController::note(PhysicalActions actions_get,
     // other setup
     m_st = actions.string_number;
     m_dyn = round(actions_get.dynamic);
-    m_K = K;
 
     // write (some) parameters to file
     char note_search_params[MAX_LINE_LENGTH];
@@ -238,8 +240,8 @@ void ViviController::note(PhysicalActions actions_get,
 
     note_samples = 0;
     int accel_hops = ceil(fabs(
-                                       m_velocity_target
-                                       / (MAX_HAND_ACCEL*DH)));
+                              m_velocity_target
+                              / (MAX_HAND_ACCEL*DH)));
     int decel_hop = seconds/DH - accel_hops;
 
     actions_file->finger(total_samples*dt, actions.string_number,

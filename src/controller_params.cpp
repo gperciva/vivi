@@ -1,0 +1,48 @@
+#include "controller_params.h"
+#include <stdio.h>
+#include <string.h>
+
+ControllerParams::ControllerParams(const char *filename)
+{
+    strncpy(m_filename, filename, MAX_FILENAME_LENGTH-1);
+}
+
+ControllerParams::~ControllerParams()
+{
+    write_file();
+}
+
+void ControllerParams::load_file()
+{
+    FILE* fd = fopen(m_filename, "r");
+    if (fd != NULL) {
+        fscanf(fd, "%lf\n%lf\n%lf\n%lf\n%lf",
+               &attack_forces[0], &attack_forces[1], &attack_forces[2],
+               &stable_K, &accuracy);
+        fclose(fd);
+    } else {
+        stable_K = 1.0;
+        attack_forces[0] = attack_forces[1] = attack_forces[2] = 1.0;
+        accuracy = 0.0;
+    }
+}
+
+void ControllerParams::write_file()
+{
+    FILE* outfile = fopen(m_filename, "w");
+    char textline[MAX_LINE_LENGTH];
+
+    sprintf(textline, "%.3f\n", attack_forces[0]);
+    fwrite(textline, sizeof(char), strlen(textline), outfile);
+    sprintf(textline, "%.3f\n", attack_forces[1]);
+    fwrite(textline, sizeof(char), strlen(textline), outfile);
+    sprintf(textline, "%.3f\n", attack_forces[2]);
+    fwrite(textline, sizeof(char), strlen(textline), outfile);
+    sprintf(textline, "%.3f\n", stable_K);
+    fwrite(textline, sizeof(char), strlen(textline), outfile);
+    sprintf(textline, "%.3f\n", accuracy);
+    fwrite(textline, sizeof(char), strlen(textline), outfile);
+
+    fclose(outfile);
+}
+

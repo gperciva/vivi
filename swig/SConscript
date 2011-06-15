@@ -32,6 +32,11 @@ env.SharedLibrary(
   source = (['dynamics.i', '../src/dynamics.cpp']),
 )
 
+env.SharedLibrary(
+  target = '_controller_params.so',
+  source = (['controller_params.i', '../src/controller_params.cpp']),
+)
+
 # the \# means "top level directory"
 env.SharedLibrary(
   target = '_vivi_controller.so',

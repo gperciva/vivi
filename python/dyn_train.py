@@ -22,6 +22,7 @@ import dirs
 # TODO: **must** import this first, then controller.  No clue why.
 import vivi_controller
 import dynamics
+import controller_params
 #import vivi_controller
 
 #import utils
@@ -86,6 +87,8 @@ class DynTrain(QtGui.QFrame):
 		self.basic_trained = False
 
 		self.force_init = []
+		self.controller_params = controller_params.ControllerParams(
+			dirs.files.get_dyn_vivi_filename(self.st, self.dyn))
 		self.read()
 #		self.levels = levels.Levels()
 #		self.levels.set_coll(self.coll)
@@ -265,17 +268,24 @@ class DynTrain(QtGui.QFrame):
 			self.coll.add_mf_file(filename)
 		self.judged_main_num = self.coll.num_main()
 		### read forces
-		filename = dirs.files.get_dyn_data_filename(self.st, self.dyn)
-		try:
-			att = open(filename).readlines()
-			for i in range(3):
-				self.force_init.append(float( att[i].rstrip() ))
-			self.force_factor = float( att[3].rstrip() )
-			self.accuracy = float( att[4].rstrip() )
-		except:
-			# we don't care if we can't read the forces file.
-			self.force_init = [-1.0, -1.0, -1.0]
-			self.force_factor = 1.0
+		self.controller_params.load_file()
+		self.force_init = []
+		for i in range(3):
+			self.force_init.append(
+				self.controller_params.get_attack_force(i))
+		self.force_factor = self.controller_params.stable_K
+		self.accuracy = self.controller_params.accuracy
+#		filename = dirs.files.get_dyn_data_filename(self.st, self.dyn)
+#		try:
+#			att = open(filename).readlines()
+#			for i in range(3):
+#				self.force_init.append(float( att[i].rstrip() ))
+#			self.force_factor = float( att[3].rstrip() )
+#			self.accuracy = float( att[4].rstrip() )
+#		except:
+#			# we don't care if we can't read the forces file.
+#			self.force_init = [-1.0, -1.0, -1.0]
+#			self.force_factor = 1.0
 		# do we need any basic training?
 		if not basic_training.get_next_basic(self.dyn, self.coll):
 			self.basic_trained = True
@@ -290,13 +300,18 @@ class DynTrain(QtGui.QFrame):
 			self.coll.write_mf_file(filename, cat_type)
 		#self.modified = False
 		### write forces
-		filename = dirs.files.get_dyn_data_filename(self.st, self.dyn)
-		att = open(filename, 'w')
 		for i in range(3):
-			att.write(str("%.3f\n" % self.force_init[i]))
-		att.write(str("%.3f\n" % self.force_factor))
-		att.write(str("%.3f\n" % self.accuracy))
-		att.close()
+			self.controller_params.set_force(i, self.force_init[i])
+		self.controller_params.stable_K = self.force_factor
+		self.controller_params.accuracy = self.accuracy
+		self.controller_params.write_file()
+#		filename = dirs.files.get_dyn_data_filename(self.st, self.dyn)
+#		att = open(filename, 'w')
+#		for i in range(3):
+#			att.write(str("%.3f\n" % self.force_init[i]))
+#		att.write(str("%.3f\n" % self.force_factor))
+#		att.write(str("%.3f\n" % self.accuracy))
+#		att.close()
 
 	### bulk processing state
 	def process_step_emit(self):

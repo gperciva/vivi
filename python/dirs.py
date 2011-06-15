@@ -55,11 +55,11 @@ class ViviDirs:
 			+ 'mpl')
 		return filename
 
-	def get_dyn_data_filename(self, st, dyn):
-		""" trained dynamic .data file. """
+	def get_dyn_vivi_filename(self, st, dyn):
+		""" trained dynamic .vivi file. """
 		filename = os.path.join(self.final_dir,
 			self._get_basename(st, 'main', dyn)
-			+ 'data')
+			+ 'vivi')
 		return filename
 
 	@staticmethod

@@ -26,19 +26,24 @@ public:
     ~ViviController();
     void reset();
 
+    // per-session prepare for action
     Ears *getEars(int st, int dyn);
     bool load_ears_training(int st, int dyn,
                             const char *training_file);
+    void set_stable_K(double K);
 
+    // per-file prepare
     void filesClose();
     bool filesNew(const char *filenames_base);
-    void note(PhysicalActions actions_get,
-              double K,
-              double seconds);
+
+    // sppecial
+    void comment(const char *text);
     void basic(PhysicalActions actions_get, double seconds,
                double seconds_skip, const char *filenames_base);
-    void comment(const char *text);
 
+    // normal "everytime" stuff
+    void note(PhysicalActions actions_get,
+              double seconds);
 private:
     // always used
     ViolinInstrument *violin;
@@ -50,8 +55,8 @@ private:
     ActionsFile *cats_file;
     Ears *ears[NUM_STRINGS][NUM_DYNAMICS];
 
-	int cats[CATS_MEAN_LENGTH]; // TODO: to test mean
-	int cats_index;
+    int cats[CATS_MEAN_LENGTH]; // TODO: to test mean
+    int cats_index;
 
 
     PhysicalActions actions;

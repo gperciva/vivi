@@ -53,6 +53,6 @@ class Performer(QtCore.QObject):
 		self.controller.filesClose()
 
 	def _render_note(self, note):
-		self.controller.note(note.params, 1.05, note.duration)
+		self.controller.note(note.params, note.duration)
 
 
