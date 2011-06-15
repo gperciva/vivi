@@ -53,7 +53,7 @@ class Performer(QtCore.QObject):
 		self.controller.filesClose()
 
 	def _render_note(self, note):
-		self.controller.note(note.params, 1.05, 1.0)
+		self.controller.note(note.params, 1.05, note.duration)
 
 		# FIXME: quick hack to stop playing the current string
 		note.params.bow_force = 0.0

@@ -2,7 +2,7 @@
 \include "event-listener.ly"
 
 \relative c' {
-  c4 f d g
+  c4 d e f
   \grace { e4 } fis2 \grace { g4 a } b2
 }
 

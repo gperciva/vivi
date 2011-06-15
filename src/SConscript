@@ -15,7 +15,7 @@ basic = env.Program (target='test-basic',
 	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
 )
 
-basic = env.Program (target='test-stable',
+stable = env.Program (target='test-stable',
 	source = (['test-stable.cpp']
 		+ ['ears.o', 'vivi_controller.o', 'actions_file.o', 'dynamics.o']),
 	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
