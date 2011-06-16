@@ -55,7 +55,7 @@ def _get_between(forces, cats, cat, unknowns):
 	unknown_between = filter(lambda(x):x>lower_force and x<higher_force,
 	                         unknowns)
 	between = [lower_force] + unknown_between + [higher_force]
-	distances = [x-y for x, y in zip(between[:-1], between[1:])]
+	distances = [y-x for x, y in zip(between[:-1], between[1:])]
 	biggest_distance = max(distances)
 	biggest_distance_index = distances.index(biggest_distance)
 	force = between[biggest_distance_index] + biggest_distance/2.0
