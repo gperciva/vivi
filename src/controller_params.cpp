@@ -16,13 +16,17 @@ void ControllerParams::load_file()
 {
     FILE* fd = fopen(m_filename, "r");
     if (fd != NULL) {
-        fscanf(fd, "%lf\n%lf\n%lf\n%lf\n%lf",
-               &attack_forces[0], &attack_forces[1], &attack_forces[2],
-               &stable_K, &accuracy);
+        int num_read = fscanf(fd, "%lf\n%lf\n%lf\n%lf\n%lf",
+                              &attack_forces[0], &attack_forces[1],
+                              &attack_forces[2],
+                              &stable_K, &accuracy);
+        if (num_read != 5) {
+            printf("ERROR: Controller Params: problem reading file");
+        }
         fclose(fd);
     } else {
         stable_K = 1.0;
-        attack_forces[0] = attack_forces[1] = attack_forces[2] = 1.0;
+        attack_forces[0] = attack_forces[1] = attack_forces[2] = 0.0;
         accuracy = 0.0;
     }
 }

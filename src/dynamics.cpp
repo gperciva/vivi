@@ -5,9 +5,9 @@
 //#include <stdio.h>
 
 const double BOW_BRIDGE_DISTANCES [NUM_DYNAMICS] =
-    {0.08, 0.10, 0.12, 0.14};
+{0.08, 0.10, 0.12, 0.14};
 const double BOW_VELOCITIES [NUM_DYNAMICS] =
-    {0.40, 0.33, 0.26, 0.20};
+{0.40, 0.33, 0.26, 0.20};
 
 /*
  I haven't thought about it; this just comes from:

@@ -170,7 +170,7 @@ class DynTrain(QtGui.QFrame):
 
 		self.setEnabled(True)
 		self.ui.num_trained_label.setText(str(self.judged_main_num))
-		if self.accuracy >= 0:
+		if self.accuracy > 0:
 			# round number
 			self.ui.accuracy_label.setText(
 				str("%.0f%%")%(self.accuracy+0.5))
@@ -181,17 +181,17 @@ class DynTrain(QtGui.QFrame):
 				str("%.2f")%self.force_factor)
 		else:
 			self.ui.force_factor.setText("")
-		if self.force_init[0] >= 0:
+		if self.force_init[0] > 0:
 			self.ui.force_init1.setText(
 				str("%.1f N")%self.force_init[0])
 		else:
 			self.ui.force_init1.setText("")
-		if self.force_init[1] >= 0:
+		if self.force_init[1] > 0:
 			self.ui.force_init2.setText(
 				str("%.1f N")%self.force_init[1])
 		else:
 			self.ui.force_init2.setText("")
-		if self.force_init[2] >= 0:
+		if self.force_init[2] > 0:
 			self.ui.force_init3.setText(
 				str("%.1f N")%self.force_init[2])
 		else:

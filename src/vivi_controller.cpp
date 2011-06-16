@@ -82,8 +82,10 @@ bool ViviController::load_ears_training(int st, int dyn,
     if (ears[st][dyn] == NULL) {
         ears[st][dyn] = new Ears();
     }
-    // TODO: replace with const char *
-    ears[st][dyn]->set_predict_buffer(training_file);
+    if (training_file != NULL) {
+        // TODO: replace with const char *
+        ears[st][dyn]->set_predict_buffer(training_file);
+    }
     return true;
 }
 

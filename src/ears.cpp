@@ -95,9 +95,10 @@ void Ears::resetTicksCount() {
 }
 
 
-void Ears::set_training(const char *mf_in_filename,
+bool Ears::set_training(const char *mf_in_filename,
                         const char *arff_out_filename_get)
 {
+    reset();
     mode = TRAIN_FILE;
     arff_out_filename.assign(arff_out_filename_get);
     in_filename.assign(mf_in_filename);
@@ -105,38 +106,45 @@ void Ears::set_training(const char *mf_in_filename,
     make_learning();
     make_input();
     make_net();
+    return true;
 }
 
-void Ears::set_predict_wavfile(const char *training_filename)
+bool Ears::set_predict_wavfile(const char *training_filename)
 {
+    reset();
     mode = PREDICT_FILE;
 
     ifstream pluginStream(training_filename);
-    //net = mng.getMarSystem(pluginStream);
-//zz
-#ifndef LEAN
-    classifier = mng.getMarSystem(pluginStream);
-#else
-    classifier = mng.getMarSystem(pluginStream);
-#endif
+    if (pluginStream.good()) {
+        classifier = mng.getMarSystem(pluginStream);
+        make_features();
+        make_learning();
+        make_input();
+        make_net();
+        return true;
+    } else {
+        printf("ERROR: controller set_predict_wavfile cannot load file\n");
+        return false;
+    }
     //classifier->updControl("WekaSink/wekasink/mrs_string/filename", m_filename);
-    make_features();
-    make_learning();
-    make_input();
-    make_net();
-
 }
 
-void Ears::set_predict_buffer(const char *training_filename)
+bool Ears::set_predict_buffer(const char *training_filename)
 {
+    reset();
     mode = PREDICT_BUFFER;
     ifstream pluginStream(training_filename);
-    classifier = mng.getMarSystem(pluginStream);
-
-    make_features();
-    make_learning();
-    make_input();
-    make_net();
+    if (pluginStream.good()) {
+        classifier = mng.getMarSystem(pluginStream);
+        make_features();
+        make_learning();
+        make_input();
+        make_net();
+        return true;
+    } else {
+        printf("ERROR: controller set_predict_buffer cannot load file\n");
+        return false;
+    }
 }
 
 void Ears::predict_wavfile(const char *wav_in_filename,

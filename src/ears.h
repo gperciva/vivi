@@ -32,10 +32,10 @@ public:
     Ears();
     ~Ears();
     // additional "constructors"
-    void set_training(const char *mf_in_filename,
+    bool set_training(const char *mf_in_filename,
                       const char *arff_out_filename_get);
-    void set_predict_wavfile(const char *training_file);
-    void set_predict_buffer(const char *training_file);
+    bool set_predict_wavfile(const char *training_file);
+    bool set_predict_buffer(const char *training_file);
 
     void reset();
     void resetTicksCount();
