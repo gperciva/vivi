@@ -1,8 +1,8 @@
 #ifndef CONTROLLER_PARAMS
 #define CONTROLLER_PARAMS
 
-const int MAX_FILENAME_LENGTH = 256;
-const int MAX_LINE_LENGTH = 256;
+const int CP_MAX_FILENAME_LENGTH = 256;
+const int CP_MAX_LINE_LENGTH = 256;
 
 class ControllerParams {
 public:
@@ -32,7 +32,7 @@ public:
     };
 
 private:
-    char m_filename[MAX_FILENAME_LENGTH];
+    char m_filename[CP_MAX_FILENAME_LENGTH];
 };
 #endif
 

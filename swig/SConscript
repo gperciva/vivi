@@ -42,7 +42,8 @@ env.SharedLibrary(
   target = '_vivi_controller.so',
   source = (['vivi_controller.i', '../src/vivi_controller.cpp']
 		+ ['../src/ears.cpp', '../src/actions_file.cpp']
-		+ ['../src/dynamics.cpp']),
+		+ ['../src/dynamics.cpp', '../src/vivi_note_params.cpp']
+		+ ['../src/controller_params.cpp']),
 )
 
 # TODO: hard-coded python version again!

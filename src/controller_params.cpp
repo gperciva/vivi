@@ -4,7 +4,7 @@
 
 ControllerParams::ControllerParams(const char *filename)
 {
-    strncpy(m_filename, filename, MAX_FILENAME_LENGTH-1);
+    strncpy(m_filename, filename, CP_MAX_FILENAME_LENGTH-1);
 }
 
 ControllerParams::~ControllerParams()
@@ -20,10 +20,10 @@ void ControllerParams::load_file()
                               &attack_forces[0], &attack_forces[1],
                               &attack_forces[2],
                               &stable_K, &accuracy);
+        fclose(fd);
         if (num_read != 5) {
             printf("ERROR: Controller Params: problem reading file");
         }
-        fclose(fd);
     } else {
         stable_K = 1.0;
         attack_forces[0] = attack_forces[1] = attack_forces[2] = 0.0;
@@ -34,7 +34,7 @@ void ControllerParams::load_file()
 void ControllerParams::write_file()
 {
     FILE* outfile = fopen(m_filename, "w");
-    char textline[MAX_LINE_LENGTH];
+    char textline[CP_MAX_LINE_LENGTH];
 
     sprintf(textline, "%.3f\n", attack_forces[0]);
     fwrite(textline, sizeof(char), strlen(textline), outfile);

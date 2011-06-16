@@ -44,7 +44,7 @@ class TaskStable(task_base.TaskBase):
 		self._setup_controller()
 
 		for K in scipy.linspace(STABLE_MIN, STABLE_MAX, STABLE_STEPS):
-			self.controller.set_stable_K(K)
+			self.controller.set_stable_K(self.st, self.dyn, K)
 			for count in range(STABLE_REPS):
 				# TODO: this loop could be done in a separate C++ file
 				for force_relative_index in range(3):

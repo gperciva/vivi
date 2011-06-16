@@ -22,9 +22,8 @@ int main() {
     viviController->comment("Stable test, 0 0");
     viviController->load_ears_training(params.string_number, dyn,
                                        "final/0_0.mpl");
-    viviController->set_stable_K(K);
+    viviController->set_stable_K(0, 0, K);
     viviController->note(params, PLAY);
-    //}
 
     delete viviController;
 }

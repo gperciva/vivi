@@ -26,17 +26,19 @@ class Performer(QtCore.QObject):
 		if not dirs.files:
 			dirs.files = dirs.ViviDirs(
 				"train/", "/tmp/vivi-cache/", "final/")
-		self._setup_controller()
 		self.current_st = None
 
 	def _setup_controller(self):
 		for st in range(4):
+			# FIXME: debug only
 			for dyn in range(1):
 				mpl_filename = dirs.files.get_mpl_filename(st, 'main', dyn)
 				if not os.path.exists(mpl_filename):
 					mpl_filename = None
 				self.controller.load_ears_training(st, dyn,
 					mpl_filename)
+				self.controller.set_stable_K(st, dyn,
+					self.style.controller_params[st][dyn].stable_K)
 
 	def load_file(self, filename):
 		self.notation.load_file(filename)
@@ -46,9 +48,9 @@ class Performer(QtCore.QObject):
 		return len(self.style.notes)
 
 	def play_music(self):
+		self._setup_controller()
 		self.controller.filesNew("audio")
-#		self.controller.reset()
-	
+
 		for note in self.style.notes:
 			self._render_note(note)
 			self.process_step.emit()

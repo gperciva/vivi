@@ -14,6 +14,8 @@ public:
     double bow_bridge_distance;
     double bow_force;
     double bow_velocity;
+
+    void print();
 };
 
 

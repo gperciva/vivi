@@ -147,3 +147,9 @@ def almost_equals(one, two):
 	return abs(one - two) < EPSILON_PARAMS
 
 
+def interpolate(x, x0, y0, x1, y1):
+	if (x1 - x0) == 0:
+		return y0
+	else:
+		return y0 + (x-x0)*(y1-y0)/(x1-x0)
+

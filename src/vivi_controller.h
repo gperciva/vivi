@@ -9,6 +9,7 @@ class Ears;
 #include "artifastring/violin_instrument.h"
 #include "dynamics.h" // for NUM_DYNAMICS
 #include "vivi_note_params.h"
+#include "controller_params.h"
 
 extern "C" {
 #include <gsl/gsl_randist.h>
@@ -28,9 +29,10 @@ public:
 
     // per-session prepare for action
     Ears *getEars(int st, int dyn);
+    // TODO: rename for params too
     bool load_ears_training(int st, int dyn,
                             const char *training_file);
-    void set_stable_K(double K);
+    void set_stable_K(int st, int dyn, double K);
 
     // per-file prepare
     void filesClose();
@@ -54,6 +56,7 @@ private:
     ActionsFile *actions_file;
     ActionsFile *cats_file;
     Ears *ears[NUM_STRINGS][NUM_DYNAMICS];
+    double m_K[NUM_STRINGS][NUM_DYNAMICS];
 
     int cats[CATS_MEAN_LENGTH]; // TODO: to test mean
     int cats_index;
@@ -64,8 +67,6 @@ private:
     int m_dyn;
     double m_velocity_target;
     double m_velocity_cutoff_force_adj;
-
-    double m_K;
 
     // ASSUME: we play for a maximum of 13 hours per file
     int total_samples;

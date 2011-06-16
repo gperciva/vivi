@@ -89,8 +89,9 @@ bool ViviController::load_ears_training(int st, int dyn,
     return true;
 }
 
-void ViviController::set_stable_K(double K) {
-    m_K = K;
+void ViviController::set_stable_K(int st, int dyn, double K)
+{
+    m_K[st][dyn] = K;
 }
 
 
@@ -220,6 +221,8 @@ void ViviController::basic(PhysicalActions actions_get, double seconds,
 void ViviController::note(PhysicalActions actions_get,
                           double seconds)
 {
+    //actions_get.print();
+
     // set up note parameters
     actions.string_number = actions_get.string_number;
     actions.finger_position = actions_get.finger_position;
@@ -350,11 +353,11 @@ inline void ViviController::hop(int num_samples) {
         if (m_velocity_cutoff_force_adj > 0) {
             if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
                 // adjust bow force
-                actions.bow_force *= pow(m_K, 2-cat_avg);
+                actions.bow_force *= pow(m_K[m_st][m_dyn], 2-cat_avg);
             }
         } else {
             if (actions.bow_velocity < m_velocity_cutoff_force_adj) {
-                actions.bow_force *= pow(m_K, 2-cat_avg);
+                actions.bow_force *= pow(m_K[m_st][m_dyn], 2-cat_avg);
             }
         }
     }

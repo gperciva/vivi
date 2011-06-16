@@ -208,6 +208,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 		self.progress_dialog("Computing training files", steps)
 
 	def rehearse(self):
+		self.save_training()
 		steps = self.performer_feeder.play_music()
 		self.progress_dialog("Rehearsing music", steps)
 

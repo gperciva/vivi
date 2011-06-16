@@ -36,7 +36,7 @@ class TaskAttack(task_base.TaskBase):
 		self.forces = None
 
 	def set_K(self, K):
-		self.controller.set_stable_K(K)
+		self.controller.set_stable_K(self.st, self.dyn, K)
 
 	def set_forces(self, forces):
 		self.attack_forces = forces
