@@ -14,6 +14,7 @@ import music_events
 import dynamics
 import dirs
 import style_base
+import utils
 
 class Performer(QtCore.QObject):
 	process_step = QtCore.pyqtSignal()
@@ -40,16 +41,20 @@ class Performer(QtCore.QObject):
 				self.controller.set_stable_K(st, dyn,
 					self.style.controller_params[st][dyn].stable_K)
 
+	def play(self):
+		utils.play(self.audio_filename + ".wav")
+
 	def load_file(self, filename):
 		self.notation.load_file(filename)
 		self.style.plan_perform(self.notation.events)
+		self.audio_filename = filename.replace(".notes", "")
 
 	def steps(self):
 		return len(self.style.notes)
 
 	def play_music(self):
 		self._setup_controller()
-		self.controller.filesNew("audio")
+		self.controller.filesNew(self.audio_filename)
 
 		for note in self.style.notes:
 			self._render_note(note)

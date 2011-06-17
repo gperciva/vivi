@@ -24,12 +24,10 @@ class MusicEvents():
 	def __init__(self):
 		self.events = None
 
-	def load_file(self, filenames):
+	def load_file(self, filename):
 		self.events = []
 
 		events = {}
-		# FIXME: only handle one staff right now
-		filename = filenames[0]
 		lines = open(filename).read().splitlines()
 		for line in lines:
 			splitline = line.split()

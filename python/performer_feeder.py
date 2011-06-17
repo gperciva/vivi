@@ -2,10 +2,10 @@
 
 from PyQt4 import QtCore
 import performer
-import utils
 
 STATE_NULL = 0
 STATE_RENDER_MUSIC = 1
+STATE_PLAYING = 2
 
 class PerformerFeeder(QtCore.QThread):
 	process_step = QtCore.pyqtSignal()
@@ -28,15 +28,21 @@ class PerformerFeeder(QtCore.QThread):
 			self.condition.wait(self.mutex)
 			if self.state == STATE_RENDER_MUSIC:
 				self.perform_thread()
+			if self.state == STATE_PLAYING:
+				self.play_thread()
 			self.state = STATE_NULL
 			self.done.emit()
 			self.mutex.unlock()
 
-	def load_file(self, filename):
+	def load_file(self, filenames):
+		# FIXME: only one staff per performer; do polyphony how?
+		filename = filenames[0]
 		self.performer.load_file(filename)
 
 	def play(self):
-		utils.play(self.audio_filename)
+		self.state = STATE_PLAYING
+		self.condition.wakeOne()
+		return self.performer.steps()
 
 	def play_music(self):
 		self.state = STATE_RENDER_MUSIC
@@ -49,6 +55,9 @@ class PerformerFeeder(QtCore.QThread):
 		self.performer.play_music()
 		print "... done"
 		self.audio_filename = "audio.wav"
+
+	def play_thread(self):
+		self.performer.play()
 
 if __name__ == "__main__":
 	app = QtCore.QCoreApplication([])
