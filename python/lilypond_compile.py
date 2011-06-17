@@ -70,7 +70,7 @@ class LilyPondCompile(QtCore.QThread):
 		self.process_step.emit()
 		# make new files
 		cmd = LILYPOND_COMMAND % (
-			dirname,
+			os.path.abspath(dirname),
 			dirs.files.get_music_dir(),
 			self.ly_filename+'.ly')
 		os.system(cmd)

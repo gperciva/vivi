@@ -30,6 +30,8 @@ class StyleBase():
 			self.controller_params.append(st_controllers)
 		self.reload_params()
 
+		self.tempo = 60.0
+
 	def reload_params(self):
 		for st in range(4):
 			for dyn in range(1):
@@ -42,9 +44,20 @@ class StyleBase():
 		for event in self.events:
 			if event.details[0][0] == 'rest':
 				continue
+			# must process tempo events before note!
+			for details in event.details:
+				if details[0] == 'tempo':
+					self.tempo_from_lilytempo(details[1][0])
 			params = self.simple_params(event)
-			note = Note(params=params, duration=event.duration)
+			note = Note(params=params, duration=self.calc_duration(event.duration))
 			self.notes.append(note)
+
+	def tempo_from_lilytempo(self, tempo):
+		self.tempo = float(tempo) / 4.0
+
+	def calc_duration(self, dur):
+		seconds = 4.0 * (60.0 / self.tempo) * dur
+		return seconds
 
 	def simple_params(self, event):
 		pitch = float(event.details[0][1][0])

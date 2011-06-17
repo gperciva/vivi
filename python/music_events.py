@@ -51,9 +51,10 @@ class MusicEvents():
 			# TODO: this is icky!
 			split_x = x.split('-')
 			if len(split_x) == 1:
-				return split_x[0]+'-999'
+				return float(split_x[0])
 			else:
-				return split_x[0] + str(999-float(split_x[1]))
+				# TODO: is this really an ok key function?
+				return float(split_x[0]) - 0.1*float(split_x[1])
 		def _make_event(dict_key, value):
 			details = sorted(value.details,
 						key=_sort_music_events)
@@ -77,6 +78,7 @@ class MusicEvents():
 
 	@staticmethod
 	def get_duration(details):
+		#print details[0][1]
 		if details[0][0] == 'note':
 			return float(details[0][1][2])
 		else:
