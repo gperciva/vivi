@@ -13,6 +13,9 @@ class Note():
 	def __init__(self, params=None, duration=0):
 		self.params = params
 		self.duration = duration
+class Rest():
+	def __init__(self, duration=0):
+		self.duration = duration
 
 class StyleBase():
 
@@ -42,14 +45,17 @@ class StyleBase():
 		self.notes = []
 
 		for event in self.events:
-			if event.details[0][0] == 'rest':
-				continue
 			# must process tempo events before note!
 			for details in event.details:
 				if details[0] == 'tempo':
 					self.tempo_from_lilytempo(details[1][0])
+			duration = self.calc_duration(event.duration)
+			if event.details[0][0] == 'rest':
+				rest = Rest(duration)
+				self.notes.append(rest)
+				continue
 			params = self.simple_params(event)
-			note = Note(params=params, duration=self.calc_duration(event.duration))
+			note = Note(params, duration)
 			self.notes.append(note)
 
 	def tempo_from_lilytempo(self, tempo):

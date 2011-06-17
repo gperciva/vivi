@@ -218,8 +218,31 @@ void ViviController::basic(PhysicalActions actions_get, double seconds,
     filesClose();
 }
 
-void ViviController::note(PhysicalActions actions_get,
-                          double seconds)
+void ViviController::rest(double seconds)
+{
+    actions_file->comment("rest");
+    cats_file->comment("rest");
+    bowStop();
+
+    actions_file->wait(seconds);
+
+    note_samples = 0;
+    for (int i = 0; i < seconds/DH-1; i++) {
+        hop_passive();
+    }
+    // finish final "half hop"
+    int remaining_samples = seconds*44100.0 - note_samples;
+    // finish final "half hop"
+    if (remaining_samples > 0) {
+        hop_passive(remaining_samples);
+    }
+}
+void ViviController::pizz(PhysicalActions actions_get, double seconds)
+{
+
+}
+
+void ViviController::note(PhysicalActions actions_get, double seconds)
 {
     //actions_get.print();
 
@@ -280,6 +303,15 @@ inline void ViviController::bowStop() {
     actions_file->bow(total_samples*dt, actions.string_number,
                       actions.bow_bridge_distance, actions.bow_force,
                       actions.bow_velocity);
+}
+
+inline void ViviController::hop_passive(int num_samples)
+{
+    short *buf = wavfile->request_fill(num_samples);
+    violin->wait_samples(buf, num_samples);
+    total_samples += num_samples;
+    note_samples  += num_samples;
+    // TODO: what else do I need?
 }
 
 inline void ViviController::hop(int num_samples) {

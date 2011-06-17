@@ -2,8 +2,8 @@
 %\include "event-listener.ly"
 
 \relative c' {
-  c4 d e f
+  c4 r e r
   \tempo 4 = 120
-  c4 d e f
+  c4 d r f
 }
 

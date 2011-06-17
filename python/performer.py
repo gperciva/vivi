@@ -57,12 +57,20 @@ class Performer(QtCore.QObject):
 		self.controller.filesNew(self.audio_filename)
 
 		for note in self.style.notes:
-			self._render_note(note)
+			if isinstance(note, style_base.Note):
+				self._render_note(note)
+			elif isinstance(note, style_base.Rest):
+				self._render_rest(note)
+			else:
+				print "Error: unknown event"
 			self.process_step.emit()
 
 		self.controller.filesClose()
 
 	def _render_note(self, note):
 		self.controller.note(note.params, note.duration)
+
+	def _render_rest(self, note):
+		self.controller.rest(note.duration)
 
 

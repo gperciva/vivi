@@ -44,8 +44,10 @@ public:
                double seconds_skip, const char *filenames_base);
 
     // normal "everytime" stuff
-    void note(PhysicalActions actions_get,
-              double seconds);
+    void rest(double seconds);
+    void pizz(PhysicalActions actions_get, double seconds);
+    void note(PhysicalActions actions_get, double seconds);
+
 private:
     // always used
     ViolinInstrument *violin;
@@ -73,6 +75,8 @@ private:
     int note_samples;
 
     inline void hop(int num_samples = EARS_HOPSIZE);
+    inline void hop_passive(int num_samples = EARS_HOPSIZE);
+
     inline double norm_bounded(double mu, double sigma);
 
     inline double interpolate(const double x,
