@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 import os
+import shutil
 import glob
 from PyQt4 import QtCore
 
+import dirs
+
 STATE_COMPILE_LILYPOND = 1
 LILYPOND_COMMAND = "lilypond \
+  -I %s \
   -dinclude-settings=event-listener.ly \
+  -o %s \
   %s"
 #  -dinclude-settings=reduce-whitespace.ly \
 
@@ -15,6 +20,8 @@ class LilyPondCompile(QtCore.QThread):
 	def __init__(self):
 		QtCore.QThread.__init__(self)
 
+		# TODO: clean this up
+		self.ly_filename = None
 		self.ly_basename = None
 
 		self.mutex = QtCore.QMutex()
@@ -24,7 +31,14 @@ class LilyPondCompile(QtCore.QThread):
 
 	def lily_file_needs_compile(self, ly_file):
 		self.ly_basename = os.path.splitext(ly_file)[0]
-		if not os.path.isfile(self.ly_basename+'.pdf'):
+		self.ly_filename = os.path.basename(self.ly_basename)
+		ly_filename = os.path.splitext(
+			os.path.basename(ly_file))[0]
+		# TODO: what about identical filenames in
+		# different directories?
+		outfilename = os.path.join(dirs.files.get_music_dir(),
+					ly_filename+'.pdf')
+		if not os.path.isfile(outfilename):
 			return True
 		return False
 
@@ -48,24 +62,28 @@ class LilyPondCompile(QtCore.QThread):
 
 	def call_lilypond_thread(self):
 		origdir = os.path.abspath(os.path.curdir)
-		dirname = os.path.dirname(self.ly_basename)
-		lily_file = os.path.basename(self.ly_basename+'.ly')
+		#dirname = os.path.dirname(self.ly_basename)
+		dirname = "ly"
 
-		self.remove_old_files(dirname)
+		#self.remove_old_files(dirname)
+		self.remove_old_files(dirs.files.get_music_dir())
 		self.process_step.emit()
 		# make new files
-		# TODO: make them in the vivi-cache/ dir!
-		os.chdir(dirname)
-		cmd = LILYPOND_COMMAND % lily_file
+		cmd = LILYPOND_COMMAND % (
+			dirname,
+			dirs.files.get_music_dir(),
+			self.ly_filename+'.ly')
 		os.system(cmd)
-		os.chdir(origdir)
 		self.process_step.emit()
 		self.done.emit()
 
 	def get_filename_pdf(self):
-		return self.ly_basename+'.pdf'
+		return os.path.join(dirs.files.get_music_dir(),
+			self.ly_filename+'.pdf')
 
 	def get_filename_notes(self):
-		notes_files = glob.glob(self.ly_basename+"*.notes")
+		notes_files = glob.glob(
+			os.path.join(dirs.files.get_music_dir(),
+			self.ly_filename+"*.notes"))
 		return notes_files
 

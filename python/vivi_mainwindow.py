@@ -154,8 +154,6 @@ class ViviMainwindow(QtGui.QMainWindow):
 		#self.ly_basename = os.path.splitext(ly_filename)[0]
 		self.ly_basename = ly_filename[:-3]
 		if shared.lily.lily_file_needs_compile(ly_filename):
-			pass
-		if 1:
 			self.progress_dialog("Generating score", 2)
 			shared.lily.call_lilypond()
 		else:

@@ -13,17 +13,17 @@ class ViviDirs:
 	""" Convenience class for directories and files. """
 	def __init__(self, training_dirname, cache_dirname, final_dirname):
 		""" constructor """
-		def ensure_dir_exists(dirname):
-			""" create the dirname if it does not exist """
-			if not os.path.isdir(dirname):
-				os.makedirs(dirname)
-		map(ensure_dir_exists, [training_dirname] + [final_dirname] +
-							   map(lambda(x): os.path.join(cache_dirname, x),
-						 	       ["", "inter", "works"]))
 		self.train_dir = os.path.normpath(training_dirname)
 		self.final_dir = os.path.normpath(final_dirname)
 		self.inter_dir = os.path.join(cache_dirname, "inter")
 		self.works_dir = os.path.join(cache_dirname, "works")
+		self.music_dir = os.path.join(cache_dirname, "music")
+		def _ensure_dir_exists(dirname):
+			""" create the dirname if it does not exist """
+			if not os.path.isdir(dirname):
+				os.makedirs(dirname)
+		map(_ensure_dir_exists, [self.train_dir, self.final_dir,
+			 self.inter_dir, self.works_dir, self.music_dir])
 
 	@staticmethod
 	def _get_basename(st, cats_type, dyn):
@@ -181,4 +181,12 @@ class ViviDirs:
 		""" deletes files, used to clean out parts of the working dir """
 		for filename in files_to_delete:
 			os.remove(filename)
+
+	def get_music_dir(self):
+		return self.music_dir
+
+	def get_notes_files(self):
+		notes_files = glob.glob(os.path.join(self.lily_dir, '*.notes'))
+		notes_files.sort()
+		return notes_files
 
