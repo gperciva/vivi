@@ -68,7 +68,11 @@ class Performer(QtCore.QObject):
 		self.controller.filesClose()
 
 	def _render_note(self, note):
-		self.controller.note(note.params, note.duration)
+		if note.pizz:
+			print "pizz"
+			self.controller.pizz(note.params, note.duration)
+		else:
+			self.controller.note(note.params, note.duration)
 
 	def _render_rest(self, note):
 		self.controller.rest(note.duration)

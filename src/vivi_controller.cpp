@@ -237,8 +237,37 @@ void ViviController::rest(double seconds)
         hop_passive(remaining_samples);
     }
 }
+
 void ViviController::pizz(PhysicalActions actions_get, double seconds)
 {
+    actions_file->comment("rest");
+    cats_file->comment("rest");
+    bowStop();
+
+    // set up note parameters
+    actions.string_number = actions_get.string_number;
+    actions.finger_position = actions_get.finger_position;
+    actions.bow_force = actions_get.bow_force;
+    actions.bow_bridge_distance = actions_get.bow_bridge_distance;
+
+    actions_file->finger(total_samples*dt, actions.string_number,
+                         actions.finger_position);
+    violin->finger(actions.string_number, actions.finger_position);
+    actions_file->pluck(total_samples*dt, actions.string_number,
+                        actions.bow_bridge_distance, actions.bow_force);
+    violin->pluck(actions.string_number, actions.bow_bridge_distance,
+            actions.bow_force);
+
+    note_samples = 0;
+    for (int i = 0; i < seconds/DH-1; i++) {
+        hop_passive();
+    }
+    // finish final "half hop"
+    int remaining_samples = seconds*44100.0 - note_samples;
+    // finish final "half hop"
+    if (remaining_samples > 0) {
+        hop_passive(remaining_samples);
+    }
 
 }
 

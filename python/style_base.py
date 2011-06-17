@@ -10,9 +10,10 @@ import basic_training # for FINGER_MIDIS
 import utils
 
 class Note():
-	def __init__(self, params=None, duration=0):
+	def __init__(self, params=None, duration=0, pizz=False):
 		self.params = params
 		self.duration = duration
+		self.pizz = pizz
 class Rest():
 	def __init__(self, duration=0):
 		self.duration = duration
@@ -44,6 +45,7 @@ class StyleBase():
 		self.events = events
 		self.notes = []
 
+		pizz = False
 		for event in self.events:
 			# must process tempo events before note!
 			for details in event.details:
@@ -54,8 +56,15 @@ class StyleBase():
 				rest = Rest(duration)
 				self.notes.append(rest)
 				continue
+			# TODO: icky, functionalify this ?
+			for d in event.details:	
+				if d[0] == 'text':
+					if d[1][0] == 'pizz':
+						pizz = True
+					if d[1][0] == 'arco':
+						pizz = False
 			params = self.simple_params(event)
-			note = Note(params, duration)
+			note = Note(params, duration, pizz)
 			self.notes.append(note)
 
 	def tempo_from_lilytempo(self, tempo):
