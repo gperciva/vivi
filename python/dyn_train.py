@@ -343,13 +343,13 @@ class DynTrain(QtGui.QFrame):
 			self.dyn_backend.learn_stable(finger_forces)
 		elif job_type == state.ATTACKS:
 			finger_forces = []
-			for fm in [0, 4, 7]:
+			for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
 				# yes, reversed
 				low_force = min(self.get_forces_finger(1, fm))
 				middle_force = scipy.mean(self.get_forces_finger(3,fm))
 				high_force = max(self.get_forces_finger(5, fm))
 				finger_forces.append( [low_force, middle_force, high_force] )
-			self.dyn_backend.task_attack.set_K(self.force_factor)
+				self.dyn_backend.task_attacks[fmi].set_K(self.force_factor)
 			self.dyn_backend.learn_attacks(finger_forces)
 		else:
 			print "ERROR dyn_train: job type not recognized!"
@@ -365,8 +365,7 @@ class DynTrain(QtGui.QFrame):
 			self.force_factor = self.dyn_backend.most_stable
 			self.modified_stable = False
 		elif job_type == state.ATTACKS:
-			# TODO
-			self.force_init = self.dyn_backend.best_attack
+			self.force_init = self.dyn_backend.force_init
 			self.modified_attack = False
 		self.display()
 
@@ -653,13 +652,13 @@ class DynTrain(QtGui.QFrame):
 
 	def click_force1(self):
 		self.examine.examine("attack", self.st, self.dyn,
-			self.dyn_backend.task_attack, 1)
+			self.dyn_backend.task_attacks[0], 1)
 
 	def click_force2(self):
 		self.examine.examine("attack", self.st, self.dyn,
-			self.dyn_backend.task_attack, 2)
+			self.dyn_backend.task_attacks[1], 2)
 
 	def click_force3(self):
 		self.examine.examine("attack", self.st, self.dyn,
-			self.dyn_backend.task_attack, 3)
+			self.dyn_backend.task_attacks[2], 3)
 

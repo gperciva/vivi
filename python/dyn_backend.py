@@ -48,8 +48,11 @@ class DynBackend(QtCore.QThread):
 
 		self.task_stable = task_stable.TaskStable(self.st, self.dyn,
 			self.controller, self.process_step)
-		self.task_attack = task_attack.TaskAttack(self.st, self.dyn,
-			self.controller, self.process_step)
+		self.task_attacks = map(
+			lambda(fmi): task_attack.TaskAttack(
+				self.st, self.dyn,
+				self.controller, self.process_step, fmi),
+			range(3))
 
 		#self.practice = practice
 
@@ -149,11 +152,16 @@ class DynBackend(QtCore.QThread):
 
 
 	def learn_attacks_steps(self):
-		return self.task_attack.steps_full() + 1
+		steps = 0
+		for i in range(3):
+			steps += self.task_attacks[i].steps_full()
+		steps += 1
+		return steps
 
 	def learn_attacks(self, finger_forces):
 		#self.performer.load_forces()
-		self.task_attack.set_forces(finger_forces)
+		for i in range(3):
+			self.task_attacks[i].set_forces(finger_forces[i])
 		self.state = LEARN_ATTACKS
 		self.condition.wakeOne()
 
@@ -268,7 +276,10 @@ class DynBackend(QtCore.QThread):
 
 
 	def learn_attacks_thread(self):
-		self.best_attack = self.task_attack.calculate_full()
+		self.force_init = []
+		for fmi in range(3):
+			force = self.task_attacks[fmi].calculate_full()
+			self.force_init.append(force)
 		return
 
 #		# need to reload training files from disk

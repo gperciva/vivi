@@ -15,11 +15,6 @@ import vivi_types
 import basic_training
 
 
-STABLE_STEPS = 5
-STABLE_REPS = 3
-STABLE_MIN = 1.00
-STABLE_MAX = 1.10
-
 STABLE_LENGTH = 0.75
 
 
@@ -28,24 +23,28 @@ class TaskStable(task_base.TaskBase):
 	def __init__(self, st, dyn, controller, emit):
 		task_base.TaskBase.__init__(self, st, dyn, controller, emit,
 			"stable")
+		self.STEPS = 6
+		self.LOW_INIT = 1.0 # blah numbers to start with
+		self.HIGH_INIT = 1.1
 
-		self.most_stable = 1.0 # a "null" value
 		self.stable_forces = None
 
+		# TODO: eliminate this
+		self.most_stable = 1.0
 		self.notes = None
 
 	def set_forces(self, forces):
 		self.stable_forces = forces
 
 	def steps_full(self):
-		return STABLE_STEPS * STABLE_REPS
+		return 2 * (self.STEPS * self.REPS)
 
 	def _make_files(self):
 		self._setup_controller()
 
-		for K in scipy.linspace(STABLE_MIN, STABLE_MAX, STABLE_STEPS):
+		for K in self.test_range:
 			self.controller.set_stable_K(self.st, self.dyn, K)
-			for count in range(STABLE_REPS):
+			for count in range(self.REPS):
 				# TODO: this loop could be done in a separate C++ file
 				for force_relative_index in range(3):
 					bow_direction = 1
@@ -63,8 +62,8 @@ class TaskStable(task_base.TaskBase):
 					self.controller.filesNew(stable_filename)
 					for fmi, finger_midi in enumerate(basic_training.FINGER_MIDIS):
 						bow_force = self.stable_forces[fmi][force_relative_index]
-						self.controller.comment("stable st %i dyn %i finger_midi_index %i finger_midi %.3f"
-							% (self.st, self.dyn, fmi, finger_midi))
+						self.controller.comment("stable st %i dyn %i finger_midi %.3f"
+							% (self.st, self.dyn, finger_midi))
 
 						params = vivi_controller.PhysicalActions()
 						params.string_number = self.st
@@ -117,12 +116,12 @@ class TaskStable(task_base.TaskBase):
 			# and setup self.examines
 			row = self.num_counts*self.extras.index(extra) + self.counts.index(count)
 			col_base = 3*self.forces_initial.index(force)
-			for fmi in self.finger_midi_indices:
+			for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
 				col = col_base+fmi
 #				print row, col, fmi, filename
 				nac = note_actions_cats.NoteActionsCats()
 				nac.load_file(filename[0:-4])
-				to_find = "finger_midi_index %i" % fmi
+				to_find = "finger_midi %i" % fm
 				nac.load_note(to_find)
 				stability = self.get_stability(nac.note_cats_means)
 				self.notes[row][col] = (nac, stability)
@@ -155,11 +154,12 @@ class TaskStable(task_base.TaskBase):
 			#print "%.2f\t%.3f" % (self.extras[block], scipy.gmean(block_vals)),
 			#print "\t%.3f" % (scipy.std(block_vals))
 			candidates.append( 
-				(scipy.stats.gmean(block_vals), self.extras[block]) )
+				(scipy.stats.gmean(block_vals), self.extras[block], block) )
 		candidates.sort()
 		#print candidates
-		self.most_stable = candidates[-1][1]
-		return self.most_stable
+		most_stable = candidates[-1][1]
+		index = candidates[-1][2]
+		return index, most_stable
 
 	def get_stability(self,cats):
 		direction = 1

@@ -88,9 +88,9 @@ class ViviDirs:
 		basename = self.basename_params("stable", params, stable_K, count)
 		return os.path.join(self.works_dir, basename)
 
-	def make_attack_filename(self, params, count):
+	def make_attack_filename(self, taskname, params, count):
 		""" .wav file for automatic training of initial Fb."""
-		basename = self.basename_params("attack", params, count)
+		basename = self.basename_params(taskname, params, count)
 		return os.path.join(self.works_dir, basename)
 
 	def make_audio_filename(self, params):

@@ -56,9 +56,9 @@ class ExamineAutoWidget(QtGui.QFrame):
 			self.task_attack.get_attack_files_info()
 
 		num_rows = self.task_attack.num_rows
-		num_counts = task_attack.REPS
+		num_counts = self.task_attack.REPS
 
-		forces_strings = map(str, self.task_attack.finger_forces[finger-1])
+		forces_strings = map(str, self.task_attack.forces)
 		# setup table and gui
 		self.table = table_play_widget.TablePlayWidget(self)
 		self.table.set_column_names(forces_strings)
@@ -92,7 +92,7 @@ class ExamineAutoWidget(QtGui.QFrame):
 				examine = examine_note_widget.ExamineNoteWidget(
 					shared.examine_note_widget.PLOT_ATTACK)
 
-				en_col = finger-1
+				en_col = 0
 				en_row = col*num_counts + row
 				examine.set_examine_note( self.task_attack.notes[en_row][en_col] )
 				self.examines[row][col] = examine
@@ -118,11 +118,11 @@ class ExamineAutoWidget(QtGui.QFrame):
 		# setup table and gui
 		self.table = table_play_widget.TablePlayWidget(self)
 		self.table.set_column_names([
-			str("Low: %.3f" % self.task_stable.forces_initial[0]),
+			str("Low 0"),
 			"low 4", "low 7",
-			str("Middle: %.3f" % self.task_stable.forces_initial[1]),
+			str("Middle 0"),
 			"mid 4", "mid 7",
-			str("High: %.3f" % self.task_stable.forces_initial[2]),
+			str("High 0"),
 			"high 4", "high 7",
 			])
 		# clear previous widget if exists
