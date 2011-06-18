@@ -46,7 +46,8 @@ public:
     // normal "everytime" stuff
     void rest(double seconds);
     void pizz(PhysicalActions actions_get, double seconds);
-    void note(PhysicalActions actions_get, double seconds);
+    void note(PhysicalActions actions_get, double seconds,
+        NoteBeginning begin, NoteEnding end);
 
 private:
     // always used

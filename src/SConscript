@@ -21,7 +21,7 @@ controllerparams = env.Program(target='test-params',
 
 stable = env.Program (target='test-stable',
 	source = (['test-stable.cpp']
-		+ ['ears.o', 'vivi_controller.o', 'controller_params.o', 'vivi_note_params.o', 'actions_file.o', 'dynamics.o']),
+		+ ['ears.o', 'vivi_controller.o', 'controller_params.o', 'actions_file.o', 'dynamics.o']),
 	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
 )
 

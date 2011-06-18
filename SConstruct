@@ -38,7 +38,6 @@ env['ears_files'] = Split("""
 """)
 env['vivi_controller_files'] = Split("""
 	vivi_controller.cpp
-	vivi_note_params.cpp
 	controller_params.cpp
 """)
 

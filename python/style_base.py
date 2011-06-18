@@ -10,10 +10,13 @@ import basic_training # for FINGER_MIDIS
 import utils
 
 class Note():
-	def __init__(self, params=None, duration=0, pizz=False):
+	def __init__(self, params=None, duration=0, pizz=False,
+			begin=None, end=None):
 		self.params = params
 		self.duration = duration
 		self.pizz = pizz
+		self.begin = begin
+		self.end = end
 class Rest():
 	def __init__(self, duration=0):
 		self.duration = duration
@@ -64,7 +67,9 @@ class StyleBase():
 					if d[1][0] == 'arco':
 						pizz = False
 			params = self.simple_params(event)
-			note = Note(params, duration, pizz)
+			begin = vivi_controller.NoteBeginning()
+			end = vivi_controller.NoteEnding()
+			note = Note(params, duration, pizz, begin, end)
 			self.notes.append(note)
 
 	def tempo_from_lilytempo(self, tempo):

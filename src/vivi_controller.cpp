@@ -271,7 +271,8 @@ void ViviController::pizz(PhysicalActions actions_get, double seconds)
 
 }
 
-void ViviController::note(PhysicalActions actions_get, double seconds)
+void ViviController::note(PhysicalActions actions_get, double seconds,
+        NoteBeginning begin, NoteEnding end)
 {
     //actions_get.print();
 

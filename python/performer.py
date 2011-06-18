@@ -71,7 +71,8 @@ class Performer(QtCore.QObject):
 		if note.pizz:
 			self.controller.pizz(note.params, note.duration)
 		else:
-			self.controller.note(note.params, note.duration)
+			self.controller.note(note.params, note.duration,
+				note.begin, note.end)
 
 	def _render_rest(self, note):
 		self.controller.rest(note.duration)
