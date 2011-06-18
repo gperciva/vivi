@@ -16,7 +16,7 @@ class ViviConsole(QtCore.QCoreApplication):
 	""" Console version of Vivi, the Virtual Violinist. """
 	def __init__(self,
 			training_dirname, cache_dirname, final_dirname,
-			ly_filename, skill):
+			ly_filename, skill, always_lilypond):
 		self.app = QtCore.QCoreApplication(sys.argv)
 		QtCore.QCoreApplication.__init__(self, sys.argv)
 
@@ -24,6 +24,7 @@ class ViviConsole(QtCore.QCoreApplication):
 		dirs.files = dirs.ViviDirs(
 			training_dirname, cache_dirname, final_dirname)
 		self.setup_music()
+		self.always_lilypond = always_lilypond
 
 		self.load_ly_file(ly_filename)
 
@@ -41,6 +42,9 @@ class ViviConsole(QtCore.QCoreApplication):
 	def load_ly_file(self, ly_filename):
 		self.ly_basename = ly_filename[:-3]
 		if shared.lily.lily_file_needs_compile(ly_filename):
+			print "Generating lilypond",
+			shared.lily.call_lilypond()
+		elif self.always_lilypond:
 			print "Generating lilypond",
 			shared.lily.call_lilypond()
 		else:

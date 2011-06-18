@@ -46,8 +46,11 @@ class StyleBase():
 
 	def plan_perform(self, events):
 		self.events = events
-		self.notes = []
+		self.basic_notes()
+		self.ties()
 
+	def basic_notes(self):
+		self.notes = []
 		pizz = False
 		for event in self.events:
 			# must process tempo events before note!
@@ -71,6 +74,12 @@ class StyleBase():
 			end = vivi_controller.NoteEnding()
 			note = Note(params, duration, pizz, begin, end)
 			self.notes.append(note)
+	def ties(self):
+		for i, event in enumerate(self.events):
+			for details in event.details:
+				if details[0] == 'tie':
+					self.notes[i].end.continue_next_note = True
+					self.notes[i+1].begin.continue_previous_note = True
 
 	def tempo_from_lilytempo(self, tempo):
 		self.tempo = float(tempo) / 4.0

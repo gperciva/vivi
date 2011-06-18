@@ -34,7 +34,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 	""" Main window of Vivi, the Virtual Violinist. """
 	def __init__(self,
 			training_dirname, cache_dirname, final_dirname,
-			ly_filename, skill):
+			ly_filename, skill, always_lilypond):
 		self.app = QtGui.QApplication([])
 		QtGui.QMainWindow.__init__(self)
 
@@ -105,6 +105,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 
 #		self.setup_training()
 		self.setup_music()
+		self.always_lilypond = always_lilypond
 #
 #		self.only_one = False
 #		if ly_filename:
@@ -155,6 +156,9 @@ class ViviMainwindow(QtGui.QMainWindow):
 		self.ly_basename = ly_filename[:-3]
 		if shared.lily.lily_file_needs_compile(ly_filename):
 			self.progress_dialog("Generating score", 2)
+			shared.lily.call_lilypond()
+		elif self.always_lilypond:
+			print "Generating lilypond",
 			shared.lily.call_lilypond()
 		else:
 			self.finished_ly_compile()

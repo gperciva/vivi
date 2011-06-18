@@ -31,6 +31,9 @@ def get_options():
 	parser.add_option("-p", "--only-play", dest="console_only",
 		help="Only play one file",
 		action="store_true", default=False)
+	parser.add_option("-L", "--regenerate-lilypond", dest="always_lilypond",
+		help="Always regenerate lilypond",
+		action="store_true", default=False)
 	(options, args) = parser.parse_args()
 	return options, args
 
@@ -42,12 +45,12 @@ def main():
 		import vivi_console
 		vivi_main = vivi_console.ViviConsole(
 			opts.train_dir, opts.cache_dir, opts.final_dir,
-			opts.lily_file, int(opts.skill))
+			opts.lily_file, int(opts.skill), opts.always_lilypond)
 	else:
 		import vivi_mainwindow
 		vivi_main = vivi_mainwindow.ViviMainwindow(
 			opts.train_dir, opts.cache_dir, opts.final_dir,
-			opts.lily_file, int(opts.skill))
+			opts.lily_file, int(opts.skill), opts.always_lilypond)
 	sys.exit(vivi_main.app.exec_())
 
 if __name__ == "__main__":

@@ -73,7 +73,9 @@ class TaskStable(task_base.TaskBase):
 						params.bow_bridge_distance = dynamics.get_distance(self.dyn)
 						params.bow_velocity = bow_direction * dynamics.get_velocity(self.dyn)
 
-						self.controller.note(params, STABLE_LENGTH)
+						begin = vivi_controller.NoteBeginning()
+						end = vivi_controller.NoteEnding()
+						self.controller.note(params, STABLE_LENGTH, begin, end)
 						bow_direction *= -1
 					self.controller.filesClose()
 				self.process_step.emit()

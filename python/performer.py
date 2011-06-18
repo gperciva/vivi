@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+DEBUG_PARAMS = 1
+
 import sys
 # TODO: hack for current build system.
 sys.path.append('python/')
@@ -71,6 +73,10 @@ class Performer(QtCore.QObject):
 		if note.pizz:
 			self.controller.pizz(note.params, note.duration)
 		else:
+			if DEBUG_PARAMS:
+				print "---"
+				note.begin.print_params()
+				note.end.print_params()
 			self.controller.note(note.params, note.duration,
 				note.begin, note.end)
 

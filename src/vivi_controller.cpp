@@ -278,9 +278,13 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
 
     // set up note parameters
     actions.string_number = actions_get.string_number;
-    actions.finger_position = actions_get.finger_position;
-    actions.bow_force = actions_get.bow_force;
     actions.bow_bridge_distance = actions_get.bow_bridge_distance;
+    if (begin.continue_previous_note) {
+    } else {
+        actions.finger_position = actions_get.finger_position;
+
+        actions.bow_force = actions_get.bow_force;
+    }
     // don't copy bow_velocity!
     m_velocity_target = actions_get.bow_velocity;
     m_velocity_cutoff_force_adj = m_velocity_target * MIN_VELOCITY_FACTOR;
@@ -295,16 +299,23 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
     actions_file->comment(note_search_params);
     cats_file->comment(note_search_params);
 
+    if (begin.continue_previous_note) {
+    } else {
+        actions_file->finger(total_samples*dt, actions.string_number,
+                         actions.finger_position);
+        violin->finger(actions.string_number, actions.finger_position);
+    }
 
     note_samples = 0;
     int accel_hops = ceil(fabs(
                               m_velocity_target
                               / (MAX_HAND_ACCEL*DH)));
-    int decel_hop = seconds/DH - accel_hops;
-
-    actions_file->finger(total_samples*dt, actions.string_number,
-                         actions.finger_position);
-    violin->finger(actions.string_number, actions.finger_position);
+    int decel_hop;
+    if (end.continue_next_note) {
+        decel_hop = seconds/DH; // don't decelerate?
+    } else {
+        decel_hop = seconds/DH - accel_hops;
+    }
 
     for (int i = 0; i < seconds/DH-1; i++) {
         hop();
@@ -319,7 +330,10 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
     if (remaining_samples > 0) {
         hop(remaining_samples);
     }
-    bowStop();
+    if (end.continue_next_note) {
+    } else {
+        bowStop();
+    }
 //zz
 }
 

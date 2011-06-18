@@ -76,7 +76,9 @@ class TaskAttack(task_base.TaskBase):
 				params.bow_bridge_distance = dynamics.get_distance(self.dyn)
 				params.bow_velocity = dynamics.get_velocity(self.dyn)
 
-				self.controller.note(params, ATTACK_LENGTH)
+				begin = vivi_controller.NoteBeginning()
+				end = vivi_controller.NoteEnding()
+				self.controller.note(params, ATTACK_LENGTH, begin, end)
 				self.controller.filesClose()
 				self.process_step.emit()
 

@@ -13,7 +13,7 @@ public:
     double bow_force;
     double bow_velocity;
     // debug; must contain all above variables
-    void print() {
+    void print_params() {
         printf("PhysicalActions:\n");
         printf("\tst: %i\tdyn: %.3f\tfinger_position: %.3f\n",
            string_number, dynamic, finger_position);
@@ -40,7 +40,7 @@ public:
     bool keep_force_without_trained;
     double set_bow_position_along;
     // debug; must contain all above variables
-    void print() {
+    void print_params() {
         printf("NoteBeginning:\n");
         printf("\tcontinue_prev: %i\tkeep_force: %i\tset_bow_pos_along: %.3f\n",
             continue_previous_note,
@@ -60,9 +60,9 @@ public:
     bool continue_next_note;
     bool lighten;   
     // debug; must contain all above variables
-    void print() {
+    void print_params() {
         printf("NoteEnding:\n");
-        printf("\tcontinue_next: %i\tlighten: %i\t",
+        printf("\tcontinue_next: %i\tlighten: %i\n",
             continue_next_note, lighten);
     };
 
