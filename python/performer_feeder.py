@@ -51,20 +51,9 @@ class PerformerFeeder(QtCore.QThread):
 		return self.performer.steps()
 
 	def perform_thread(self):
-		print "performing..."
 		self.performer.play_music()
-		print "... done"
-		self.audio_filename = "audio.wav"
 
 	def play_thread(self):
 		self.performer.play()
-
-if __name__ == "__main__":
-	app = QtCore.QCoreApplication([])
-	foo = PerformerFeeder()
-	foo.done.connect(app.quit)
-	foo.load_file(["ly/example-input-unnamed-staff.notes"])
-	foo.play_music()
-	app.exec_()
 
 

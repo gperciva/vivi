@@ -4,6 +4,8 @@ import shutil
 import glob
 from PyQt4 import QtCore
 
+import subprocess
+
 import dirs
 
 STATE_COMPILE_LILYPOND = 1
@@ -64,6 +66,8 @@ class LilyPondCompile(QtCore.QThread):
 		origdir = os.path.abspath(os.path.curdir)
 		#dirname = os.path.dirname(self.ly_basename)
 		dirname = "ly"
+		logfile = open(os.path.join(dirs.files.get_music_dir(),
+			self.ly_filename+'.log'), 'w')
 
 		#self.remove_old_files(dirname)
 		self.remove_old_files(dirs.files.get_music_dir())
@@ -73,7 +77,10 @@ class LilyPondCompile(QtCore.QThread):
 			os.path.abspath(dirname),
 			dirs.files.get_music_dir(),
 			self.ly_filename+'.ly')
-		os.system(cmd)
+		p = subprocess.Popen(cmd, stdout=logfile,
+			stderr=logfile, shell=True)
+		p.wait()
+		logfile.close()
 		self.process_step.emit()
 		self.done.emit()
 

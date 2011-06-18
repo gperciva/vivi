@@ -69,7 +69,6 @@ class Performer(QtCore.QObject):
 
 	def _render_note(self, note):
 		if note.pizz:
-			print "pizz"
 			self.controller.pizz(note.params, note.duration)
 		else:
 			self.controller.note(note.params, note.duration)

@@ -6,7 +6,6 @@ import sys
 sys.path.append('python/')
 sys.path.append('build/python/')
 sys.path.append('build/swig/')
-import vivi_mainwindow
 
 #import gc
 #gc.set_debug(gc.DEBUG_LEAK)
@@ -29,6 +28,9 @@ def get_options():
 	parser.add_option("-s", "--skill", dest="skill",
 		help="Skill level (-1 is best, 0 is worst)",
 		default=-1, metavar="NUMBER"),
+	parser.add_option("-p", "--only-play", dest="console_only",
+		help="Only play one file",
+		action="store_true", default=False)
 	(options, args) = parser.parse_args()
 	return options, args
 
@@ -36,9 +38,16 @@ def main():
 	""" Runs Vivi."""
 	opts, args = get_options()
 
-	vivi_main = vivi_mainwindow.ViviMainwindow(
-		opts.train_dir, opts.cache_dir, opts.final_dir,
-		opts.lily_file, int(opts.skill))
+	if opts.console_only:
+		import vivi_console
+		vivi_main = vivi_console.ViviConsole(
+			opts.train_dir, opts.cache_dir, opts.final_dir,
+			opts.lily_file, int(opts.skill))
+	else:
+		import vivi_mainwindow
+		vivi_main = vivi_mainwindow.ViviMainwindow(
+			opts.train_dir, opts.cache_dir, opts.final_dir,
+			opts.lily_file, int(opts.skill))
 	sys.exit(vivi_main.app.exec_())
 
 if __name__ == "__main__":
