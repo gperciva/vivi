@@ -48,6 +48,7 @@ class StyleBase():
 		self.events = events
 		self.basic_notes()
 		self.ties()
+		self.alternate_bowing() # after ties
 
 	def basic_notes(self):
 		self.notes = []
@@ -74,12 +75,21 @@ class StyleBase():
 			end = vivi_controller.NoteEnding()
 			note = Note(params, duration, pizz, begin, end)
 			self.notes.append(note)
+
 	def ties(self):
 		for i, event in enumerate(self.events):
 			for details in event.details:
 				if details[0] == 'tie':
 					self.notes[i].end.continue_next_note = True
 					self.notes[i+1].begin.continue_previous_note = True
+
+	def alternate_bowing(self):
+		bow_dir = 1
+		# TODO: totally naive right now; no slurs
+		for i, event in enumerate(self.events):
+			self.notes[i].params.bow_velocity *= bow_dir
+			if not self.notes[i].end.continue_next_note:
+				bow_dir *= -1
 
 	def tempo_from_lilytempo(self, tempo):
 		self.tempo = float(tempo) / 4.0
