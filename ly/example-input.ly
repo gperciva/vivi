@@ -2,6 +2,6 @@
 %\include "event-listener.ly"
 
 \relative c' {
-  c8 ~ c d ~ d
+  c8 ~ c d ~ d e4 r
 }
 

@@ -91,8 +91,11 @@
     <addaction name="actionRehearse"/>
     <addaction name="actionListen"/>
     <addaction name="separator"/>
-    <addaction name="actionGenerate_video"/>
+    <addaction name="actionQuick_preview"/>
     <addaction name="actionWatch"/>
+    <addaction name="separator"/>
+    <addaction name="actionGenerate_video"/>
+    <addaction name="actionEnjoy_video"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuCollection"/>
@@ -131,8 +134,11 @@
    <addaction name="actionRehearse"/>
    <addaction name="actionListen"/>
    <addaction name="separator"/>
-   <addaction name="actionGenerate_video"/>
+   <addaction name="actionQuick_preview"/>
    <addaction name="actionWatch"/>
+   <addaction name="separator"/>
+   <addaction name="actionGenerate_video"/>
+   <addaction name="actionEnjoy_video"/>
   </widget>
   <action name="action_Quit">
    <property name="text">
@@ -231,6 +237,22 @@
    </property>
    <property name="shortcut">
     <string>W</string>
+   </property>
+  </action>
+  <action name="actionQuick_preview">
+   <property name="text">
+    <string>Quick preview</string>
+   </property>
+   <property name="shortcut">
+    <string>D</string>
+   </property>
+  </action>
+  <action name="actionEnjoy_video">
+   <property name="text">
+    <string>Enjoy video</string>
+   </property>
+   <property name="shortcut">
+    <string>E</string>
    </property>
   </action>
  </widget>

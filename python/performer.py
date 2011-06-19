@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-DEBUG_PARAMS = 1
+DEBUG_PARAMS = 0
 
 import sys
 # TODO: hack for current build system.
@@ -83,4 +83,6 @@ class Performer(QtCore.QObject):
 	def _render_rest(self, note):
 		self.controller.rest(note.duration)
 
+	def get_duration(self):
+		return self.style.last_seconds
 

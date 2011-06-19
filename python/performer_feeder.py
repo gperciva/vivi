@@ -56,4 +56,8 @@ class PerformerFeeder(QtCore.QThread):
 	def play_thread(self):
 		self.performer.play()
 
+	# TODO: used for video generation, but I'm feeling icky
+	# about this.
+	def get_duration(self):
+		return self.performer.get_duration()
 

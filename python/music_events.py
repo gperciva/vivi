@@ -23,6 +23,7 @@ class MusicEvents():
 
 	def __init__(self):
 		self.events = None
+		self.last_seconds = 0.0
 
 	def load_file(self, filename):
 		self.events = []

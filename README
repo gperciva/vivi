@@ -18,3 +18,5 @@ In addition to the packages checked by scons, you need:
 
   sox
 
+  mplayer menucoder
+

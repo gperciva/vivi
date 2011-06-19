@@ -38,6 +38,7 @@ class StyleBase():
 		self.reload_params()
 
 		self.tempo = 60.0
+		self.last_seconds = 0.0
 
 	def reload_params(self):
 		for st in range(4):
@@ -53,6 +54,7 @@ class StyleBase():
 	def basic_notes(self):
 		self.notes = []
 		pizz = False
+		self.last_seconds = 0.0
 		for event in self.events:
 			# must process tempo events before note!
 			for details in event.details:
@@ -62,6 +64,7 @@ class StyleBase():
 			if event.details[0][0] == 'rest':
 				rest = Rest(duration)
 				self.notes.append(rest)
+				self.last_seconds += duration
 				continue
 			# TODO: icky, functionalify this ?
 			for d in event.details:	
@@ -75,6 +78,7 @@ class StyleBase():
 			end = vivi_controller.NoteEnding()
 			note = Note(params, duration, pizz, begin, end)
 			self.notes.append(note)
+			self.last_seconds += duration
 
 	def ties(self):
 		for i, event in enumerate(self.events):
@@ -87,8 +91,9 @@ class StyleBase():
 		bow_dir = 1
 		# TODO: totally naive right now; no slurs
 		for i, event in enumerate(self.events):
-			self.notes[i].params.bow_velocity *= bow_dir
-			if not self.notes[i].end.continue_next_note:
+			if isinstance(self.notes[i], Note):
+			    self.notes[i].params.bow_velocity *= bow_dir
+			    if not self.notes[i].end.continue_next_note:
 				bow_dir *= -1
 
 	def tempo_from_lilytempo(self, tempo):

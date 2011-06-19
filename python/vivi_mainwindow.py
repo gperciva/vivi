@@ -26,9 +26,7 @@ import performer_feeder
 
 #import examine_note_widget
 
-#import vivi_movie
-
-#LOG_FILENAME = 'ly/violin-1.log'
+import movie
 
 class ViviMainwindow(QtGui.QMainWindow):
 	""" Main window of Vivi, the Virtual Violinist. """
@@ -98,8 +96,10 @@ class ViviMainwindow(QtGui.QMainWindow):
 		self.ui.actionLearn_stable.triggered.connect(self.learn_stable)
 
 		self.ui.action_Open_ly_file.triggered.connect(self.open_ly_file)
-		self.ui.actionGenerate_video.triggered.connect(self.generate_video)
+		self.ui.actionQuick_preview.triggered.connect(self.quick_preview)
 		self.ui.actionWatch.triggered.connect(self.watch)
+		self.ui.actionGenerate_video.triggered.connect(self.generate_video)
+		self.ui.actionEnjoy_video.triggered.connect(self.enjoy_video)
 
 
 
@@ -134,9 +134,9 @@ class ViviMainwindow(QtGui.QMainWindow):
 		self.performer_feeder = performer_feeder.PerformerFeeder()
 		self.performer_feeder.process_step.connect(self.process_step)
 		self.performer_feeder.done.connect(self.rehearse_done)
-#
-#		self.movie = vivi_movie.ViviMovie()
-#		self.movie.process_step.connect(self.process_step)
+
+		self.movie = movie.ViviMovie()
+		self.movie.process_step.connect(self.process_step)
 
 	def basic_training(self):
 		self.string_train.basic_train()
@@ -215,7 +215,8 @@ class ViviMainwindow(QtGui.QMainWindow):
 		self.progress_dialog("Rehearsing music", steps)
 
 	def rehearse_done(self):
-		print "rehearse done"
+		pass
+		#print "rehearse done"
 #		if self.only_one:
 #			self.app.quit()
 #		else:
@@ -290,14 +291,30 @@ class ViviMainwindow(QtGui.QMainWindow):
 			self.ly_filename = str(ly_filename)
 			self.load_ly_file(str(ly_filename))
 
+	def quick_preview(self):
+		#print "generate low-quality preview video"
+		basename = shared.lily.get_filename_pdf()[:-4]
+		self.movie.end_time = self.performer_feeder.get_duration()
+		steps = self.movie.generate_preview(basename,
+			self.performer_feeder.performer.audio_filename)
+		self.progress_dialog("Generating movie", steps)
+
 	def generate_video(self):
-		self.movie.end_time = self.performer_feeder.get_duration()+1.0
-		steps = self.movie.generate_movie(str(self.ly_filename))
+		#print "generate high-quality video"
+		basename = shared.lily.get_filename_pdf()[:-4]
+		self.movie.end_time = self.performer_feeder.get_duration()
+		steps = self.movie.generate_movie(basename,
+			self.performer_feeder.performer.audio_filename)
 		self.progress_dialog("Generating movie", steps)
 
 	def watch(self):
+		steps = self.movie.watch_preview()
+		self.progress_dialog("Watching movie", steps)
+
+	def enjoy_video(self):
 		steps = self.movie.watch_movie()
 		self.progress_dialog("Watching movie", steps)
+
 
 	def set_modified(self):
 		self.string_train.set_modified()

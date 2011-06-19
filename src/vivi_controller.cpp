@@ -118,6 +118,8 @@ void ViviController::filesClose() {
         wavfile = NULL;
     }
     if (actions_file != NULL) {
+        // finish current action(s)
+        actions_file->wait(total_samples*dt);
         delete actions_file;
         actions_file = NULL;
     }
@@ -228,7 +230,7 @@ void ViviController::rest(double seconds)
     cats_file->comment("rest");
     bowStop();
 
-    actions_file->wait(seconds);
+    actions_file->wait(total_samples*dt);
 
     note_samples = 0;
     for (int i = 0; i < seconds/DH-1; i++) {
