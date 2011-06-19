@@ -47,7 +47,7 @@ public:
     void rest(double seconds);
     void pizz(PhysicalActions actions_get, double seconds);
     void note(PhysicalActions actions_get, double seconds,
-        NoteBeginning begin, NoteEnding end);
+              NoteBeginning begin, NoteEnding end);
 
 private:
     // always used
@@ -70,6 +70,7 @@ private:
     int m_dyn;
     double m_velocity_target;
     double m_velocity_cutoff_force_adj;
+    double m_bow_pos_along;
 
     // ASSUME: we play for a maximum of 13 hours per file
     int total_samples;

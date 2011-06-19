@@ -94,7 +94,8 @@ void ActionsFile::pluck(double seconds, int string_number,
 }
 
 void ActionsFile::bow(double seconds, int string_number,
-                      double position, double force, double velocity)
+                      double position, double force, double velocity,
+                      double bow_pos_along)
 {
     if ((index + 1) >= size) {
         writeBuffer();
@@ -106,6 +107,7 @@ void ActionsFile::bow(double seconds, int string_number,
     action.position = position;
     action.force = force;
     action.velocity = velocity;
+    action.position_along = bow_pos_along;
     data[index] = action;
     index++;
 }
@@ -149,10 +151,11 @@ void ActionsFile::writeBuffer()
                     actions.force);
             break;
         case ACTION_BOW:
-            sprintf(textline, "b\t%f\t%i\t%f\t%f\t%f\n",
+            sprintf(textline, "b\t%f\t%i\t%f\t%f\t%f\t%f\n",
                     actions.seconds,
                     actions.string_number, actions.position,
-                    actions.force, actions.velocity);
+                    actions.force, actions.velocity,
+                    actions.position_along);
             break;
         case ACTION_CATEGORY:
             sprintf(textline, "cat\t%f\t%i\n",

@@ -67,6 +67,8 @@ void ViviController::reset() {
         cats[i] = -1;
     }
     cats_index = 0;
+
+    m_bow_pos_along = 0.1; // default near frog?
 }
 
 Ears* ViviController::getEars(int st, int dyn) {
@@ -189,7 +191,8 @@ void ViviController::basic(PhysicalActions actions_get, double seconds,
                     actions.bow_velocity);
         actions_file->bow(total_samples*dt, actions.string_number,
                           actions.bow_bridge_distance, actions.bow_force,
-                          actions.bow_velocity);
+                          actions.bow_velocity,
+                          m_bow_pos_along);
         violin->wait_samples(mem_buf, EARS_HOPSIZE);
         total_samples += EARS_HOPSIZE;
     }
@@ -210,7 +213,8 @@ void ViviController::basic(PhysicalActions actions_get, double seconds,
                     actions.bow_velocity);
         actions_file->bow(total_samples*dt, actions.string_number,
                           actions.bow_bridge_distance, actions.bow_force,
-                          actions.bow_velocity);
+                          actions.bow_velocity,
+                          m_bow_pos_along);
         short *buf = wavfile->request_fill(EARS_HOPSIZE);
         violin->wait_samples(buf, EARS_HOPSIZE);
         total_samples += EARS_HOPSIZE;
@@ -256,7 +260,7 @@ void ViviController::pizz(PhysicalActions actions_get, double seconds)
     actions_file->pluck(total_samples*dt, actions.string_number,
                         actions.bow_bridge_distance, actions.bow_force);
     violin->pluck(actions.string_number, actions.bow_bridge_distance,
-            actions.bow_force);
+                  actions.bow_force);
 
     note_samples = 0;
     for (int i = 0; i < seconds/DH-1; i++) {
@@ -272,7 +276,7 @@ void ViviController::pizz(PhysicalActions actions_get, double seconds)
 }
 
 void ViviController::note(PhysicalActions actions_get, double seconds,
-        NoteBeginning begin, NoteEnding end)
+                          NoteBeginning begin, NoteEnding end)
 {
     //actions_get.print();
 
@@ -302,7 +306,7 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
     if (begin.continue_previous_note) {
     } else {
         actions_file->finger(total_samples*dt, actions.string_number,
-                         actions.finger_position);
+                             actions.finger_position);
         violin->finger(actions.string_number, actions.finger_position);
     }
 
@@ -346,7 +350,8 @@ inline void ViviController::bowStop() {
                 actions.bow_velocity);
     actions_file->bow(total_samples*dt, actions.string_number,
                       actions.bow_bridge_distance, actions.bow_force,
-                      actions.bow_velocity);
+                      actions.bow_velocity,
+                      m_bow_pos_along);
 }
 
 inline void ViviController::hop_passive(int num_samples)
@@ -383,9 +388,12 @@ inline void ViviController::hop(int num_samples) {
 
     actions_file->bow(total_samples*dt, actions.string_number,
                       actions.bow_bridge_distance, actions.bow_force,
-                      actions.bow_velocity);
+                      actions.bow_velocity,
+                      m_bow_pos_along);
     short *buf = wavfile->request_fill(num_samples);
     violin->wait_samples(buf, num_samples);
+
+    m_bow_pos_along += num_samples*dt*actions.bow_velocity;
 
     ears[m_st][m_dyn]->listenShort(buf);
     int cat = ears[m_st][m_dyn]->getClass();

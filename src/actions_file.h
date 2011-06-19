@@ -28,7 +28,8 @@ public:
     void pluck(double seconds, int string_number,
                double position, double force);
     void bow(double seconds, int string_number,
-             double position, double force, double velocity);
+             double position, double force, double velocity,
+             double bow_pos_along);
 
     void category(double seconds, int category);
     // writes buffer to file immediately
@@ -58,6 +59,7 @@ private:
         double position;
         double force;
         double velocity;
+        double position_along;
     } ActionData;
 
     ActionData *data;
