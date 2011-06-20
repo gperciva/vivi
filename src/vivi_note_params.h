@@ -31,20 +31,20 @@ class NoteBeginning {
 public:
     // init to nothing
     NoteBeginning() {
-        continue_previous_note = false;
-        keep_force_without_trained = false;
+        ignore_finger = false;
+        keep_bow_force = false;
         set_bow_position_along = -1; // this is "false"
     };
     // data
-    bool continue_previous_note;
-    bool keep_force_without_trained;
+    bool ignore_finger;
+    bool keep_bow_force;
     double set_bow_position_along;
     // debug; must contain all above variables
     void print_params() {
         printf("NoteBeginning:\n");
-        printf("\tcontinue_prev: %i\tkeep_force: %i\tset_bow_pos_along: %.3f\n",
-               continue_previous_note,
-               keep_force_without_trained,
+        printf("\tignore_finger: %i\tkeep_bow_force: %i\tset_bow_pos_along: %.3f\n",
+                ignore_finger,
+                keep_bow_force,
                set_bow_position_along);
     };
 };
@@ -53,17 +53,17 @@ class NoteEnding {
 public:
     // init to nothing
     NoteEnding() {
-        continue_next_note = false;
-        lighten = false;
+        lighten_bow_force = false;
+        keep_bow_velocity = false;
     };
     // data
-    bool continue_next_note;
-    bool lighten;
+    bool lighten_bow_force;
+    bool keep_bow_velocity;
     // debug; must contain all above variables
     void print_params() {
         printf("NoteEnding:\n");
-        printf("\tcontinue_next: %i\tlighten: %i\n",
-               continue_next_note, lighten);
+        printf("\tlighten_bow_force: %i\tkeep_bow_velocity: %i\n",
+               lighten_bow_force, keep_bow_velocity);
     };
 
 };

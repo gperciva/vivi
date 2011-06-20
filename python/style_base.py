@@ -11,12 +11,13 @@ import utils
 
 class Note():
 	def __init__(self, params=None, duration=0, pizz=False,
-			begin=None, end=None):
+			begin=None, end=None, point_and_click=None):
 		self.params = params
 		self.duration = duration
 		self.pizz = pizz
 		self.begin = begin
 		self.end = end
+		self.point_and_click = point_and_click
 class Rest():
 	def __init__(self, duration=0):
 		self.duration = duration
@@ -50,6 +51,7 @@ class StyleBase():
 		self.basic_notes()
 		self.ties()
 		self.alternate_bowing() # after ties
+		self.lighten()
 
 	def basic_notes(self):
 		self.notes = []
@@ -76,7 +78,12 @@ class StyleBase():
 			params = self.simple_params(event)
 			begin = vivi_controller.NoteBeginning()
 			end = vivi_controller.NoteEnding()
-			note = Note(params, duration, pizz, begin, end)
+			# TODO: icky
+			point_and_click = "point_and_click %s %s" % (
+				event.details[0][1][4],
+				event.details[0][1][5])
+			note = Note(params, duration, pizz,
+				begin, end, point_and_click)
 			self.notes.append(note)
 			self.last_seconds += duration
 
@@ -89,12 +96,36 @@ class StyleBase():
 
 	def alternate_bowing(self):
 		bow_dir = 1
+		slur_on = False
 		# TODO: totally naive right now; no slurs
 		for i, event in enumerate(self.events):
 			if isinstance(self.notes[i], Note):
-			    self.notes[i].params.bow_velocity *= bow_dir
-			    if not self.notes[i].end.continue_next_note:
-				bow_dir *= -1
+				#print event
+				self.notes[i].params.bow_velocity *= bow_dir
+				for details in event.details:
+					if details[0] == 'slur':
+						if details[1][0] == '-1':
+							slur_on = True
+						else:
+							slur_on = False
+				if slur_on:
+					self.notes[i].end.keep_bow_velocity = True
+				if not self.notes[i].end.keep_bow_velocity:
+					bow_dir *= -1
+
+	def lighten(self):
+		for i, event in enumerate(self.events):
+			if isinstance(self.notes[i], Rest):
+				continue
+			if i == len(self.events)-1:
+				self.notes[i].end.lighten_bow_force = True
+				continue
+			if (not (isinstance(self.notes[i], Note) and
+				isinstance(self.notes[i+1], Note))):
+				self.notes[i].end.lighten_bow_force = True
+			for details in event.details:
+				if details[0] == 'breathe':
+					self.notes[i-1].end.lighten_bow_force = True
 
 	def tempo_from_lilytempo(self, tempo):
 		self.tempo = float(tempo) / 4.0

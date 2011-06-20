@@ -236,20 +236,30 @@ class ViviMainwindow(QtGui.QMainWindow):
 		self.performer_feeder.play()
 
 	def select_note(self, lily_line, lily_col):
-		self.string_train.set_note_label(self.ui.note_label)
-		status = self.examine.load_note(lily_line, lily_col)
-		if not status:
+		filename = shared.lily.get_filename_pdf()[:-4]
+		import glob
+		filename = glob.glob(filename+'*.actions')[0]
+		filename = filename[:-8]
+		shared.examine_main.load_file(filename)
+		#pnc_text = "point_and_click %i %i" % (lily_line, lily_col)
+		pnc_text = "point_and_click %i %i" % (lily_col, lily_line)
+		shared.examine_main.load_note(pnc_text)
+		shared.examine_main.play()
+
+		#self.string_train.set_note_label(self.ui.note_label)
+#		status = self.examine.load_note(lily_line, lily_col)
+#		if not status:
 			# done in examine (examine_note_widget) now!
 #			QtGui.QMessageBox.warning(self,
 #				"Vivi error",
 #				"Vivi needs to rehearse music first!",	
 #				QtGui.QMessageBox.Close)
-			return
-		st = self.examine.examine_note.note_st
-		lvl = self.examine.examine_note.level
-		self.string_train.select(st, lvl)
+#			return
+#		st = self.examine.examine_note.note_st
+#		lvl = self.examine.examine_note.level
+#		self.string_train.select(st, lvl)
 		#self.examine.show_note_info()
-		self.examine.play()
+#		self.examine.play()
 
 	def train_note(self):
 		train_list = self.examine.examine_note.get_train_list()

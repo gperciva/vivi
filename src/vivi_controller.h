@@ -41,13 +41,14 @@ public:
     // sppecial
     void comment(const char *text);
     void basic(PhysicalActions actions_get, double seconds,
-               double seconds_skip, const char *filenames_base);
+               double seconds_skip, const char *filenames_base=NULL);
 
     // normal "everytime" stuff
     void rest(double seconds);
     void pizz(PhysicalActions actions_get, double seconds);
     void note(PhysicalActions actions_get, double seconds,
-              NoteBeginning begin, NoteEnding end);
+              NoteBeginning begin, NoteEnding end,
+              const char *point_and_click=NULL);
 
 private:
     // always used

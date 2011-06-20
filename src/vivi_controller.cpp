@@ -21,6 +21,9 @@ const double BASIC_FORCE_STDDEV = 0.02;
 const double MIN_VELOCITY_FACTOR = 0.5;
 
 
+const double LIGHTEN_FACTOR = 0.5;
+const int LIGHTEN_NOTE_HOPS = 8; // FIXME: fix
+
 ViviController::ViviController() {
 
     // always used classes
@@ -278,19 +281,24 @@ void ViviController::pizz(PhysicalActions actions_get, double seconds)
 }
 
 void ViviController::note(PhysicalActions actions_get, double seconds,
-                          NoteBeginning begin, NoteEnding end)
+                          NoteBeginning begin, NoteEnding end,
+                        const char *point_and_click)
 {
     //actions_get.print();
 
     // set up note parameters
     actions.string_number = actions_get.string_number;
     actions.bow_bridge_distance = actions_get.bow_bridge_distance;
-    if (begin.continue_previous_note) {
-    } else {
+    if (!begin.ignore_finger) {
         actions.finger_position = actions_get.finger_position;
-
+    }
+    if (!begin.keep_bow_force) {
         actions.bow_force = actions_get.bow_force;
     }
+    if (begin.set_bow_position_along >= 0) {
+        m_bow_pos_along= begin.set_bow_position_along;
+    }
+
     // don't copy bow_velocity!
     m_velocity_target = actions_get.bow_velocity;
     m_velocity_cutoff_force_adj = m_velocity_target * MIN_VELOCITY_FACTOR;
@@ -300,16 +308,25 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
 
     // write (some) parameters to file
     char note_search_params[MAX_LINE_LENGTH];
+    if (point_and_click == NULL) {
     sprintf(note_search_params, "note\tst %i\tdyn %i\tfinger_midi %.3f",
             m_st, m_dyn, actions.finger_position);
+            } else {
+    sprintf(note_search_params, "note\tst %i\tdyn %i\tfinger_midi %.3f %s",
+            m_st, m_dyn, actions.finger_position, point_and_click);
+        }
     actions_file->comment(note_search_params);
     cats_file->comment(note_search_params);
 
-    if (begin.continue_previous_note) {
-    } else {
+    if (!begin.ignore_finger) {
         actions_file->finger(total_samples*dt, actions.string_number,
                              actions.finger_position);
         violin->finger(actions.string_number, actions.finger_position);
+    }
+
+    int lighten_hop = seconds/DH;
+    if (end.lighten_bow_force) {
+        lighten_hop = seconds/DH - LIGHTEN_NOTE_HOPS;
     }
 
     note_samples = 0;
@@ -317,10 +334,10 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
                               m_velocity_target
                               / (MAX_HAND_ACCEL*DH)));
     int decel_hop;
-    if (end.continue_next_note) {
-        decel_hop = seconds/DH; // don't decelerate?
-    } else {
+    if (!end.keep_bow_velocity) {
         decel_hop = seconds/DH - accel_hops;
+    } else {
+        decel_hop = seconds/DH; // don't decelerate?
     }
 
     for (int i = 0; i < seconds/DH-1; i++) {
@@ -329,6 +346,9 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
         if (i > decel_hop) {
             m_velocity_target = 0.0;
         }
+        if (i > lighten_hop) {
+            actions.bow_force *= LIGHTEN_FACTOR;
+        }
     }
     // finish final "half hop"
     int remaining_samples = seconds*44100.0 - note_samples;
@@ -336,8 +356,8 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
     if (remaining_samples > 0) {
         hop(remaining_samples);
     }
-    if (end.continue_next_note) {
-    } else {
+
+    if (!end.keep_bow_velocity) {
         bowStop();
     }
 //zz

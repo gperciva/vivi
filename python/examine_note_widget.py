@@ -75,8 +75,7 @@ class ExamineNoteWidget():
 				self.examine_note.note_cats,
 				)
 		else:
-			self.note_label.setText("Not a rehearsed note!")
-
+			print "Not a rehearsed note!"
 		return status
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-DEBUG_PARAMS = 0
+DEBUG_PARAMS = 1
 
 import sys
 # TODO: hack for current build system.
@@ -81,7 +81,8 @@ class Performer(QtCore.QObject):
 				note.begin.print_params()
 				note.end.print_params()
 			self.controller.note(note.params, note.duration,
-				note.begin, note.end)
+				note.begin, note.end,
+				note.point_and_click)
 
 	def _render_rest(self, note):
 		self.controller.rest(note.duration)
