@@ -11,6 +11,9 @@ WATCH_MOVIE = 2
 IMAGE_THREAD_STEPS = 4
 FPS = 10
 
+DELAY_MOVIE_START_SECONDS = 0.5
+DELAY_MOVIE_END_SECONDS = 0.5
+
 TMP_MOVIE_DIR = '/tmp/vivi-cache/movie/'
 
 # used inside ViviMovie, below
@@ -63,12 +66,45 @@ class ViviMovie(QtCore.QThread):
 			self.state = 0
 			self.mutex.unlock()
 
+	def make_movie_actions_file(self, actions_filename):
+		actions_lines = open(actions_filename).readlines()
+		movie_actions_filename = actions_filename.replace(".actions",
+			".movie.actions")
+		movie_actions_file = open(movie_actions_filename, "w")
+		last_time = 0.0
+		for line in actions_lines:
+			if line[0] != '#':
+				splitline = line.split('\t')
+				seconds = float(splitline[1])
+				seconds += DELAY_MOVIE_START_SECONDS
+				last_time = seconds
+				splitline[1] = str("%f"%seconds)
+				line = '\t'.join(splitline)
+				if len(splitline) == 2:
+					line += '\n'
+			movie_actions_file.write(line)
+		last_time += DELAY_MOVIE_END_SECONDS
+		movie_actions_file.write(str("w\t%f\n"%last_time))
+		movie_actions_file.close()
+		return movie_actions_filename
+
+	def make_movie_audio_file(self, audio_filename):
+		movie_audio_filename = audio_filename.replace(".wav", ".movie.wav")
+		os.system("sox %s %s delay %f pad 0 %f" %
+			(self.audio_filename, movie_audio_filename,
+			DELAY_MOVIE_START_SECONDS, DELAY_MOVIE_END_SECONDS))
+		return movie_audio_filename
+
+
 	def generate_movie(self, basename, audio_filename):
 		self.quality = 1
 		self.state = GENERATE_MOVIE
 
-		actions_files = glob.glob(basename+"*.actions")
-		self.actions_filename = actions_files[0]
+		map(os.remove,
+			glob.glob(os.path.join(basename + '*.movie.actions')))
+		actions_files = glob.glob(basename + "*.actions")
+		self.actions_filename = self.make_movie_actions_file(
+			actions_files[0])
 		self.audio_filename = audio_filename+".wav"
 
 		self.condition.wakeOne()
@@ -78,8 +114,11 @@ class ViviMovie(QtCore.QThread):
 		self.quality = 0
 		self.state = GENERATE_MOVIE
 
-		actions_files = glob.glob(basename+"*.actions")
-		self.actions_filename = actions_files[0]
+		map(os.remove,
+			glob.glob(os.path.join(basename + '*.movie.actions')))
+		actions_files = glob.glob(basename + "*.actions")
+		self.actions_filename = self.make_movie_actions_file(
+			actions_files[0])
 		self.audio_filename = audio_filename+".wav"
 
 		self.condition.wakeOne()
@@ -102,6 +141,7 @@ class ViviMovie(QtCore.QThread):
 #		os.chdir("blender")
 		self.process_step.emit()
 
+		self.end_time += DELAY_MOVIE_START_SECONDS + DELAY_MOVIE_END_SECONDS
 		end_frame = int(self.end_time * FPS) + 1
 		blender_images = []
 		step = end_frame/4
@@ -120,23 +160,22 @@ class ViviMovie(QtCore.QThread):
 		for i in range(4):
 			blender_images[i].wait()
 
-#		os.system("sox violin-1.wav violin-1-delay.wav delay 0.5")
+		movie_audio_filename = self.make_movie_audio_file(
+			self.audio_filename)
+
 #		os.system("lame violin-1-delay.wav")
 		self.process_step.emit()
 
-		if self.quality >= 1:
-			extra_h264 = '--h264'
-			movie_filename = "vivi-movie.avi"
+		if self.quality == 0:
+			movie_filename = "vivi-preview.avi"
 		else:
-			extra_h264 = ''
-			movie_filename = "vivi-movie.mpeg"
+			movie_filename = "vivi-movie.avi"
 		logfile = TMP_MOVIE_DIR+"mencoder.log"
 		cmd = """artifastring-movie.py \
--o %s -i %s --fps %i %s -l %s %s""" % (TMP_MOVIE_DIR+movie_filename,
+-o %s -i %s --fps %i -l %s %s""" % (TMP_MOVIE_DIR+movie_filename,
 			TMP_MOVIE_DIR, FPS,
-			extra_h264,
 			logfile,
-			self.audio_filename)
+			movie_audio_filename)
 		os.system(cmd)
 		self.process_step.emit()
 
@@ -161,7 +200,7 @@ class ViviMovie(QtCore.QThread):
 	def watch_movie_thread(self):
 		#os.system("mplayer blender/violin-1.avi")
 		if self.preview:
-			movie_filename = "vivi-movie.mpeg"
+			movie_filename = "vivi-preview.avi"
 		else:
 			movie_filename = "vivi-movie.avi"
 		os.system("mplayer -really-quiet %s" % (TMP_MOVIE_DIR+movie_filename))

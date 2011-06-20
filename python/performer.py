@@ -18,6 +18,8 @@ import dirs
 import style_base
 import utils
 
+EXTRA_FINAL_REST = 0.5
+
 class Performer(QtCore.QObject):
 	process_step = QtCore.pyqtSignal()
 
@@ -66,6 +68,7 @@ class Performer(QtCore.QObject):
 			else:
 				print "Error: unknown event"
 			self.process_step.emit()
+		self.controller.rest(EXTRA_FINAL_REST)
 
 		self.controller.filesClose()
 
