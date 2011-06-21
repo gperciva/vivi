@@ -48,36 +48,56 @@ class StyleBase():
 
 	def plan_perform(self, events):
 		self.make_notes_durs(events)
+		self.add_point_and_click()
 		self.basic_physical_begin_end()
 		self.do_pizz()
 		self.do_ties()
-		#self.do_bowing() # after ties
+		self.do_bowing() # after ties
 		#self.do_lighten()
 
-	def get_details(self, details, text):
-		for detail in details:
+	def get_details(self, note, text):
+		for detail in note.details:
 			if detail[0] == text:
 				return detail[1]
 		return None
 
+	@staticmethod
+	def pair(values):
+		return zip(values[:-1], values[1:])
+
+
+
 	def make_notes_durs(self, events):
 		self.notes = []
 		tempo_bpm = 60.0
+		self.last_seconds = 0.0
 		for event in events:
-			tempo_details = self.get_details(event.details, "tempo")
+			tempo_details = self.get_details(event, "tempo")
 			if tempo_details:
 				tempo_bpm = float(tempo_details[0]) / 4.0
 			seconds = 4.0 * (60.0 / tempo_bpm) * event.duration
 			if event.details[0][0] == 'rest':
 				rest = Rest(duration=seconds)
 				self.notes.append(rest)
-			if event.details[0][0] == 'note':
+			elif event.details[0][0] == 'note':
 				note = Note(duration=seconds,
 					details=event.details)
 				self.notes.append(note)
+			self.last_seconds += seconds
+
+	def add_point_and_click(self):
+		for note in self.notes:
+			if isinstance(note, Rest):
+				continue
+			point_and_click = "point_and_click %s %s" % (
+				note.details[0][1][4],
+				note.details[0][1][5])
+			note.point_and_click = point_and_click
 
 	def basic_physical_begin_end(self):
 		for note in self.notes:
+			if isinstance(note, Rest):
+				continue
 			note.physical = self.simple_params(note.details)
 			note.begin = vivi_controller.NoteBeginning()
 			note.end = vivi_controller.NoteEnding()
@@ -85,7 +105,9 @@ class StyleBase():
 	def do_pizz(self):
 		pizz = False
 		for note in self.notes:
-			text_details = self.get_details(note.details, "text")
+			if isinstance(note, Rest):
+				continue
+			text_details = self.get_details(note, "text")
 			if text_details:
 				if text_details[0] == "pizz":
 					pizz = True
@@ -93,67 +115,34 @@ class StyleBase():
 					pizz = False
 			note.pizz = pizz
 
-
-#		pizz = False
-#		self.last_seconds = 0.0
-#		for event in self.events:
-#			# must process tempo events before note!
-#			tempo_details = self.get_details(event, "tempo")
-#			if tempo_details:
-#				self.tempo_from_lilytempo(tempo_details)
-#			duration = self.calc_duration(event.duration)
-#			if event.details[0][0] == 'rest':
-#				rest = Rest(duration)
-#				self.notes.append(rest)
-#				self.last_seconds += duration
-#				continue
-#			# TODO: icky, functionalify this ?
-#			text_details = self.get_details(event, "text")
-#			if text_details:
-#				pizz = get_pizz(text_details)
-#			params = self.simple_params(event)
-#			begin = vivi_controller.NoteBeginning()
-#			end = vivi_controller.NoteEnding()
-#			# TODO: icky
-#			point_and_click = "point_and_click %s %s" % (
-#				event.details[0][1][4],
-#				event.details[0][1][5])
-#			note = Note(params, duration, pizz,
-#				begin, end, point_and_click)
-#			self.notes.append(note)
-#			self.last_seconds += duration
-
-	@staticmethod
-	def pair(values):
-		return zip(values[:-1], values[1:])
-
 	def do_ties(self):
 		for note, note_next in self.pair(self.notes):
-			tie_details = self.get_details(note.details, "tie")
+			if isinstance(note, Rest) or isinstance(note_next, Rest):
+				continue
+			tie_details = self.get_details(note, "tie")
 			# tie_details is [] which is non-existant but not None
 			if tie_details is not None:
 				note.end.keep_bow_velocity = True
 				note_next.begin.ignore_finger = True
 				note_next.begin.keep_bow_force = True
 
-	def alternate_bowing(self):
+	def do_bowing(self):
 		bow_dir = 1
 		slur_on = False
-		# TODO: totally naive right now; no slurs
-		for i, event in enumerate(self.events):
-			if isinstance(self.notes[i], Note):
-				#print event
-				self.notes[i].params.bow_velocity *= bow_dir
-				for details in event.details:
-					if details[0] == 'slur':
-						if details[1][0] == '-1':
-							slur_on = True
-						else:
-							slur_on = False
-				if slur_on:
-					self.notes[i].end.keep_bow_velocity = True
-				if not self.notes[i].end.keep_bow_velocity:
-					bow_dir *= -1
+		for note in self.notes:
+			if isinstance(note, Rest):
+				continue
+			note.physical.bow_velocity *= bow_dir
+			slur_details = self.get_details(note, "slur")
+			if slur_details:
+				if slur_details[0] == '-1':
+					slur_on = True
+				else:
+					slur_on = False
+			if slur_on:
+				note.end.keep_bow_velocity = True
+			if not note.end.keep_bow_velocity:
+				bow_dir *= -1
 
 	def lighten(self):
 		for i, event in enumerate(self.events):
