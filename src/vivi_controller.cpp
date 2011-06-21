@@ -21,8 +21,8 @@ const double BASIC_FORCE_STDDEV = 0.02;
 const double MIN_VELOCITY_FACTOR = 0.5;
 
 
-const double LIGHTEN_FACTOR = 0.5;
-const int LIGHTEN_NOTE_HOPS = 8; // FIXME: fix
+const double LET_VIBRATE = 0.5;
+const int LIGHTEN_NOTE_HOPS = 10; // FIXME: fix magic number
 
 ViviController::ViviController() {
 
@@ -72,6 +72,7 @@ void ViviController::reset() {
     cats_index = 0;
 
     m_bow_pos_along = 0.1; // default near frog?
+    m_feedback_adjust_force = true;
 }
 
 Ears* ViviController::getEars(int st, int dyn) {
@@ -324,10 +325,6 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
         violin->finger(actions.string_number, actions.finger_position);
     }
 
-    int lighten_hop = seconds/DH;
-    if (end.lighten_bow_force) {
-        lighten_hop = seconds/DH - LIGHTEN_NOTE_HOPS;
-    }
 
     note_samples = 0;
     int accel_hops = ceil(fabs(
@@ -340,14 +337,34 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
         decel_hop = seconds/DH; // don't decelerate?
     }
 
+    int lighten_hop = seconds/DH;
+    if (end.lighten_bow_force) {
+        lighten_hop = seconds/DH - LIGHTEN_NOTE_HOPS;
+    }
+    if (end.let_string_vibrate) {
+        lighten_hop = seconds/DH - LIGHTEN_NOTE_HOPS;
+    }
+    m_feedback_adjust_force = true;
+    double lighten_step = 1.0;
+
     for (int i = 0; i < seconds/DH-1; i++) {
         hop();
         // start deceleration
         if (i > decel_hop) {
             m_velocity_target = 0.0;
         }
+        // FIXME: oh god ick
         if (i > lighten_hop) {
-            actions.bow_force *= LIGHTEN_FACTOR;
+            m_feedback_adjust_force = false;
+            if (lighten_step > 0) {
+                lighten_step = -actions.bow_force / LIGHTEN_NOTE_HOPS;
+                m_feedback_adjust_force = false;
+            }
+            if (end.let_string_vibrate) {
+                actions.bow_force *= LET_VIBRATE;
+            } else {
+            actions.bow_force += lighten_step;
+            }
         }
     }
     // finish final "half hop"
@@ -420,7 +437,7 @@ inline void ViviController::hop(int num_samples) {
     ears[m_st][m_dyn]->listenShort(buf);
     int cat = ears[m_st][m_dyn]->getClass();
     // TODO: sort this out as well
-    if (num_samples < EARS_HOPSIZE) {
+    if ((num_samples < EARS_HOPSIZE) || (m_feedback_adjust_force==false)) {
         total_samples += num_samples;
         note_samples  += num_samples;
         return;

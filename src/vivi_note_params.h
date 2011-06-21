@@ -54,16 +54,18 @@ public:
     // init to nothing
     NoteEnding() {
         lighten_bow_force = false;
+        let_string_vibrate = false;
         keep_bow_velocity = false;
     };
     // data
     bool lighten_bow_force;
+    bool let_string_vibrate;
     bool keep_bow_velocity;
     // debug; must contain all above variables
     void print_params() {
         printf("NoteEnding:\n");
-        printf("\tlighten_bow_force: %i\tkeep_bow_velocity: %i\n",
-               lighten_bow_force, keep_bow_velocity);
+        printf("\tlighten_bow_force: %i\tlet_string_vibrate %i\tkeep_bow_velocity: %i\n",
+               lighten_bow_force, let_string_vibrate, keep_bow_velocity);
     };
 
 };

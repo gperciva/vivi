@@ -72,6 +72,7 @@ private:
     double m_velocity_target;
     double m_velocity_cutoff_force_adj;
     double m_bow_pos_along;
+    bool m_feedback_adjust_force;
 
     // ASSUME: we play for a maximum of 13 hours per file
     int total_samples;

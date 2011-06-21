@@ -10,14 +10,16 @@ import basic_training # for FINGER_MIDIS
 import utils
 
 class Note():
-	def __init__(self, params=None, duration=0, pizz=False,
-			begin=None, end=None, point_and_click=None):
-		self.params = params
+	def __init__(self, physical=None, duration=0, pizz=False,
+			begin=None, end=None, point_and_click=None,
+			details=None):
+		self.physical = physical
 		self.duration = duration
 		self.pizz = pizz
 		self.begin = begin
 		self.end = end
 		self.point_and_click = point_and_click
+		self.details = details
 class Rest():
 	def __init__(self, duration=0):
 		self.duration = duration
@@ -26,7 +28,7 @@ class StyleBase():
 
 	def __init__(self):
 		self.notes = None
-		self.events = None
+		self.last_seconds = 0.0
 
 		self.controller_params = []
 		for st in range(4):
@@ -38,8 +40,6 @@ class StyleBase():
 			self.controller_params.append(st_controllers)
 		self.reload_params()
 
-		self.tempo = 60.0
-		self.last_seconds = 0.0
 
 	def reload_params(self):
 		for st in range(4):
@@ -47,52 +47,94 @@ class StyleBase():
 				self.controller_params[st][dyn].load_file()
 
 	def plan_perform(self, events):
-		self.events = events
-		self.basic_notes()
-		self.ties()
-		self.alternate_bowing() # after ties
-		self.lighten()
+		self.make_notes_durs(events)
+		self.basic_physical_begin_end()
+		self.do_pizz()
+		self.do_ties()
+		#self.do_bowing() # after ties
+		#self.do_lighten()
 
-	def basic_notes(self):
+	def get_details(self, details, text):
+		for detail in details:
+			if detail[0] == text:
+				return detail[1]
+		return None
+
+	def make_notes_durs(self, events):
 		self.notes = []
-		pizz = False
-		self.last_seconds = 0.0
-		for event in self.events:
-			# must process tempo events before note!
-			for details in event.details:
-				if details[0] == 'tempo':
-					self.tempo_from_lilytempo(details[1][0])
-			duration = self.calc_duration(event.duration)
+		tempo_bpm = 60.0
+		for event in events:
+			tempo_details = self.get_details(event.details, "tempo")
+			if tempo_details:
+				tempo_bpm = float(tempo_details[0]) / 4.0
+			seconds = 4.0 * (60.0 / tempo_bpm) * event.duration
 			if event.details[0][0] == 'rest':
-				rest = Rest(duration)
+				rest = Rest(duration=seconds)
 				self.notes.append(rest)
-				self.last_seconds += duration
-				continue
-			# TODO: icky, functionalify this ?
-			for d in event.details:	
-				if d[0] == 'text':
-					if d[1][0] == 'pizz':
-						pizz = True
-					if d[1][0] == 'arco':
-						pizz = False
-			params = self.simple_params(event)
-			begin = vivi_controller.NoteBeginning()
-			end = vivi_controller.NoteEnding()
-			# TODO: icky
-			point_and_click = "point_and_click %s %s" % (
-				event.details[0][1][4],
-				event.details[0][1][5])
-			note = Note(params, duration, pizz,
-				begin, end, point_and_click)
-			self.notes.append(note)
-			self.last_seconds += duration
+			if event.details[0][0] == 'note':
+				note = Note(duration=seconds,
+					details=event.details)
+				self.notes.append(note)
 
-	def ties(self):
-		for i, event in enumerate(self.events):
-			for details in event.details:
-				if details[0] == 'tie':
-					self.notes[i].end.continue_next_note = True
-					self.notes[i+1].begin.continue_previous_note = True
+	def basic_physical_begin_end(self):
+		for note in self.notes:
+			note.physical = self.simple_params(note.details)
+			note.begin = vivi_controller.NoteBeginning()
+			note.end = vivi_controller.NoteEnding()
+
+	def do_pizz(self):
+		pizz = False
+		for note in self.notes:
+			text_details = self.get_details(note.details, "text")
+			if text_details:
+				if text_details[0] == "pizz":
+					pizz = True
+				elif text_details[0] == "arco":
+					pizz = False
+			note.pizz = pizz
+
+
+#		pizz = False
+#		self.last_seconds = 0.0
+#		for event in self.events:
+#			# must process tempo events before note!
+#			tempo_details = self.get_details(event, "tempo")
+#			if tempo_details:
+#				self.tempo_from_lilytempo(tempo_details)
+#			duration = self.calc_duration(event.duration)
+#			if event.details[0][0] == 'rest':
+#				rest = Rest(duration)
+#				self.notes.append(rest)
+#				self.last_seconds += duration
+#				continue
+#			# TODO: icky, functionalify this ?
+#			text_details = self.get_details(event, "text")
+#			if text_details:
+#				pizz = get_pizz(text_details)
+#			params = self.simple_params(event)
+#			begin = vivi_controller.NoteBeginning()
+#			end = vivi_controller.NoteEnding()
+#			# TODO: icky
+#			point_and_click = "point_and_click %s %s" % (
+#				event.details[0][1][4],
+#				event.details[0][1][5])
+#			note = Note(params, duration, pizz,
+#				begin, end, point_and_click)
+#			self.notes.append(note)
+#			self.last_seconds += duration
+
+	@staticmethod
+	def pair(values):
+		return zip(values[:-1], values[1:])
+
+	def do_ties(self):
+		for note, note_next in self.pair(self.notes):
+			tie_details = self.get_details(note.details, "tie")
+			# tie_details is [] which is non-existant but not None
+			if tie_details is not None:
+				note.end.keep_bow_velocity = True
+				note_next.begin.ignore_finger = True
+				note_next.begin.keep_bow_force = True
 
 	def alternate_bowing(self):
 		bow_dir = 1
@@ -123,19 +165,21 @@ class StyleBase():
 			if (not (isinstance(self.notes[i], Note) and
 				isinstance(self.notes[i+1], Note))):
 				self.notes[i].end.lighten_bow_force = True
+			else:
+				if (self.notes[i].params.string_number !=
+					self.notes[i+1].params.string_number):
+					self.notes[i].end.lighten_bow_force = True
 			for details in event.details:
 				if details[0] == 'breathe':
-					self.notes[i-1].end.lighten_bow_force = True
-
-	def tempo_from_lilytempo(self, tempo):
-		self.tempo = float(tempo) / 4.0
+					self.notes[i-1].end.lighten_bow_force = False
+					self.notes[i-1].end.let_string_vibrate = True
 
 	def calc_duration(self, dur):
 		seconds = 4.0 * (60.0 / self.tempo) * dur
 		return seconds
 
-	def simple_params(self, event):
-		pitch = float(event.details[0][1][0])
+	def simple_params(self, details):
+		pitch = float(details[0][1][0])
 		params = vivi_controller.PhysicalActions()
 		params.string_number, params.finger_position = self.get_finger_naive(pitch)
 		# FIXME: only dyn 0

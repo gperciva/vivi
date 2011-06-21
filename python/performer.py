@@ -74,13 +74,14 @@ class Performer(QtCore.QObject):
 
 	def _render_note(self, note):
 		if note.pizz:
-			self.controller.pizz(note.params, note.duration)
+			self.controller.pizz(note.physical, note.duration)
 		else:
 			if DEBUG_PARAMS:
 				print "---"
+				note.physical.print_params()
 				note.begin.print_params()
 				note.end.print_params()
-			self.controller.note(note.params, note.duration,
+			self.controller.note(note.physical, note.duration,
 				note.begin, note.end,
 				note.point_and_click)
 
