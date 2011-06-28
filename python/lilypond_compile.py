@@ -5,6 +5,7 @@ import glob
 from PyQt4 import QtCore
 
 import subprocess
+import filecmp
 
 import dirs
 
@@ -31,19 +32,6 @@ class LilyPondCompile(QtCore.QThread):
 		self.state = 0
 		self.start()
 
-	def lily_file_needs_compile(self, ly_file):
-		self.ly_basename = os.path.splitext(ly_file)[0]
-		self.ly_filename = os.path.basename(self.ly_basename)
-		ly_filename = os.path.splitext(
-			os.path.basename(ly_file))[0]
-		# TODO: what about identical filenames in
-		# different directories?
-		outfilename = os.path.join(dirs.files.get_music_dir(),
-					ly_filename+'.pdf')
-		if not os.path.isfile(outfilename):
-			return True
-		return False
-
 	def run(self):
 		while True:
 			self.mutex.lock()
@@ -57,28 +45,42 @@ class LilyPondCompile(QtCore.QThread):
 		self.condition.wakeOne()
 		return 2
 
-	def remove_old_files(self, dirname):
-		for extension in ['*.notes', '*.pdf', '*.midi']:
+	def lily_file_needs_compile(self, ly_filename_orig):
+		#self.ly_filename = os.path.abspath(ly_filename)
+		self.ly_filename = os.path.join(dirs.files.get_music_dir(),
+			ly_filename_orig)
+		self.ly_basename = os.path.splitext(self.ly_filename)[0]
+		self.ly_dirname = os.path.dirname(self.ly_filename)
+		self.ly_dirname_orig = os.path.abspath(
+			os.path.dirname(ly_filename_orig))
+		if not os.path.isdir(self.ly_dirname):
+			os.makedirs(self.ly_dirname)
+		if (os.path.isfile(self.ly_filename) and
+			filecmp.cmp(ly_filename_orig, self.ly_filename)):
+			return False
+		shutil.copy(ly_filename_orig, self.ly_filename)
+		return True
+
+	def remove_old_files(self, basename):
+		for extension in ['*.notes', '*.pdf', '*.midi', '*.log']:
 			map(os.remove,
-				glob.glob(os.path.join(dirname, extension)))
+				glob.glob(basename+extension))
 
 	def call_lilypond_thread(self):
 		origdir = os.path.abspath(os.path.curdir)
-		#dirname = os.path.dirname(self.ly_basename)
-		dirname = "ly"
-		logfile = open(os.path.join(dirs.files.get_music_dir(),
-			self.ly_filename+'.log'), 'w')
+		self.remove_old_files(self.ly_basename)
 
-		#self.remove_old_files(dirname)
-		self.remove_old_files(dirs.files.get_music_dir())
 		self.process_step.emit()
+
+		logfile = open(self.ly_basename+'.log', 'w')
 		# make new files
 		cmd = LILYPOND_COMMAND % (
-			os.path.abspath(dirname),
-			dirs.files.get_music_dir(),
-			self.ly_filename+'.ly')
+			self.ly_dirname_orig,
+			self.ly_dirname,
+			self.ly_filename)
+		cmd = cmd.split()
 		p = subprocess.Popen(cmd, stdout=logfile,
-			stderr=logfile, shell=True)
+			stderr=logfile)
 		p.wait()
 		logfile.close()
 		self.process_step.emit()
@@ -86,11 +88,11 @@ class LilyPondCompile(QtCore.QThread):
 
 	def get_filename_pdf(self):
 		return os.path.join(dirs.files.get_music_dir(),
-			self.ly_filename+'.pdf')
+			self.ly_basename+'.pdf')
 
 	def get_filename_notes(self):
 		notes_files = glob.glob(
 			os.path.join(dirs.files.get_music_dir(),
-			self.ly_filename+"*.notes"))
+			self.ly_basename+"*.notes"))
 		return notes_files
 
