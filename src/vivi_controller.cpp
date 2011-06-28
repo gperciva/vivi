@@ -283,7 +283,7 @@ void ViviController::pizz(PhysicalActions actions_get, double seconds)
 
 void ViviController::note(PhysicalActions actions_get, double seconds,
                           NoteBeginning begin, NoteEnding end,
-                        const char *point_and_click)
+                          const char *point_and_click)
 {
     //actions_get.print();
 
@@ -310,12 +310,12 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
     // write (some) parameters to file
     char note_search_params[MAX_LINE_LENGTH];
     if (point_and_click == NULL) {
-    sprintf(note_search_params, "note\tst %i\tdyn %i\tfinger_midi %.3f",
-            m_st, m_dyn, actions.finger_position);
-            } else {
-    sprintf(note_search_params, "note\tst %i\tdyn %i\tfinger_midi %.3f %s",
-            m_st, m_dyn, actions.finger_position, point_and_click);
-        }
+        sprintf(note_search_params, "note\tst %i\tdyn %i\tfinger_midi %.3f",
+                m_st, m_dyn, actions.finger_position);
+    } else {
+        sprintf(note_search_params, "note\tst %i\tdyn %i\tfinger_midi %.3f %s",
+                m_st, m_dyn, actions.finger_position, point_and_click);
+    }
     actions_file->comment(note_search_params);
     cats_file->comment(note_search_params);
 
@@ -363,7 +363,7 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
             if (end.let_string_vibrate) {
                 actions.bow_force *= LET_VIBRATE;
             } else {
-            actions.bow_force += lighten_step;
+                actions.bow_force += lighten_step;
             }
         }
     }

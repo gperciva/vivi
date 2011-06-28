@@ -77,7 +77,6 @@ class Performer(QtCore.QObject):
 			self.controller.pizz(note.physical, note.duration)
 		else:
 			if DEBUG_PARAMS:
-				print "---"
 				note.physical.print_params()
 				note.begin.print_params()
 				note.end.print_params()
@@ -86,6 +85,8 @@ class Performer(QtCore.QObject):
 				note.point_and_click)
 
 	def _render_rest(self, note):
+		if DEBUG_PARAMS:
+			print "rest"
 		self.controller.rest(note.duration)
 
 	def get_duration(self):
