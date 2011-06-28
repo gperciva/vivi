@@ -53,7 +53,7 @@ class StyleBase():
 		self.do_pizz()
 		self.do_ties()
 		self.do_bowing() # after ties
-		#self.do_lighten()
+		self.do_lighten() # do after staccato adds rests
 
 	def get_details(self, note, text):
 		for detail in note.details:
@@ -144,24 +144,24 @@ class StyleBase():
 			if not note.end.keep_bow_velocity:
 				bow_dir *= -1
 
-	def lighten(self):
-		for i, event in enumerate(self.events):
-			if isinstance(self.notes[i], Rest):
-				continue
-			if i == len(self.events)-1:
-				self.notes[i].end.lighten_bow_force = True
-				continue
-			if (not (isinstance(self.notes[i], Note) and
-				isinstance(self.notes[i+1], Note))):
-				self.notes[i].end.lighten_bow_force = True
-			else:
-				if (self.notes[i].params.string_number !=
-					self.notes[i+1].params.string_number):
-					self.notes[i].end.lighten_bow_force = True
-			for details in event.details:
-				if details[0] == 'breathe':
-					self.notes[i-1].end.lighten_bow_force = False
-					self.notes[i-1].end.let_string_vibrate = True
+	def do_lighten(self):
+		for note, note_next in self.pair(self.notes):
+			# before a rest
+			if isinstance(note, Note) and isinstance(note_next, Rest):
+				note.end.lighten_bow_force = True
+			if isinstance(note, Note) and isinstance(note_next, Note):
+				if (note.physical.string_number !=
+					note_next.physical.string_number):
+					note.end.lighten_bow_force = True
+			if isinstance(note, Note):
+				breathe_details = self.get_details(note, "breathe")
+				if breathe_details:
+					note.end.lighten_bow_force = False
+					note.end.let_string_vibrate = True
+		# last note
+		note = self.notes[len(self.notes)-1]
+		if isinstance(note, Note):
+			note.end.lighten_bow_force = True
 
 	def calc_duration(self, dur):
 		seconds = 4.0 * (60.0 / self.tempo) * dur

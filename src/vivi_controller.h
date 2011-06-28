@@ -65,6 +65,11 @@ private:
     int cats[CATS_MEAN_LENGTH]; // TODO: to test mean
     int cats_index;
 
+    void note_setup_actions(PhysicalActions actions_get,
+              NoteBeginning begin);
+    void note_write_actions(const char *point_and_click);
+    void finger();
+
 
     PhysicalActions actions;
     int m_st;
@@ -75,8 +80,8 @@ private:
     bool m_feedback_adjust_force;
 
     // ASSUME: we play for a maximum of 13 hours per file
-    int total_samples;
-    int note_samples;
+    int m_total_samples;
+    int m_note_samples;
 
     inline void hop(int num_samples = EARS_HOPSIZE);
     inline void hop_passive(int num_samples = EARS_HOPSIZE);
