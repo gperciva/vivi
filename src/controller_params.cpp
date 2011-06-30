@@ -16,18 +16,19 @@ void ControllerParams::load_file()
 {
     FILE* fd = fopen(m_filename, "r");
     if (fd != NULL) {
-        int num_read = fscanf(fd, "%lf\n%lf\n%lf\n%lf\n%lf",
+        int num_read = fscanf(fd, "%lf\n%lf\n%lf\n%lf\n%lf\n%lf",
                               &attack_forces[0], &attack_forces[1],
                               &attack_forces[2],
-                              &stable_K, &accuracy);
+                              &stable_K, &accuracy, &dampen);
         fclose(fd);
-        if (num_read != 5) {
-            printf("ERROR: Controller Params: problem reading file");
+        if (num_read != 6) {
+            printf("ERROR: Controller Params: problem reading file\n");
         }
     } else {
         stable_K = 1.0;
         attack_forces[0] = attack_forces[1] = attack_forces[2] = 0.0;
         accuracy = 0.0;
+        dampen = 0.0;
     }
 }
 
@@ -45,6 +46,8 @@ void ControllerParams::write_file()
     sprintf(textline, "%.3f\n", stable_K);
     fwrite(textline, sizeof(char), strlen(textline), outfile);
     sprintf(textline, "%.3f\n", accuracy);
+    fwrite(textline, sizeof(char), strlen(textline), outfile);
+    sprintf(textline, "%.3f\n", dampen);
     fwrite(textline, sizeof(char), strlen(textline), outfile);
 
     fclose(outfile);

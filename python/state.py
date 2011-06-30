@@ -8,6 +8,7 @@ SVM = 2
 ACCURACY = 3
 STABLE = 4
 ATTACKS = 5
+DAMPEN = 6
 
 class State(QtCore.QObject):
 	next_step = QtCore.pyqtSignal(int, int, name='next_step')

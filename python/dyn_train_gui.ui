@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>78</width>
-    <height>190</height>
+    <width>94</width>
+    <height>234</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -105,9 +105,6 @@
      <property name="text">
       <string>1.05</string>
      </property>
-     <property name="flat">
-      <bool>false</bool>
-     </property>
     </widget>
    </item>
    <item>
@@ -119,10 +116,7 @@
       </size>
      </property>
      <property name="text">
-      <string>2.3</string>
-     </property>
-     <property name="flat">
-      <bool>false</bool>
+      <string>2.3 N</string>
      </property>
     </widget>
    </item>
@@ -135,10 +129,7 @@
       </size>
      </property>
      <property name="text">
-      <string>1.7</string>
-     </property>
-     <property name="flat">
-      <bool>false</bool>
+      <string>1.7 N</string>
      </property>
     </widget>
    </item>
@@ -151,10 +142,20 @@
       </size>
      </property>
      <property name="text">
-      <string>0.86</string>
+      <string>0.8 N</string>
      </property>
-     <property name="flat">
-      <bool>false</bool>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="dampen">
+     <property name="maximumSize">
+      <size>
+       <width>40</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>0.42</string>
      </property>
     </widget>
    </item>

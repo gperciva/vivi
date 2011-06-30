@@ -33,15 +33,19 @@ public:
     bool load_ears_training(int st, int dyn,
                             const char *training_file);
     void set_stable_K(int st, int dyn, double K);
+    void set_dampen(int st, int dyn, double dampen);
 
     // per-file prepare
     void filesClose();
     bool filesNew(const char *filenames_base);
 
-    // sppecial
+    // special
     void comment(const char *text);
     void basic(PhysicalActions actions_get, double seconds,
                double seconds_skip, const char *filenames_base=NULL);
+    void make_dampen(PhysicalActions actions_get,
+        double damp, int hops_settle, int hops_reduce, int hops_wait,
+            const char *filename=NULL);
 
     // normal "everytime" stuff
     void rest(double seconds);
@@ -61,6 +65,7 @@ private:
     ActionsFile *cats_file;
     Ears *ears[NUM_STRINGS][NUM_DYNAMICS];
     double m_K[NUM_STRINGS][NUM_DYNAMICS];
+    double m_dampen[NUM_STRINGS][NUM_DYNAMICS];
 
     int cats[CATS_MEAN_LENGTH]; // TODO: to test mean
     int cats_index;

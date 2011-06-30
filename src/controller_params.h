@@ -23,6 +23,7 @@ public:
     double stable_K;
     double attack_forces[3];
     double accuracy;
+    double dampen;
     // accessors for iffy python swig stuff
     void set_force(int index, double value) {
         attack_forces[index] = value;

@@ -44,6 +44,8 @@ class Performer(QtCore.QObject):
 					mpl_filename)
 				self.controller.set_stable_K(st, dyn,
 					self.style.controller_params[st][dyn].stable_K)
+				self.controller.set_dampen(st, dyn,
+					self.style.controller_params[st][dyn].dampen)
 
 	def play(self):
 		utils.play(self.audio_filename + ".wav")

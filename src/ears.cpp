@@ -666,3 +666,29 @@ double Ears::getPitch()
     return (double)data(0,0);
 }
 
+
+
+// it's static
+void Ears::get_rms_from_file(int num_frames, const char *in_filename,
+    double *rmss)
+{
+    MarSystem *pnet = mng.create("Series", "pnet");
+    pnet->addMarSystem(mng.create("SoundFileSource", "src"));
+    pnet->updControl("SoundFileSource/src/mrs_string/filename",
+                in_filename);
+    pnet->addMarSystem(mng.create("ShiftInput", "shift_input"));
+    pnet->updControl("ShiftInput/shift_input/mrs_natural/winSize",
+                            EARS_WINDOWSIZE);
+    pnet->addMarSystem(mng.create("Rms", "rms"));
+
+    pnet->updControl("mrs_real/israte", 44100.0);
+    pnet->updControl("mrs_natural/inSamples", EARS_HOPSIZE);
+    for (int i=0; i<num_frames; i++)
+    {
+        pnet->tick();
+        realvec data = pnet->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
+        rmss[i] = (double)data(0,0);
+    }
+    delete pnet;
+}
+

@@ -63,7 +63,7 @@ class ViviDirs:
 		return filename
 
 	@staticmethod
-	def basename_params(base, params, extra=None, count=None):
+	def basename_params(base, params):
 		""" used internally to construct various filenames """
 		basename = "%s_%i_%.3f_%.3f_%.3f_%.3f" % (
 			base,
@@ -72,25 +72,28 @@ class ViviDirs:
 			params.bow_bridge_distance,
 			params.bow_force,
 			params.bow_velocity)
-		# TODO: ick, do elsewhere
-		if extra and not count:
-			basename += "_%i" % (extra)
-		elif extra:
-			basename += "_%.3f" % (extra)
-		if count:
-			basename += "_%i" % (count)
 		# the .wav is added in ViviController
 		#basename += ".wav"
 		return basename
 
 	def make_stable_filename(self, params, stable_K, count):
 		""" .wav file for automatic training of stable K."""
-		basename = self.basename_params("stable", params, stable_K, count)
+		basename = self.basename_params("stable", params)
+		basename += "_%.3f" % stable_K
+		basename += "_%i" % count
 		return os.path.join(self.works_dir, basename)
 
 	def make_attack_filename(self, taskname, params, count):
 		""" .wav file for automatic training of initial Fb."""
-		basename = self.basename_params(taskname, params, count)
+		basename = self.basename_params(taskname, params)
+		basename += "_%i" % count
+		return os.path.join(self.works_dir, basename)
+
+	def make_dampen_filename(self, taskname, params, dampen, count):
+		""" .wav file for automatic dampening training."""
+		basename = self.basename_params(taskname, params)
+		basename += "_%.3f" % dampen
+		basename += "_%i" % count
 		return os.path.join(self.works_dir, basename)
 
 	def make_audio_filename(self, params):

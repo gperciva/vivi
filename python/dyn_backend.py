@@ -22,11 +22,13 @@ import os
 
 import task_stable
 import task_attack
+import task_dampen
 
 CALCULATE_TRAINING = 1
 CHECK_ACCURACY = 2
 LEARN_ATTACKS = 3
 LEARN_STABLE = 4
+LEARN_DAMPEN = 5
 
 ATTACK_FORCE_STEPS = 10
 
@@ -35,7 +37,7 @@ from PyQt4 import QtCore
 class DynBackend(QtCore.QThread):
 	process_step = QtCore.pyqtSignal()
 
-	def __init__(self, st, dyn, level, accuracy, force_init, force_factor, controller, practice):
+	def __init__(self, st, dyn, level, accuracy, force_init, force_factor, dampen, controller, practice):
 		QtCore.QThread.__init__(self)
 
 		self.st = st
@@ -44,6 +46,7 @@ class DynBackend(QtCore.QThread):
 		#self.performer = performer
 		#self.ears = shared.listen[self.st][self.dyn]
 		self.controller = controller
+		self.dampen = dampen
 		self.ears = self.controller.getEars(self.st, self.dyn)
 
 		self.task_stable = task_stable.TaskStable(self.st, self.dyn,
@@ -53,6 +56,8 @@ class DynBackend(QtCore.QThread):
 				self.st, self.dyn,
 				self.controller, self.process_step, fmi),
 			range(3))
+		self.task_dampen = task_dampen.TaskDampen(self.st,
+			self.dyn, self.controller, self.process_step)
 
 		#self.practice = practice
 
@@ -89,6 +94,8 @@ class DynBackend(QtCore.QThread):
 				self.learn_attacks_thread()
 			elif self.state == LEARN_STABLE:
 				self.learn_stable_thread()
+			elif self.state == LEARN_DAMPEN:
+				self.learn_dampen_thread()
 			self.did = self.state
 			self.state = 0
 			self.process_step.emit()
@@ -168,6 +175,9 @@ class DynBackend(QtCore.QThread):
 	def learn_stable_steps(self):
 		return self.task_stable.steps_full() + 1
 
+	def learn_dampen_steps(self):
+		return self.task_dampen.steps_full() + 1
+
 	def learn_stable(self, stable_forces):
 		self.state = LEARN_STABLE
 		self.task_stable.set_forces(stable_forces)
@@ -175,6 +185,14 @@ class DynBackend(QtCore.QThread):
 
 	def learn_stable_thread(self):
 		self.most_stable = self.task_stable.calculate_full()
+
+	def learn_dampen(self):
+		self.state = LEARN_DAMPEN
+		self.condition.wakeOne()
+
+	def learn_dampen_thread(self):
+		self.dampen = self.task_dampen.calculate_full()
+
 
 #zz
 	### interface with controller

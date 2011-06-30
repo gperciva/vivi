@@ -187,6 +187,13 @@ class StringTrain(QtGui.QFrame):
 		self.state.prep(state.STABLE, jobs)
 		return sum(jobs)
 
+	def learn_dampen_steps(self):
+		jobs = []
+		for st in range(NUM_DYNS):
+			jobs.append(self.dyns[st].learn_dampen_steps())
+		self.state.prep(state.DAMPEN, jobs)
+		return sum(jobs)
+
 	def learn_attacks_steps(self):
 		jobs = []
 		for st in range(NUM_DYNS):

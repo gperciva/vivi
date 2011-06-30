@@ -101,6 +101,14 @@ class StringTrainAll(QtGui.QFrame):
 		self.state.start()
 		return sum(jobs)
 
+	def learn_dampen(self):
+		jobs = []
+		for st in range(NUM_STRINGS):
+			jobs.append(self.string_trains[st].learn_dampen_steps())
+		self.state.prep(state.DAMPEN, jobs, parallel=True)
+		self.state.start()
+		return sum(jobs)
+
 	def learn_attacks(self):
 		jobs = []
 		for st in range(NUM_STRINGS):

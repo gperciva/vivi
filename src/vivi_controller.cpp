@@ -100,6 +100,11 @@ void ViviController::set_stable_K(int st, int dyn, double K)
     m_K[st][dyn] = K;
 }
 
+void ViviController::set_dampen(int st, int dyn, double dampen)
+{
+    m_dampen[st][dyn] = dampen;
+}
+
 
 inline double ViviController::norm_bounded(double mu, double sigma) {
     if (sigma == 0) {
@@ -238,6 +243,7 @@ void ViviController::rest(double seconds)
     for (int i = 0; i < seconds/DH-1; i++) {
         hop_passive();
     }
+
     // finish final "half hop"
     int remaining_samples = seconds*44100.0 - m_note_samples;
     // finish final "half hop"
@@ -343,15 +349,14 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
         decel_hop = main_hops; // don't decelerate?
     }
 
-    int lighten_hop = main_hops; // don't lighten?
+    //int lighten_hop = main_hops; // don't lighten?
     if (end.lighten_bow_force) {
-        decel_hop -= 10;
-        lighten_hop = main_hops - LIGHTEN_NOTE_HOPS;
+        //decel_hop -= LIGHTEN_NOTE_HOPS;
+        //lighten_hop = main_hops - LIGHTEN_NOTE_HOPS;
     }
     if (end.let_string_vibrate) {
-        lighten_hop = main_hops - LIGHTEN_NOTE_HOPS;
+        //lighten_hop = main_hops - LIGHTEN_NOTE_HOPS;
     }
-    double lighten_step = 1.0;
 
     m_note_samples = 0;
     m_feedback_adjust_force = true;
@@ -359,27 +364,27 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
     for (int i = 0; i < main_hops; i++) {
 //        printf("i: %i\n", i);
         hop();
-        // start deceleration
-        if (i == decel_hop) {
+        // deceleration and lighten-ing
+        // TODO: separate this again?
+        if (i > decel_hop) {
             m_velocity_target = 0.0;
+            if (end.let_string_vibrate) {
+               //actions.bow_force *= LET_VIBRATE;
+            } else {
+                actions.bow_force *= m_dampen[m_st][m_dyn];
+            }
         }
+        /*
         // FIXME: oh god ick
         if (i > lighten_hop) {
             m_feedback_adjust_force = false;
-            if (i > lighten_step > 0) {
-                lighten_step = -actions.bow_force / (LIGHTEN_NOTE_HOPS-2);
-            }
             if (end.let_string_vibrate) {
                 actions.bow_force *= LET_VIBRATE;
             } else {
-                actions.bow_force *= 0.4;
-                //actions.bow_force += lighten_step;
-                if (actions.bow_force < 0) {
-                    actions.bow_force = 0.0;
-                    lighten_step = 0.0;
-                }
+                actions.bow_force *= m_dampen[m_st][m_dyn];
             }
         }
+        */
     }
     // finish final "half hop"
     int remaining_samples = seconds*44100.0 - m_note_samples;
@@ -524,4 +529,31 @@ inline double ViviController::interpolate(const double x,
         return y0 + (x-x0)*(y1-y0)/(x1-x0);
     }
 }
+
+
+void ViviController::make_dampen(PhysicalActions actions_get,
+        double damp, int hops_settle, int hops_reduce, int hops_wait,
+    const char *filename)
+{
+    NoteBeginning begin;
+    NoteEnding end;
+    end.keep_bow_velocity = true;
+    filesNew(filename);
+    // get note going
+    note(actions_get, hops_settle*dh, begin, end);
+
+    m_velocity_target = 0.0;
+    m_feedback_adjust_force = false;
+    for (int i=0; i<hops_reduce; i++) {
+        actions.bow_force *= damp;
+        hop();
+    }
+    actions.bow_force = 0.0;
+    for (int i=0; i<hops_wait; i++) {
+        hop();
+    }
+
+    filesClose();
+}
+
 

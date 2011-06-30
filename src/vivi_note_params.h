@@ -4,7 +4,14 @@
 class PhysicalActions {
 public:
     // require user to specify manually
-    PhysicalActions() {};
+    PhysicalActions() {
+        string_number = 0;
+        dynamic = 0.0;
+        finger_position = 0.0;
+        bow_bridge_distance = 0.0;
+        bow_force = 0.0;
+        bow_velocity = 0.0;
+    };
     // data
     int string_number;
     double dynamic; // to allow interpolation

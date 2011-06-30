@@ -94,6 +94,8 @@ class ViviMainwindow(QtGui.QMainWindow):
 
 		self.ui.actionLearn_attacks.triggered.connect(self.learn_attacks)
 		self.ui.actionLearn_stable.triggered.connect(self.learn_stable)
+		self.ui.actionLearn_dampen.triggered.connect(self.learn_dampen)
+
 
 		self.ui.action_Open_ly_file.triggered.connect(self.open_ly_file)
 		self.ui.actionQuick_preview.triggered.connect(self.quick_preview)
@@ -289,6 +291,12 @@ class ViviMainwindow(QtGui.QMainWindow):
 			return
 		self.progress_dialog("Learning stable", steps)
 
+	def learn_dampen(self):
+		steps = self.string_train.learn_dampen()
+		if steps == 0:
+			return
+		self.progress_dialog("Learning dampen", steps)
+
 	def open_ly_file(self, ly_filename=None):
 		if ly_filename:
 			self.ly_filename = ly_filename
@@ -340,14 +348,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 			QtGui.QMainWindow.keyPressEvent(self, event)
 			return
 		key = key.lower()
-		if key == 'h':
-			disp = ''
-			disp += "q: quit\n"
-			disp += "n: next note\n"
-			disp += "p: play note again\n"
-			disp += "t: train note\n"
-			self.examine.showHelp(disp)
-		elif key == 'q':
+		if key == 'q':
 			self.close()
 		elif (key == 'p'):
 			shared.examine_main.play()

@@ -20,3 +20,9 @@ http://stackoverflow.com/questions/2510696/allowing-threads-from-python-after-ca
 %include "vivi_controller.h"
 %include "vivi_note_params.h"
 
+/*
+  useful for quick experiments with RMS of output
+*/
+%include "carrays.i"
+%array_class(double, doubleArray);
+

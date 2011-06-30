@@ -83,6 +83,7 @@
     <addaction name="actionCheck_accuracy"/>
     <addaction name="actionLearn_stable"/>
     <addaction name="actionLearn_attacks"/>
+    <addaction name="actionLearn_dampen"/>
    </widget>
    <widget class="QMenu" name="menuMusic">
     <property name="title">
@@ -118,6 +119,7 @@
    <addaction name="separator"/>
    <addaction name="actionLearn_stable"/>
    <addaction name="actionLearn_attacks"/>
+   <addaction name="actionLearn_dampen"/>
   </widget>
   <widget class="QToolBar" name="music">
    <property name="windowTitle">
@@ -253,6 +255,14 @@
    </property>
    <property name="shortcut">
     <string>E</string>
+   </property>
+  </action>
+  <action name="actionLearn_dampen">
+   <property name="text">
+    <string>Learn dampen</string>
+   </property>
+   <property name="shortcut">
+    <string>N</string>
    </property>
   </action>
  </widget>

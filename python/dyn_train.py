@@ -70,6 +70,7 @@ class DynTrain(QtGui.QFrame):
 		self.ui.force_init1.clicked.connect(self.click_force1)
 		self.ui.force_init2.clicked.connect(self.click_force2)
 		self.ui.force_init3.clicked.connect(self.click_force3)
+		self.ui.dampen.clicked.connect(self.click_dampen)
 
 		### setup variables
 		self.judged_main_num = 0
@@ -81,6 +82,7 @@ class DynTrain(QtGui.QFrame):
 		self.modified_accuracy = False
 		self.modified_stable = False
 		self.modified_attack = False
+		self.modified_dampen = False
 
 		self.coll = collection.Collection()
 
@@ -89,6 +91,7 @@ class DynTrain(QtGui.QFrame):
 		self.force_init = []
 		self.controller_params = controller_params.ControllerParams(
 			dirs.files.get_dyn_vivi_filename(self.st, self.dyn))
+		self.dampen = False
 		self.read()
 #		self.levels = levels.Levels()
 #		self.levels.set_coll(self.coll)
@@ -105,7 +108,7 @@ class DynTrain(QtGui.QFrame):
 		# (after self.read() !)
 		self.dyn_backend = dyn_backend.DynBackend(
 			self.st, self.dyn, self.level, self.accuracy, self.force_init,
-			self.force_factor,
+			self.force_factor, self.dampen,
 			self.controller, self.practice)
 		self.dyn_backend.process_step.connect(self.process_step_emit)
 
@@ -159,6 +162,7 @@ class DynTrain(QtGui.QFrame):
 			self.ui.force_init1.setText("")
 			self.ui.force_init2.setText("")
 			self.ui.force_init3.setText("")
+			self.ui.dampen.setText("")
 			return
 
 		if self.basic_trained:
@@ -196,6 +200,11 @@ class DynTrain(QtGui.QFrame):
 				str("%.1f N")%self.force_init[2])
 		else:
 			self.ui.force_init3.setText("")
+		if self.dampen > 0:
+			self.ui.dampen.setText(
+				str("%.2f")%self.dampen)
+		else:
+			self.ui.dampen.setText("")
 	
 		if self.modified_training:
 			self.ui.num_trained_label.setBackgroundRole(
@@ -257,6 +266,7 @@ class DynTrain(QtGui.QFrame):
 		self.modified_accuracy = True
 		self.modified_stable = True
 		self.modified_attack = True
+		self.modified_dampen = True
 		self.display()
 
 	def read(self):
@@ -275,6 +285,7 @@ class DynTrain(QtGui.QFrame):
 				self.controller_params.get_attack_force(i))
 		self.force_factor = self.controller_params.stable_K
 		self.accuracy = self.controller_params.accuracy
+		self.dampen = self.controller_params.dampen
 #		filename = dirs.files.get_dyn_data_filename(self.st, self.dyn)
 #		try:
 #			att = open(filename).readlines()
@@ -304,6 +315,7 @@ class DynTrain(QtGui.QFrame):
 			self.controller_params.set_force(i, self.force_init[i])
 		self.controller_params.stable_K = self.force_factor
 		self.controller_params.accuracy = self.accuracy
+		self.controller_params.dampen = self.dampen
 		self.controller_params.write_file()
 #		filename = dirs.files.get_dyn_data_filename(self.st, self.dyn)
 #		att = open(filename, 'w')
@@ -351,6 +363,10 @@ class DynTrain(QtGui.QFrame):
 				finger_forces.append( [low_force, middle_force, high_force] )
 				self.dyn_backend.task_attacks[fmi].set_K(self.force_factor)
 			self.dyn_backend.learn_attacks(finger_forces)
+		elif job_type == state.DAMPEN:
+			self.dyn_backend.task_dampen.set_K(self.force_factor)
+			self.dyn_backend.task_dampen.set_initial_force(self.force_init[0])
+			self.dyn_backend.learn_dampen()
 		else:
 			print "ERROR dyn_train: job type not recognized!"
 
@@ -366,6 +382,9 @@ class DynTrain(QtGui.QFrame):
 			self.modified_stable = False
 		elif job_type == state.ATTACKS:
 			self.force_init = self.dyn_backend.force_init
+			self.modified_attack = False
+		elif job_type == state.DAMPEN:
+			self.dampen = self.dyn_backend.dampen
 			self.modified_attack = False
 		self.display()
 
@@ -550,6 +569,15 @@ class DynTrain(QtGui.QFrame):
 		self.state.prep(state.STABLE, [num_steps])
 		return num_steps
 
+	def learn_dampen_steps(self):
+		if self.judged_main_num == 0:
+			return 0
+		elif not self.modified_dampen:
+			return 0
+		num_steps = self.dyn_backend.learn_dampen_steps()
+		self.state.prep(state.DAMPEN, [num_steps])
+		return num_steps
+
 #	def learn_attacks(self):
 #		if self.judged_main_num == 0:
 #			return 0
@@ -661,4 +689,7 @@ class DynTrain(QtGui.QFrame):
 	def click_force3(self):
 		self.examine.examine("attack", self.st, self.dyn,
 			self.dyn_backend.task_attacks[2], 3)
+
+	def click_dampen(self):
+		print "investigate dampen"
 

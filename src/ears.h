@@ -63,6 +63,10 @@ public:
 
     short *get_hopsize_array();
 
+    // TODO: think about proper (?) integration for this; for train_dampen.py
+    void get_rms_from_file(int num_frames, const char *filename,
+            double *rmss);
+
 private:
     typedef enum {
         NONE,
