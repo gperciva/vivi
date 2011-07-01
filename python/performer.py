@@ -15,8 +15,9 @@ import vivi_controller
 import music_events
 import dynamics
 import dirs
-import style_base
 import utils
+
+import style_simple
 
 EXTRA_FINAL_REST = 0.5
 
@@ -26,7 +27,7 @@ class Performer(QtCore.QObject):
 	def __init__(self):
 		QtCore.QObject.__init__(self)
 		self.notation = music_events.MusicEvents()
-		self.style = style_base.StyleBase()
+		self.style = style_simple.StyleSimple()
 		self.controller = vivi_controller.ViviController()
 		if not dirs.files:
 			dirs.files = dirs.ViviDirs(
@@ -63,12 +64,10 @@ class Performer(QtCore.QObject):
 		self.controller.filesNew(self.audio_filename)
 
 		for note in self.style.notes:
-			if isinstance(note, style_base.Note):
+			if self.style.is_note(note):
 				self._render_note(note)
-			elif isinstance(note, style_base.Rest):
-				self._render_rest(note)
 			else:
-				print "Error: unknown event"
+				self._render_rest(note)
 			self.process_step.emit()
 		self.controller.rest(EXTRA_FINAL_REST)
 

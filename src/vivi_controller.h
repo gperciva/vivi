@@ -44,8 +44,8 @@ public:
     void basic(PhysicalActions actions_get, double seconds,
                double seconds_skip, const char *filenames_base=NULL);
     void make_dampen(PhysicalActions actions_get,
-        double damp, int hops_settle, int hops_reduce, int hops_wait,
-            const char *filename=NULL);
+                     double damp, int hops_settle, int hops_reduce, int hops_wait,
+                     const char *filename=NULL);
 
     // normal "everytime" stuff
     void rest(double seconds);
@@ -71,7 +71,7 @@ private:
     int cats_index;
 
     void note_setup_actions(PhysicalActions actions_get,
-              NoteBeginning begin);
+                            NoteBeginning begin);
     void note_write_actions(const char *point_and_click);
     void finger();
 

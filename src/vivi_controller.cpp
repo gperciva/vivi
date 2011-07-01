@@ -284,7 +284,7 @@ void ViviController::pizz(PhysicalActions actions_get, double seconds)
 }
 
 void ViviController::note_setup_actions(PhysicalActions actions_get,
-              NoteBeginning begin)
+                                        NoteBeginning begin)
 {
     //actions_get.print();
     actions.string_number = actions_get.string_number;
@@ -369,8 +369,9 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
         if (i > decel_hop) {
             m_velocity_target = 0.0;
             if (end.let_string_vibrate) {
-               //actions.bow_force *= LET_VIBRATE;
-            } else {
+                //actions.bow_force *= LET_VIBRATE;
+            }
+            if (end.lighten_bow_force) {
                 actions.bow_force *= m_dampen[m_st][m_dyn];
             }
         }
@@ -393,15 +394,19 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
         hop(remaining_samples);
     }
 
-    if (!end.keep_bow_velocity) {
+    if ((!end.keep_bow_velocity) || (end.lighten_bow_force)) {
+        if (!end.keep_bow_velocity) {
+            actions.bow_velocity = 0.0;
+        }
+        if (end.lighten_bow_force) {
+            actions.bow_force = 0.0;
+        }
         bowStop();
     }
 //zz
 }
 
 inline void ViviController::bowStop() {
-    actions.bow_force = 0.0;
-    actions.bow_velocity = 0.0;
     violin->bow(actions.string_number,
                 actions.bow_bridge_distance,
                 actions.bow_force,
@@ -532,8 +537,8 @@ inline double ViviController::interpolate(const double x,
 
 
 void ViviController::make_dampen(PhysicalActions actions_get,
-        double damp, int hops_settle, int hops_reduce, int hops_wait,
-    const char *filename)
+                                 double damp, int hops_settle, int hops_reduce, int hops_wait,
+                                 const char *filename)
 {
     NoteBeginning begin;
     NoteEnding end;

@@ -670,15 +670,15 @@ double Ears::getPitch()
 
 // it's static
 void Ears::get_rms_from_file(int num_frames, const char *in_filename,
-    double *rmss)
+                             double *rmss)
 {
     MarSystem *pnet = mng.create("Series", "pnet");
     pnet->addMarSystem(mng.create("SoundFileSource", "src"));
     pnet->updControl("SoundFileSource/src/mrs_string/filename",
-                in_filename);
+                     in_filename);
     pnet->addMarSystem(mng.create("ShiftInput", "shift_input"));
     pnet->updControl("ShiftInput/shift_input/mrs_natural/winSize",
-                            EARS_WINDOWSIZE);
+                     EARS_WINDOWSIZE);
     pnet->addMarSystem(mng.create("Rms", "rms"));
 
     pnet->updControl("mrs_real/israte", 44100.0);
