@@ -349,10 +349,10 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
         decel_hop = main_hops; // don't decelerate?
     }
 
-    //int lighten_hop = main_hops; // don't lighten?
+    int lighten_hop = main_hops; // don't lighten?
     if (end.lighten_bow_force) {
         //decel_hop -= LIGHTEN_NOTE_HOPS;
-        //lighten_hop = main_hops - LIGHTEN_NOTE_HOPS;
+        lighten_hop = main_hops - LIGHTEN_NOTE_HOPS;
     }
     if (end.let_string_vibrate) {
         //lighten_hop = main_hops - LIGHTEN_NOTE_HOPS;
@@ -364,13 +364,12 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
     for (int i = 0; i < main_hops; i++) {
 //        printf("i: %i\n", i);
         hop();
-        // deceleration and lighten-ing
-        // TODO: separate this again?
-        if (i > decel_hop) {
+        if (i == decel_hop) {
+            m_feedback_adjust_force = false;
             m_velocity_target = 0.0;
-            if (end.let_string_vibrate) {
-                //actions.bow_force *= LET_VIBRATE;
-            }
+        }
+        if (i >= lighten_hop) {
+            m_feedback_adjust_force = false;
             if (end.lighten_bow_force) {
                 actions.bow_force *= m_dampen[m_st][m_dyn];
             }

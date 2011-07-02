@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-DEBUG_PARAMS = 1
+DEBUG_PARAMS = 0
 
 import sys
 # TODO: hack for current build system.

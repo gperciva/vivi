@@ -29,13 +29,16 @@ HOPS_SETTLE = int( 0.5 * 44100.0/256.0)
 HOPS_DAMPEN = 8
 HOPS_WAIT   = 20
 
+DAMPEN_NOTE_SECONDS = 0.5
+DAMPEN_WAIT_SECONDS = 28.0/44100.0*256.0
+
 class TaskDampen(task_base.TaskBase):
 
 	def __init__(self, st, dyn, controller, emit):
 		task_base.TaskBase.__init__(self, st, dyn, controller, emit,
 			"dampen")
-		self.STEPS = 10
-		self.REPS = 10
+		self.STEPS = 8
+		self.REPS = 5
 
 		self.initial_force = None
 
@@ -56,6 +59,7 @@ class TaskDampen(task_base.TaskBase):
 		self._setup_controller()
 
 		for damp in self.test_range:
+			self.controller.set_dampen(self.st, self.dyn, damp)
 			for count in range(1, self.REPS+1):
 
 				params = vivi_controller.PhysicalActions()
@@ -73,9 +77,13 @@ class TaskDampen(task_base.TaskBase):
 						params.bow_force,
 						dynamics.get_velocity(self.dyn)),
 					damp, count)
-				self.controller.make_dampen(params, damp,
-					HOPS_SETTLE, HOPS_DAMPEN, HOPS_WAIT,
-					filename)
+				begin = vivi_controller.NoteBeginning()
+				end = vivi_controller.NoteEnding()
+				end.lighten_bow_force = True
+				self.controller.filesNew(filename)
+				self.controller.note(params, DAMPEN_NOTE_SECONDS, begin, end)
+				self.controller.rest(DAMPEN_WAIT_SECONDS)
+				self.controller.filesClose()
 				self.process_step.emit()
 		return
 

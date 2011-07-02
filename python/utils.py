@@ -6,6 +6,7 @@ import math
 import random
 
 EPSILON_PARAMS = 1e-3
+import subprocess
 
 def play(filename, start=None, length=None):
 	""" plays a wav file (optional: part of one) using play(1). """
@@ -32,7 +33,9 @@ def play(filename, start=None, length=None):
 #	cmd += filename
 #	print cmd
 	# DEBUG
-	os.system(cmd)
+	cmd = cmd.split()
+	p = subprocess.Popen(cmd)
+	stdout, stderr = p.communicate()
 
 #def visualize_cats(cats, length=8):
 #	cats_string = ''

@@ -81,8 +81,9 @@ class LilyPondCompile(QtCore.QThread):
 		cmd = cmd.split()
 		p = subprocess.Popen(cmd, stdout=logfile,
 			stderr=logfile)
-		p.wait()
+		stdout, stderr = p.communicate()
 		logfile.close()
+		
 		self.process_step.emit()
 		self.done.emit()
 
