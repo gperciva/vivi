@@ -120,6 +120,7 @@ def process_dir(dirname):
 
 process_dir('src')
 # this one needs swig!
+### FIXME: debug only
 process_dir('swig')
 process_dir('python')
 

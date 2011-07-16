@@ -26,6 +26,16 @@ stable = env.Program (target='test-stable',
 )
 
 
+instrument = env.Program (target='test-instrument',
+	source =(['test-instrument.cpp']
+		+ ['vivi_instrument_stk.cpp']),
+	LIBS=["monowav", "marsyas", "gsl", "gslcblas", "stk"],
+	# TODO: loses previous CCFLAGS
+	CCFLAGS=['-DRAWWAVE_PATH=/home/gperciva/.usr/share/stk/rawwaves/'],
+)
+
+
+
 
 #ears_h_files = map(lambda(x): x.replace('.cpp', '.h'),
 #	env['ears_files'])

@@ -7,6 +7,7 @@ const double PLAY = 0.3;
 
 int main() {
     ViviController *viviController = new ViviController();
+    viviController->filesNew("basic_note");
 
     PhysicalActions params;
     params.string_number = 1;
@@ -16,7 +17,7 @@ int main() {
     params.bow_bridge_distance = get_distance(0);
     params.bow_velocity = get_velocity(0);
 
-    viviController->basic(params, PLAY, SKIP, "foo");
+    viviController->basic(params, PLAY, SKIP);
 
     delete viviController;
 }

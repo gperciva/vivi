@@ -42,7 +42,7 @@ public:
     // special
     void comment(const char *text);
     void basic(PhysicalActions actions_get, double seconds,
-               double seconds_skip, const char *filenames_base=NULL);
+               double seconds_skip);
     void make_dampen(PhysicalActions actions_get,
                      double damp, int hops_settle, int hops_reduce, int hops_wait,
                      const char *filename=NULL);

@@ -160,11 +160,8 @@ bool ViviController::filesNew(const char *filenames_base) {
 }
 
 void ViviController::basic(PhysicalActions actions_get, double seconds,
-                           double skip_seconds, const char *filenames_base)
+                           double skip_seconds)
 {
-    // must do this first, otherwise actions.bow_velocity gets overwritten!
-    filesNew(filenames_base);
-
     actions.string_number = actions_get.string_number;
     actions.finger_position = actions_get.finger_position;
     actions.bow_force = actions_get.bow_force;
@@ -228,7 +225,6 @@ void ViviController::basic(PhysicalActions actions_get, double seconds,
         violin->wait_samples(buf, EARS_HOPSIZE);
         m_total_samples += EARS_HOPSIZE;
     }
-    filesClose();
 }
 
 void ViviController::rest(double seconds)
