@@ -1,10 +1,12 @@
 
 #include "vivi_instrument_stk.h"
 
-#include "stk/FileLoop.h"
 #include "stk/FileWvOut.h"
 using namespace stk;
 using namespace std;
+
+//#include "stk/Clarinet.h"
+#include "stk/Flute.h"
 
 
 ViviInstrumentStk::ViviInstrumentStk()
@@ -13,21 +15,28 @@ ViviInstrumentStk::ViviInstrumentStk()
     Stk::setSampleRate( 44100.0 );
     Stk::setRawwavePath( "/home/gperciva/.usr/share/stk/rawwaves/" );
 
-    FileLoop input;
+
     FileWvOut output;
 
-    // Load the sine wave file.
-    input.openFile( Stk::rawwavePath() + "sinewave.raw", true );
-
     // Open a 16-bit, one-channel WAV formatted output file
-    output.openFile( "hellosine.wav", 1, FileWrite::FILE_WAV, Stk::STK_SINT16 );
+    output.openFile( "test-instrument.wav", 1,
+        FileWrite::FILE_WAV, Stk::STK_SINT16 );
 
-    input.setFrequency( 440.0 );
 
-    // Run the oscillator for 40000 samples, writing to the output
-    // file
-    for ( int i=0; i<40000; i++ )
-        output.tick( input.tick() );
+    //Clarinet *clarinet = new Clarinet(220.0);
+    Flute *clarinet = new Flute(220.0);
+    // kill vibrato
+    clarinet->controlChange(11, 0); // vibrato frequency
+    clarinet->controlChange( 1, 0); // vibrato gain
+    clarinet->noteOn(220, 0.0); // set up outputGain_, bug in stk?
+
+    clarinet->setFrequency(440.0);
+    clarinet->startBlowing(0.9, 1.0);
+    //clarinet->noteOn(220, 0.9);
+    for (int i=0; i<44100*0.5; i++) {
+        output.tick( clarinet->tick() );
+
+    }
 
 }
 

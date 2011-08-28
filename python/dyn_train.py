@@ -417,9 +417,10 @@ class DynTrain(QtGui.QFrame):
 
 		self.train_filename = dirs.files.make_audio_filename(params)
 		physical = self.dyn_backend.get_physical_params(params)
+		self.controller.filesNew(self.train_filename)
 		self.controller.basic(
-			physical, BASIC_SECONDS, BASIC_SKIP,
-			self.train_filename)
+			physical, BASIC_SECONDS, BASIC_SKIP)
+		self.controller.filesClose()
 		shared.judge.user_judge(self.train_filename)
 
 	def basic_train_end(self):
