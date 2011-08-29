@@ -441,10 +441,8 @@ inline void ViviController::hop(int num_samples) {
                 actions.bow_bridge_distance,
                 actions.bow_force,
                 actions.bow_velocity);
-    // FIXME: ugh, this is disgusting!
-    double finger_midi = 12.0*log(1.0/(1.0 - actions.finger_position)) / log(2.0);
     ears[m_st][m_dyn]->set_extra_params(
-        m_st, finger_midi);
+        m_st, actions.finger_position);
 
     actions_file->bow(m_total_samples*dt, actions.string_number,
                       actions.bow_bridge_distance, actions.bow_force,

@@ -204,10 +204,10 @@ void Ears::prepNet() {
 */
 
 
-void Ears::set_extra_params(int st, double finger_midi) {
-    mrs_real pitch = string_finger_freq(st, finger_midi);
+void Ears::set_extra_params(int st, double finger_position) {
+    mrs_real pitch = string_finger_freq(st, finger_position);
 //cout<<"# st finger pitch:"<<'\t'<<st<<' '<<finger<<'\t'<<pitch<<endl;
-    parameters_input_realvec(0,0) = finger_midi;
+    parameters_input_realvec(0,0) = finger_position;
     //parameters_input_realvec(1,0) = pitch;
 
     if (parameters_input != NULL) {
@@ -229,8 +229,9 @@ void Ears::get_info_file(string filename) {
     int st = filename[offset] - 48;
     double finger_midi = filename[offset+2] - 48.0;
     //cout<<filename<<"  "<<st<<"  "<<finger<<endl;
+    double finger_position = 1.0 - 1.0 / pow(1.05946309,finger_midi);
 
-    set_extra_params(st, finger_midi);
+    set_extra_params(st, finger_position);
 }
 
 // ick, this doens't really belong here!
@@ -289,7 +290,9 @@ double Ears::getClass() {
     }
 }
 
-double Ears::string_finger_freq(double st, double finger_midi) {
+double Ears::string_finger_freq(double st, double finger_position) {
+    // FIXME: simplify this in maxima?
+    double finger_midi = 12.0 * log(1.0/(1.0-finger_position))/log(2.0);
     double midi = 55 + 7*st + finger_midi;
     return 440.0 * pow(2, (midi-69)/12.0);
 }

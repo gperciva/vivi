@@ -53,7 +53,7 @@ public:
     void listenShort(short *audio);
 
     // for extra params
-    void set_extra_params(int st, double finger_midi);
+    void set_extra_params(int st, double finger_position);
 
     // information
     double getClass();
@@ -117,7 +117,7 @@ private:
 
     Marsyas::MarSystem *marPitch(std::string type, std::string name);
 
-    double string_finger_freq(double st, double finger_midi);
+    double string_finger_freq(double st, double finger_position);
 
     Marsyas::realvec audio_input_realvec;
 //    Marsyas::realvec bow_input_realvec;
