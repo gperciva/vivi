@@ -33,9 +33,9 @@ class CheckColl:
 			if line[0] == '#':
 				continue
 			splitline = line.split()
-			cat = int( splitline[2].rstrip() )
+			cat = float( splitline[2].rstrip() )
 			if cat != shared.vivi_controller.CATEGORY_NULL:
-				cats[cat] += 1
+				cats[int(round(cat))] += 1
 
 		# TODO: ick, why is this necessary?
 		cats_sum = float(sum(cats))

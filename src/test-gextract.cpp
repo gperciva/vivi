@@ -3,7 +3,8 @@
 #include <string>
 
 // used for quick testing, with a normal violin.
-#define CAT_2_FILE "train/audio_0_0.000_0.080_2.000_0.400.wav"
+#define CAT_2_FILE "train/audio_0_0.000_0.080_4.000_0.400.wav"
+#define CAT_2_FILE_FINGER_4 "train/audio_0_4.000_0.080_2.000_0.400.wav"
 
 int main(int argc, char **argv) {
     // filename setup
@@ -45,6 +46,7 @@ int main(int argc, char **argv) {
         // should be category 2
         // TODO: display this somehow?
         ears->predict_wavfile(CAT_2_FILE, "cat_2_file.cat");
+        ears->predict_wavfile(CAT_2_FILE_FINGER_4, "cat_2_file_finger_4.cat");
         /*
                 while (ears->tick_file()) {
                     std::cout << ears->getClass() << " ";

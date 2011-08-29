@@ -64,7 +64,7 @@ void ActionsFile::finger(double seconds, int string_number,
     index++;
 }
 
-void ActionsFile::category(double seconds, int category)
+void ActionsFile::category(double seconds, double category)
 {
     if ((index + 1) >= size) {
         writeBuffer();
@@ -72,7 +72,7 @@ void ActionsFile::category(double seconds, int category)
     ActionData action;
     action.type = ACTION_CATEGORY;
     action.seconds = seconds;
-    action.string_number = category; // abuse of syntax
+    action.force = category; // abuse of syntax
     data[index] = action;
     index++;
 }
@@ -158,9 +158,9 @@ void ActionsFile::writeBuffer()
                     actions.position_along);
             break;
         case ACTION_CATEGORY:
-            sprintf(textline, "cat\t%f\t%i\n",
+            sprintf(textline, "cat\t%f\t%f\n",
                     actions.seconds,
-                    actions.string_number); // abuse of syntax
+                    actions.force); // abuse of syntax
             break;
         }
         fwrite(textline, sizeof(char), strlen(textline), outfile);

@@ -31,7 +31,7 @@ public:
              double position, double force, double velocity,
              double bow_pos_along);
 
-    void category(double seconds, int category);
+    void category(double seconds, double category);
     // writes buffer to file immediately
     void comment(const char *text);
 

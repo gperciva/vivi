@@ -19,6 +19,7 @@ const int EARS_HOPSIZE = 256;
 //const int EARS_HOPSIZE = 512;
 // needs to be at least 1024 for yin pitch
 const int EARS_WINDOWSIZE = 1024;
+//const int EARS_WINDOWSIZE = 2048;
 
 const int CATEGORY_NULL = -1;
 
@@ -52,10 +53,10 @@ public:
     void listenShort(short *audio);
 
     // for extra params
-    void set_extra_params(int st, double finger);
+    void set_extra_params(int st, double finger_midi);
 
     // information
-    int getClass();
+    double getClass();
     double getPitch();
 
     // end
@@ -116,7 +117,7 @@ private:
 
     Marsyas::MarSystem *marPitch(std::string type, std::string name);
 
-    double string_finger_freq(double st, double finger);
+    double string_finger_freq(double st, double finger_midi);
 
     Marsyas::realvec audio_input_realvec;
 //    Marsyas::realvec bow_input_realvec;
@@ -124,6 +125,7 @@ private:
     std::string oldfile;
     Marsyas::realvec parameters_input_realvec;
     Marsyas::MarSystem *parameters_input;
+    Marsyas::MarSystem *harmonics;
 
     Marsyas::mrs_natural ticks_count;
     Marsyas::mrs_natural stabilizingDelay;

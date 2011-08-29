@@ -130,7 +130,7 @@ class NoteActionsCats:
 			if line[0] == 'c':
 				splitline = line.split()
 				seconds = float(splitline[1])
-				cat = int(splitline[2])
+				cat = float(splitline[2])
 				cats.append( (seconds, cat) )
 		return cats
 

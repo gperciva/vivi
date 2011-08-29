@@ -75,6 +75,7 @@ void Ears::reset()
     learning = NULL;
     classifier = NULL;
     pitchdiff = NULL;
+    harmonics = NULL;
     audio_input = NULL;
 
     mode = NONE;
@@ -203,10 +204,10 @@ void Ears::prepNet() {
 */
 
 
-void Ears::set_extra_params(int st, double finger) {
-    mrs_real pitch = string_finger_freq(st, finger);
+void Ears::set_extra_params(int st, double finger_midi) {
+    mrs_real pitch = string_finger_freq(st, finger_midi);
 //cout<<"# st finger pitch:"<<'\t'<<st<<' '<<finger<<'\t'<<pitch<<endl;
-    parameters_input_realvec(0,0) = finger;
+    parameters_input_realvec(0,0) = finger_midi;
     //parameters_input_realvec(1,0) = pitch;
 
     if (parameters_input != NULL) {
@@ -214,6 +215,9 @@ void Ears::set_extra_params(int st, double finger) {
     }
     if (pitchdiff != NULL) {
         pitchdiff->updControl("mrs_real/expectedPitch", pitch);
+    }
+    if (harmonics != NULL) {
+        harmonics->updControl("mrs_real/base_frequency", pitch);
     }
 }
 
@@ -223,11 +227,10 @@ void Ears::get_info_file(string filename) {
     //cout<<offset<<endl;
 
     int st = filename[offset] - 48;
-    // TODO: make this a double, for fractional finger positions!
-    int finger = filename[offset+2] - 48;
+    double finger_midi = filename[offset+2] - 48.0;
     //cout<<filename<<"  "<<st<<"  "<<finger<<endl;
 
-    set_extra_params(st, finger);
+    set_extra_params(st, finger_midi);
 }
 
 // ick, this doens't really belong here!
@@ -277,7 +280,7 @@ void Ears::listenShort(short *audio) {
 }
 
 
-int Ears::getClass() {
+double Ears::getClass() {
     if (ticks_count > stabilizingDelay) {
         realvec data = net->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
         return data(0,0);
@@ -286,8 +289,8 @@ int Ears::getClass() {
     }
 }
 
-double Ears::string_finger_freq(double st, double finger) {
-    double midi = 55 + 7*st + finger;
+double Ears::string_finger_freq(double st, double finger_midi) {
+    double midi = 55 + 7*st + finger_midi;
     return 440.0 * pow(2, (midi-69)/12.0);
 }
 
@@ -428,6 +431,23 @@ Marsyas::MarSystem *Ears::spectralDomain()
 
     net->addMarSystem(power_system("Flux",1.0/2.0));
 
+    harmonics = mng.create("HarmonicStrength", "harm");
+    net->addMarSystem(harmonics);
+    mrs_natural num_harmonics = 15;
+    realvec harmonics_r(num_harmonics);
+    for (int i=0; i<num_harmonics; i++) {
+        harmonics_r(i) = i+1;
+    }
+    harmonics_r(num_harmonics-1) = 0.5;
+    /*
+    for (int i=0; i<num_harmonics; i++) {
+        cout<<i<<"\t"<<harmonics_r(i)<<endl;
+    }
+    */
+    harmonics->updControl("mrs_realvec/harmonics", harmonics_r);
+    harmonics->updControl("mrs_natural/harmonicsSize", num_harmonics);
+    harmonics->updControl("mrs_real/harmonicsWidth", 0.10);
+
     mrs_real max_S_obs = 20.0 / 24.0;
     MarSystem *scf_trim = mng.create("Series", "scf_trim");
     net->addMarSystem(scf_trim);
@@ -441,7 +461,6 @@ Marsyas::MarSystem *Ears::spectralDomain()
     sfm_trim->addMarSystem(mng.create("RemoveObservations", "rem_sfm"));
     sfm_trim->updControl("RemoveObservations/rem_sfm/mrs_real/highCutoff",
                          max_S_obs);
-
 
 //    net->addMarSystem(mng.create("Sum", "sumspt"));
 //    net->updControl("Sum/sumspt/mrs_string/mode", "sum_whole");
@@ -541,6 +560,10 @@ void Ears::make_learning() {
         //bool all = true;
 // try combination
         learning->updControl("WekaSink/wekasink/mrs_natural/nLabels",5);
+
+        // use regression or classification?
+	// FIXME: expriment with regression!
+    //    learning->updControl("WekaSink/wekasink/mrs_bool/regression",true);
         learning->updControl("WekaSink/wekasink/mrs_string/labelNames",
                              "1_more_bow,2_more_bow,3_ok_force,4_less_bow,5_less_bow");
         // MUST be done after linking with main network, i.e. not here!
@@ -555,6 +578,8 @@ void Ears::make_learning() {
     if (classifier == NULL) {
         classifier = mng.create("SVMClassifier", "svm_cl");
         classifier->updControl("mrs_string/mode", "train");
+	// FIXME: expriment with regression!
+        //classifier->updControl("mrs_string/svm", "NU_SVR");
         //learning->updControl("SVMClassifier/svm_cl/mrs_string/mode", "train");
     } else {
     }
@@ -616,8 +641,8 @@ void Ears::make_net() {
           	      net->linkControl("Series/learning/mrs_natural/currentLabel",
                                  "Series/audio_input/mrs_natural/currentLabel");
         */
-        net->linkControl("Series/learning/Annotator/annotator/mrs_natural/label",
-                         "Series/audio_input/SoundFileSource/gextract_src/mrs_natural/currentLabel");
+        net->linkControl("Series/learning/Annotator/annotator/mrs_real/label",
+                         "Series/audio_input/SoundFileSource/gextract_src/mrs_real/currentLabel");
         /*
             net->linkControl(
         "Series/learning/mrs_bool/resetStable",

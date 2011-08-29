@@ -23,7 +23,11 @@ class TaskStable(task_base.TaskBase):
 	def __init__(self, st, dyn, controller, emit):
 		task_base.TaskBase.__init__(self, st, dyn, controller, emit,
 			"stable")
-		self.STEPS = 6
+#		self.STEPS = 6
+		# FIXME: debug...
+		self.STEPS = 3
+		self.REPS = 1
+		# FIXME: ... debug end
 		self.LOW_INIT = 1.0 # blah numbers to start with
 		self.HIGH_INIT = 1.1
 
