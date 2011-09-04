@@ -60,6 +60,15 @@ class ExamineNoteWidget():
 			)
 			self.plot_actions.set_stability(nac[1],
 				self.examine_note.note_cats_means)
+		# FIXME: oh god ick, how is this so bad?
+		if self.plot_type == PLOT_ACTIONS:
+			self.examine_note = nac[0]
+			self.plot_actions.set_data(
+				self.examine_note.note_forces,
+				self.examine_note.note_cats,
+			)
+			#self.plot_actions.set_stability(nac[1],
+			#	self.examine_note.note_cats_means)
 
 	def new_examine_note(self):
 		self.examine_note = note_actions_cats.NoteActionsCats()

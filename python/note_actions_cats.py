@@ -43,7 +43,7 @@ class NoteActionsCats:
 			self.cat_lines = []
 		self.reset_note()
 
-	def load_note(self, note_text):
+	def load_note(self, note_text, full=False):
 		if not self.lines:
 			return False
 		self.reset_note()
@@ -74,7 +74,7 @@ class NoteActionsCats:
 			i += 1
 		i += 1
 
-		while not self.lines[i].startswith('#'):
+		while (not self.lines[i].startswith('#')) or (full):
 			self.note_lines.append( self.lines[i] )
 			if self.lines[i][0] == 's':
 				skip_start = float(self.lines[i].split()[1])

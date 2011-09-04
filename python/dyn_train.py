@@ -692,5 +692,6 @@ class DynTrain(QtGui.QFrame):
 			self.dyn_backend.task_attacks[2], 3)
 
 	def click_dampen(self):
-		print "investigate dampen"
+		self.examine.examine("dampen", self.st, self.dyn,
+		self.dyn_backend.task_dampen)
 

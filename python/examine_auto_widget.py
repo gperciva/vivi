@@ -48,6 +48,10 @@ class ExamineAutoWidget(QtGui.QFrame):
 			self.task_attack = task_stable # oh god ick
 			self.setup_attack(finger)
 			self.ui.examine_type_label.setText("attack")
+		elif type == "dampen":
+			self.task_dampen = task_stable # oh god ick
+			self.setup_dampen()
+			self.ui.examine_type_label.setText("dampen")
 
 		self.show()
 
@@ -176,6 +180,64 @@ class ExamineAutoWidget(QtGui.QFrame):
 					self.examines[row][col].plot_actions.set_border([1,0,0,0])
 				if row % num_counts == (num_counts-1) and row < num_rows:
 					self.examines[row][col].plot_actions.set_border([0,0,1,0])
+
+	def setup_dampen(self):
+		if not self.task_dampen.notes:
+			self.task_dampen.get_dampen_files_info()
+
+		num_rows = len(self.task_dampen.extras)
+		num_counts = self.task_dampen.REPS
+
+		forces_strings = map(str, self.task_dampen.extras)
+		# setup table and gui
+		self.table = table_play_widget.TablePlayWidget(self)
+		self.table.set_column_names(forces_strings)
+
+		# clear previous widget if exists
+		if self.ui.verticalLayout.count() == 3:
+			self.ui.verticalLayout.takeAt(2)
+
+		self.ui.verticalLayout.addWidget(self.table)
+
+		self.table.action_play.connect(self.table_play)
+		self.table.select_previous.connect(self.clear_select)
+		self.table.select_new.connect(self.select_plot)
+		self.table.action_quit.connect(self.table_quit)
+		self.ui.button_play.clicked.connect(self.table_play)
+
+		self.table.clearContents()
+		self.table.setRowCount(3)
+
+		self.examines = []
+		for row in range(num_counts):
+			examines_row = []
+			for col in range(num_rows):
+				examines_row.append(None)
+			self.examines.append( examines_row )
+
+		# populate table
+		for row in range(num_counts):
+			for col in range(num_rows):
+				# TODO: define a PLOT_DAMPEN
+				examine = examine_note_widget.ExamineNoteWidget(
+					shared.examine_note_widget.PLOT_ATTACK)
+
+				examine.set_examine_note(self.task_dampen.notes[col][row] )
+				self.examines[row][col] = examine
+
+				self.table.setCellWidget(row, col,
+					examine.plot_actions)
+				self.table.setRowHeight(row, 50.0)
+
+				if col % 1 == 0 and col > 0:
+					self.examines[row][col].plot_actions.set_border([0,0,0,1])
+				if col % 1 == 0 and col < 3:
+					self.examines[row][col].plot_actions.set_border([0,1,0,0])
+				if row % num_counts == 0 and row > 0:
+					self.examines[row][col].plot_actions.set_border([1,0,0,0])
+				if row % num_counts == (num_counts-1) and row < num_rows:
+					self.examines[row][col].plot_actions.set_border([0,0,1,0])
+
 
 
 	def table_play(self):

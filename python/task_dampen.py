@@ -23,23 +23,25 @@ import os.path
 # 50 ms = 8.6 hops
 # 52.2 ms = 9 hops
 # 100 ms = 17.2 hops
-HOPS_SETTLE = int( 0.5 * 44100.0/256.0)
+HOPS_SETTLE = int( 0.25 * 44100.0/256.0)
 #HOPS_DAMPEN = 8
 #HOPS_WAIT   = int( 0.05 * 44100.0/256.0)
 HOPS_DAMPEN = 8
 HOPS_WAIT   = 20
 
-DAMPEN_NOTE_SECONDS = 0.5
-DAMPEN_WAIT_SECONDS = 28.0/44100.0*256.0
+DAMPEN_NOTE_SECONDS = 0.25
+#DAMPEN_WAIT_SECONDS = 28.0/44100.0*256.0
+DAMPEN_WAIT_SECONDS = 0.25
 
 class TaskDampen(task_base.TaskBase):
 
 	def __init__(self, st, dyn, controller, emit):
 		task_base.TaskBase.__init__(self, st, dyn, controller, emit,
 			"dampen")
-		self.STEPS = 8
-		self.REPS = 5
+		self.STEPS = 6
+		self.REPS = 3
 
+		self.notes = None
 		self.initial_force = None
 
 		self.ears = self.controller.getEars(self.st, self.dyn)
@@ -119,7 +121,11 @@ class TaskDampen(task_base.TaskBase):
 			params, extra, count = dirs.files.get_audio_params_extra(filename)
 			row = self.extras.index(extra)
 			col = self.counts.index(count)
-			self.notes[row][col] = filename
+
+			nac = note_actions_cats.NoteActionsCats()
+			nac.load_file(filename[0:-4])
+			nac.load_note("note", full=True)
+			self.notes[row][col] = (nac, 0, filename)
 
 
 	def _examine_files(self):
@@ -129,7 +135,7 @@ class TaskDampen(task_base.TaskBase):
 		for row, dampen in enumerate(self.extras):
 			costs = []
 			for col, count in enumerate(self.counts):
-				filename = self.notes[row][col]
+				filename = self.notes[row][col][2]
 				self.ears.get_rms_from_file(self.hops,
 					filename, self.rmss)
 				total = 0.0
@@ -142,14 +148,17 @@ class TaskDampen(task_base.TaskBase):
 					value = self.rmss[HOPS_SETTLE+HOPS_DAMPEN+i]
 					total_wait += value
 				total = total_damp + total_wait
+
+				self.notes[row][col] = (self.notes[row][col][0], total, filename)
+
 				#costs.append(total_wait)
 				costs.append(total)
-			cost = scipy.stats.mean(costs)
-			print dampen,
+			cost = scipy.stats.gmean(costs)
+			#print dampen,
 			#print dampen, '\t', "%.3f"%cost, '\t',
-			for x in costs:
-				print "%.3f" % x,
-			print
+			#for x in costs:
+			#	print "%.3f" % x,
+			#print
 			#print ["%.3f" % x for x in costs]
 			candidates.append( 
 				(cost, dampen, row) )
@@ -159,6 +168,11 @@ class TaskDampen(task_base.TaskBase):
 		index = candidates[0][2]
 
 		return index, answer
+
+	def get_dampen_files_info(self):
+		self._examine_files()
+
+
 
 # FIXME: oh god ick debug only
 #	def calculate_full(self):
