@@ -23,15 +23,13 @@ import os.path
 # 50 ms = 8.6 hops
 # 52.2 ms = 9 hops
 # 100 ms = 17.2 hops
-HOPS_SETTLE = int( 0.25 * 44100.0/256.0)
-#HOPS_DAMPEN = 8
-#HOPS_WAIT   = int( 0.05 * 44100.0/256.0)
-HOPS_DAMPEN = 8
-HOPS_WAIT   = 20
-
 DAMPEN_NOTE_SECONDS = 0.25
-#DAMPEN_WAIT_SECONDS = 28.0/44100.0*256.0
 DAMPEN_WAIT_SECONDS = 0.25
+
+HOPS_DAMPEN = 8
+HOPS_SETTLE = int( DAMPEN_NOTE_SECONDS * 44100.0/256.0) - HOPS_DAMPEN
+HOPS_WAIT   = int( DAMPEN_WAIT_SECONDS * 44100.0/256.0) + HOPS_DAMPEN - 1
+
 
 class TaskDampen(task_base.TaskBase):
 
@@ -46,7 +44,6 @@ class TaskDampen(task_base.TaskBase):
 
 		self.ears = self.controller.getEars(self.st, self.dyn)
 		self.hops = HOPS_SETTLE + HOPS_DAMPEN + HOPS_WAIT
-		self.rmss = vivi_controller.doubleArray(self.hops)
 
 	def steps_full(self):
 		return 2*(self.STEPS * self.REPS)
@@ -131,21 +128,23 @@ class TaskDampen(task_base.TaskBase):
 	def _examine_files(self):
 		self.get_file_info()
 
+		rmss = vivi_controller.doubleArray(self.hops)
 		candidates = []
 		for row, dampen in enumerate(self.extras):
 			costs = []
 			for col, count in enumerate(self.counts):
 				filename = self.notes[row][col][2]
 				self.ears.get_rms_from_file(self.hops,
-					filename, self.rmss)
+					filename, rmss)
 				total = 0.0
 				total_damp = 0.0
 				total_wait = 0.0
+				prev = rmss[HOPS_SETTLE-1]
 				for i in range(HOPS_DAMPEN):
-					value = self.rmss[HOPS_SETTLE+i]
+					value = rmss[HOPS_SETTLE+i]
 					total_damp += value
 				for i in range(HOPS_WAIT):
-					value = self.rmss[HOPS_SETTLE+HOPS_DAMPEN+i]
+					value = rmss[HOPS_SETTLE+HOPS_DAMPEN+i]
 					total_wait += value
 				total = total_damp + total_wait
 
