@@ -32,8 +32,7 @@ class StyleBase():
 		self.controller_params = []
 		for st in range(4):
 			st_controllers = []
-			# FIXME: debug only
-			for dyn in range(1):
+			for dyn in range(4):
 				dyn_filename = dirs.files.get_dyn_vivi_filename(st, dyn)
 				st_controllers.append(controller_params.ControllerParams(dyn_filename))
 			self.controller_params.append(st_controllers)
@@ -45,7 +44,7 @@ class StyleBase():
 
 	def reload_params(self):
 		for st in range(4):
-			for dyn in range(1):
+			for dyn in range(4):
 				self.controller_params[st][dyn].load_file()
 
 	def plan_perform(self, events):
@@ -69,16 +68,14 @@ class StyleBase():
 		pitch = float(details[0][1][0])
 		params = vivi_controller.PhysicalActions()
 		params.string_number, params.finger_position = self.get_finger_naive(pitch)
-		# FIXME: only dyn 0
-		params.dynamic = 0
-		params.bow_bridge_distance = dynamics.get_distance(0)
-		# FIXME: only dyn 0, no force interpolation
-		params.bow_force = self.get_simple_force(
-			params.string_number, params.finger_position)
-		params.bow_velocity = dynamics.get_velocity(0)
+		# must be fixed later
+		params.dynamic = -1
+		params.bow_bridge_distance = -1
+		params.bow_force = -1
+		params.bow_velocity = -1
 		return params
 
-	def get_simple_force(self, st, finger_position):
+	def get_simple_force(self, st, finger_position, dyn):
 		# TODO: this function is icky
 		low_index = 0
 		high_index = 0
@@ -92,9 +89,9 @@ class StyleBase():
 			high_index = len(basic_training.FINGER_MIDIS) - 1
 		force = utils.interpolate(fm,
 			basic_training.FINGER_MIDIS[low_index],
-			self.controller_params[st][0].get_attack_force(low_index),
+			self.controller_params[st][dyn].get_attack_force(low_index),
 			basic_training.FINGER_MIDIS[high_index],
-			self.controller_params[st][0].get_attack_force(high_index))
+			self.controller_params[st][dyn].get_attack_force(high_index))
 		return force
 
 	def get_finger_naive(self,pitch):

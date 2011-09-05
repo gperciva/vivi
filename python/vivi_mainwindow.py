@@ -153,7 +153,6 @@ class ViviMainwindow(QtGui.QMainWindow):
 ######################### old stuffs
 
 	def load_ly_file(self, ly_filename):
-		#print ly_filename
 		#self.ly_basename = os.path.splitext(ly_filename)[0]
 		self.ly_basename = ly_filename[:-3]
 		if shared.lily.lily_file_needs_compile(ly_filename):
@@ -359,7 +358,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 		elif key == 'y':
 			self.open_ly_file('ly/example-input.ly')
 		elif key == 'i':
-			self.open_ly_file('ly/current.ly')
+			self.open_ly_file('ly/basic/scale-combo.ly')
 		elif key == 'u':
 			self.open_ly_file('ly/black-box.ly')
 		elif key == 'm':

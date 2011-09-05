@@ -3,6 +3,7 @@
 import style_base
 
 import vivi_controller
+import dynamics
 
 
 class StyleSimple(style_base.StyleBase):
@@ -13,6 +14,7 @@ class StyleSimple(style_base.StyleBase):
 		self.make_notes_durs(events)
 		self.add_point_and_click()
 		self.basic_physical_begin_end()
+		self.do_dynamics()
 		self.do_pizz()
 		self.do_ties()
 		self.do_bowing() # after ties
@@ -123,6 +125,30 @@ class StyleSimple(style_base.StyleBase):
 #			if ["staccato"] in script_details:
 #				note.end.lighten_bow_force = False
 
+	def do_dynamics(self):
+		current_dynamic = 0 # default to forte
+		for note in self.notes:
+			if not self.is_note(note):
+				continue
+			dyn = self.get_details(note, "dynamic")
+			if dyn:
+				current_dynamic = self.dynamic_string_to_float(dyn[0][0])
+			note.physical.dynamic = current_dynamic
+			note.physical.bow_bridge_distance = dynamics.get_distance(current_dynamic)
+			note.physical.bow_force = self.get_simple_force(
+				note.physical.string_number,
+				note.physical.finger_position,
+				current_dynamic)
+			note.physical.bow_velocity = dynamics.get_velocity(current_dynamic)
 
-
+	def dynamic_string_to_float(self, dyn):
+		if dyn == 'f':
+			return 0
+		elif dyn == 'mf':
+			return 1
+		elif dyn == 'mp':
+			return 2
+		elif dyn == 'p':
+			return 3
+		return 0
 

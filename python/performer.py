@@ -39,8 +39,7 @@ class Performer(QtCore.QObject):
 
 	def _setup_controller(self):
 		for st in range(4):
-			# FIXME: debug only
-			for dyn in range(1):
+			for dyn in range(4):
 				mpl_filename = dirs.files.get_mpl_filename(st, 'main', dyn)
 				if not os.path.exists(mpl_filename):
 					mpl_filename = None
@@ -86,6 +85,8 @@ class Performer(QtCore.QObject):
 				note.physical.print_params()
 				note.begin.print_params()
 				note.end.print_params()
+			if note.physical.dynamic < 0:
+				print "CRITICAL ERROR: dynamic below 0!"
 			note.physical.bow_force *= BOW_TO_PIZZ_FORCE_MULTIPLIER
 			self.controller.pizz(note.physical, note.duration)
 		else:

@@ -47,8 +47,14 @@ class LilyPondCompile(QtCore.QThread):
 
 	def lily_file_needs_compile(self, ly_filename_orig):
 		#self.ly_filename = os.path.abspath(ly_filename)
-		self.ly_filename = os.path.join(dirs.files.get_music_dir(),
-			ly_filename_orig)
+		if ly_filename_orig[0] == "/":
+			self.ly_filename = os.path.join(
+				dirs.files.get_music_dir(),
+				ly_filename_orig[1:])
+		else:
+			self.ly_filename = os.path.join(
+				dirs.files.get_music_dir(),
+				ly_filename_orig)
 		self.ly_basename = os.path.splitext(self.ly_filename)[0]
 		self.ly_dirname = os.path.dirname(self.ly_filename)
 		self.ly_dirname_orig = os.path.abspath(
