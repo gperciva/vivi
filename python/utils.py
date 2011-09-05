@@ -33,9 +33,13 @@ def play(filename, start=None, length=None):
 #	cmd += filename
 #	print cmd
 	# DEBUG
-	cmd = cmd.split()
-	p = subprocess.Popen(cmd)
-	stdout, stderr = p.communicate()
+#	cmd = cmd.split()
+	# TODO: I don't know why I need the shell, but this avoids
+	# the "invisible cursor after script end" problem in
+	# python 2.6.  :(
+#	p = subprocess.Popen(cmd, shell=True)
+#	p.wait()
+	os.system(cmd)
 
 #def visualize_cats(cats, length=8):
 #	cats_string = ''

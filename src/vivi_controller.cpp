@@ -252,7 +252,6 @@ void ViviController::pizz(PhysicalActions actions_get, double seconds)
 {
     actions_file->comment("rest");
     cats_file->comment("rest");
-    bowStop();
 
     // set up note parameters
     actions.string_number = actions_get.string_number;

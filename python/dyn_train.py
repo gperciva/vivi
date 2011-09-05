@@ -385,7 +385,7 @@ class DynTrain(QtGui.QFrame):
 			self.modified_attack = False
 		elif job_type == state.DAMPEN:
 			self.dampen = self.dyn_backend.dampen
-			self.modified_attack = False
+			self.modified_dampen = False
 		self.display()
 
 

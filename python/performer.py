@@ -21,6 +21,8 @@ import style_simple
 
 EXTRA_FINAL_REST = 0.5
 
+BOW_TO_PIZZ_FORCE_MULTIPLIER = 5.0
+
 class Performer(QtCore.QObject):
 	process_step = QtCore.pyqtSignal()
 
@@ -33,6 +35,7 @@ class Performer(QtCore.QObject):
 			dirs.files = dirs.ViviDirs(
 				"train/", "/tmp/vivi-cache/", "final/")
 		self.current_st = None
+		self.arco = False
 
 	def _setup_controller(self):
 		for st in range(4):
@@ -75,12 +78,23 @@ class Performer(QtCore.QObject):
 
 	def _render_note(self, note):
 		if note.pizz:
-			self.controller.pizz(note.physical, note.duration)
-		else:
+			if self.arco:
+				self.controller.bowStop()
+				self.arco = False
 			if DEBUG_PARAMS:
+				print '---- pizz'
 				note.physical.print_params()
 				note.begin.print_params()
 				note.end.print_params()
+			note.physical.bow_force *= BOW_TO_PIZZ_FORCE_MULTIPLIER
+			self.controller.pizz(note.physical, note.duration)
+		else:
+			if DEBUG_PARAMS:
+				print '---- note'
+				note.physical.print_params()
+				note.begin.print_params()
+				note.end.print_params()
+			self.arco = True
 			self.controller.note(note.physical, note.duration,
 				note.begin, note.end,
 				note.point_and_click)
