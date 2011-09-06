@@ -244,8 +244,10 @@ class ViviMainwindow(QtGui.QMainWindow):
 		shared.examine_main.load_file(filename)
 		#pnc_text = "point_and_click %i %i" % (lily_line, lily_col)
 		pnc_text = "point_and_click %i %i" % (lily_col, lily_line)
-		shared.examine_main.load_note(pnc_text)
-		shared.examine_main.play()
+		if shared.examine_main.load_note(pnc_text):
+			shared.examine_main.play()
+		else:
+			print "no note found:", pnc_text
 
 		#self.string_train.set_note_label(self.ui.note_label)
 #		status = self.examine.load_note(lily_line, lily_col)
@@ -338,6 +340,9 @@ class ViviMainwindow(QtGui.QMainWindow):
 
 	def close(self):
 		self.save_training()
+		# TODO: workaround for some weird python invisible bug
+		import os
+		os.system("reset")
 		self.app.quit()
 
 	def keyPressEvent(self, event):

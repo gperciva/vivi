@@ -565,8 +565,8 @@ void Ears::make_learning() {
         learning->updControl("WekaSink/wekasink/mrs_natural/nLabels",5);
 
         // use regression or classification?
-	// FIXME: expriment with regression!
-    //    learning->updControl("WekaSink/wekasink/mrs_bool/regression",true);
+        // FIXME: expriment with regression!
+        //    learning->updControl("WekaSink/wekasink/mrs_bool/regression",true);
         learning->updControl("WekaSink/wekasink/mrs_string/labelNames",
                              "1_more_bow,2_more_bow,3_ok_force,4_less_bow,5_less_bow");
         // MUST be done after linking with main network, i.e. not here!
@@ -581,7 +581,7 @@ void Ears::make_learning() {
     if (classifier == NULL) {
         classifier = mng.create("SVMClassifier", "svm_cl");
         classifier->updControl("mrs_string/mode", "train");
-	// FIXME: expriment with regression!
+        // FIXME: expriment with regression!
         //classifier->updControl("mrs_string/svm", "NU_SVR");
         //learning->updControl("SVMClassifier/svm_cl/mrs_string/mode", "train");
     } else {

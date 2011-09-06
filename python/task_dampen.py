@@ -37,7 +37,6 @@ class TaskDampen(task_base.TaskBase):
 		task_base.TaskBase.__init__(self, st, dyn, controller, emit,
 			"dampen")
 		self.STEPS = 6
-		self.REPS = 3
 
 		self.notes = None
 		self.initial_force = None

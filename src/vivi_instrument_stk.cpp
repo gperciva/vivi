@@ -20,7 +20,7 @@ ViviInstrumentStk::ViviInstrumentStk()
 
     // Open a 16-bit, one-channel WAV formatted output file
     output.openFile( "test-instrument.wav", 1,
-        FileWrite::FILE_WAV, Stk::STK_SINT16 );
+                     FileWrite::FILE_WAV, Stk::STK_SINT16 );
 
 
     //Clarinet *clarinet = new Clarinet(220.0);

@@ -18,7 +18,7 @@ class TaskBase():
 
 		self.STEPS = 10 # even number to avoid picking the
 				# same value on second pass
-		self.REPS = 3
+		self.REPS = 2
 
 		self.LOW_INIT = 0.0 # blah numbers to start with
 		self.HIGH_INIT = 1.0

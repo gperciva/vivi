@@ -19,6 +19,9 @@ PLOT_MAIN = 2
 PLOT_STABLE = 3
 PLOT_ATTACK = 4
 
+# TODO: make this instrument-specific?
+CONVOLUTION_DELAY = 0.025 # seconds (approximate value)
+
 class ExamineNoteWidget():
 	#def __init__(self, parent):
 	def __init__(self, plot_type=PLOT_ACTIONS):
@@ -83,8 +86,8 @@ class ExamineNoteWidget():
 				self.examine_note.note_forces,
 				self.examine_note.note_cats,
 				)
-		else:
-			print "Not a rehearsed note!"
+#		else:
+#			print "Not a rehearsed note!"
 		return status
 
 
@@ -99,6 +102,9 @@ class ExamineNoteWidget():
 		else:
 			start = self.examine_note.note_start
 			dur = self.examine_note.note_length
+			# to avoid icky blimps in the big grid display
+			start += CONVOLUTION_DELAY
+			dur += CONVOLUTION_DELAY
 		utils.play(self.examine_note.basename+'.wav',
 			start, dur)
 

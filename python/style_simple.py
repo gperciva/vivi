@@ -5,6 +5,9 @@ import style_base
 import vivi_controller
 import dynamics
 
+STACCATO_SHORTEN_MULTIPLIER = 0.7
+PORTATO_SHORTEN_MULTIPLIER = 0.9
+BREATHE_SHORTEN_MULTIPLIER = 0.5
 
 class StyleSimple(style_base.StyleBase):
 	def __init__(self):
@@ -14,12 +17,13 @@ class StyleSimple(style_base.StyleBase):
 		self.make_notes_durs(events)
 		self.add_point_and_click()
 		self.basic_physical_begin_end()
+		self.do_strings_explicit()
 		self.do_dynamics()
 		self.do_pizz()
 		self.do_ties()
+		self.do_staccato_breathe() # before bowing?
 		self.do_bowing() # after ties
 		self.do_lighten() # do after staccato adds rests
-		self.do_staccato() # do after lighten? TODO: maybe
 
 	def make_notes_durs(self, events):
 		self.notes = []
@@ -56,6 +60,33 @@ class StyleSimple(style_base.StyleBase):
 			note.begin = vivi_controller.NoteBeginning()
 			note.end = vivi_controller.NoteEnding()
 
+	def string_text_to_number(self, text):
+		if text == 'I':
+			return 3
+		elif text == 'II':
+			return 2
+		elif text == 'III':
+			return 1
+		elif text == 'IV':
+			return 0
+		else:
+			return None
+
+	def do_strings_explicit(self):
+		for note in self.notes:
+			if not self.is_note(note):
+				continue
+			text_details = self.get_details(note, "text")
+			if text_details:
+				which_string = self.string_text_to_number(text_details[0][0])
+				if which_string:
+					pitch = float(note.details[0][1][0])
+					finger_semitones = pitch - (55 + 7*which_string)
+					position = self.semitones(finger_semitones)
+					note.physical.string_number = which_string
+					note.physical.finger_position = position
+
+
 	def do_pizz(self):
 		pizz = False
 		for note in self.notes:
@@ -63,7 +94,7 @@ class StyleSimple(style_base.StyleBase):
 				continue
 			text_details = self.get_details(note, "text")
 			if text_details:
-				if text_details[0][0] == "pizz":
+				if text_details[0][0] == "pizz.":
 					pizz = True
 				elif text_details[0][0] == "arco":
 					pizz = False
@@ -93,37 +124,70 @@ class StyleSimple(style_base.StyleBase):
 					slur_on = True
 				else:
 					slur_on = False
-			if slur_on:
+			stop_bow = False
+			script_details = self.get_details(note, "script")
+			if ["staccato"] in script_details:
+				stop_bow = True
+			if ["portato"] in script_details:
+				stop_bow = True
+			if slur_on and not stop_bow:
 				note.end.keep_bow_velocity = True
-			if not note.end.keep_bow_velocity:
+			if not slur_on:
 				bow_dir *= -1
 
 	def do_lighten(self):
 		for note, note_next in self.pair(self.notes):
+			if not self.is_note(note):
+				continue
+			# deliberately set elsewhere, don't change
+			if note.end.let_string_vibrate:
+				continue
 			# before a rest
-			if self.is_note(note) and not self.is_note(note_next):
+			if not self.is_note(note_next):
 				note.end.lighten_bow_force = True
-			if self.is_note(note) and self.is_note(note_next):
+			if self.is_note(note_next):
 				if (note.physical.string_number !=
 					note_next.physical.string_number):
 					note.end.lighten_bow_force = True
-			if self.is_note(note):
-				breathe_details = self.get_details(note, "breathe")
-				if breathe_details:
-					note.end.lighten_bow_force = False
-					note.end.let_string_vibrate = True
+
 		# last note
 		note = self.notes[len(self.notes)-1]
 		if self.is_note(note):
 			note.end.lighten_bow_force = True
 
-	def do_staccato(self):
-		for note in self.notes:
+	def do_staccato_breathe(self):
+		# make copy of list to allow modifying
+		for note in list(self.notes):
 			if not self.is_note(note):
 				continue
 			script_details = self.get_details(note, "script")
-#			if ["staccato"] in script_details:
-#				note.end.lighten_bow_force = False
+			if ["staccato"] in script_details:
+				index = self.notes.index(note)
+				extra_rest = style_base.Rest(note.duration*(1.0-STACCATO_SHORTEN_MULTIPLIER))
+				note.duration *= STACCATO_SHORTEN_MULTIPLIER
+				self.notes.insert(index+1, extra_rest)
+			if ["portato"] in script_details:
+				index = self.notes.index(note)
+				extra_rest = style_base.Rest(note.duration*(1.0-PORTATO_SHORTEN_MULTIPLIER))
+				note.duration *= PORTATO_SHORTEN_MULTIPLIER
+				self.notes.insert(index+1, extra_rest)
+		# make copy of list to allow modifying
+		for note, note_next in self.pair(list(self.notes)):
+			if not self.is_note(note):
+				continue
+			if not self.is_note(note_next):
+				continue
+			# TODO: hack because breathe happens on
+			# the note after?!?!
+			breathe_details = self.get_details(note_next, "breathe")
+			if breathe_details:
+				index = self.notes.index(note)
+				extra_rest = style_base.Rest(note.duration*(1.0-BREATHE_SHORTEN_MULTIPLIER))
+				note.duration *= BREATHE_SHORTEN_MULTIPLIER
+				self.notes.insert(index+1, extra_rest)
+				note.end.lighten_bow_force = False
+				note.end.let_string_vibrate = True
+				note.end.keep_bow_velocity = True
 
 	def do_dynamics(self):
 		current_dynamic = 0 # default to forte

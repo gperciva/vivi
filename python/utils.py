@@ -10,36 +10,20 @@ import subprocess
 
 def play(filename, start=None, length=None):
 	""" plays a wav file (optional: part of one) using play(1). """
-#	if start >= 0:
-#		TEMPFILE = '/tmp/vivi-playing.wav'
-#		cmd = "sox %s %s trim %f %f" % (
-#			filename, TEMPFILE,
-#			start, length)
-#		print cmd
-#		os.system(cmd)
-#		cmd = "jack.play %s" % (TEMPFILE)
-#		print cmd
-#		os.system(cmd)
-#	else:
-#		cmd = "jack.play %s" % (filename)
-#		print cmd
-#		os.system(cmd)
 	cmd = "play -q "+filename
 	#cmd = "play -q -t alsa "+filename
 ##	cmd = "mplayer -ao jack -really-quiet "
 	if start >= 0:
 		cmd += " trim %f %f" % (start, length)
 #		cmd += " -ss %f -endpos %f " %(start, length)
-#	cmd += filename
 #	print cmd
-	# DEBUG
-#	cmd = cmd.split()
-	# TODO: I don't know why I need the shell, but this avoids
-	# the "invisible cursor after script end" problem in
-	# python 2.6.  :(
-#	p = subprocess.Popen(cmd, shell=True)
-#	p.wait()
-	os.system(cmd)
+	cmd = cmd.split()
+	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(stdout, sterr) = p.communicate()
+	retcode = p.returncode
+	if retcode > 0:
+		print "FAILURE!  play returned:", retcodE
+	#print "play end:", p.returncode
 
 #def visualize_cats(cats, length=8):
 #	cats_string = ''

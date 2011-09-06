@@ -395,12 +395,21 @@ void ViviController::note(PhysicalActions actions_get, double seconds,
         if (end.lighten_bow_force) {
             actions.bow_force = 0.0;
         }
-        bowStop();
+        violin->bow(actions.string_number,
+                    actions.bow_bridge_distance,
+                    actions.bow_force,
+                    actions.bow_velocity);
+        actions_file->bow(m_total_samples*dt, actions.string_number,
+                          actions.bow_bridge_distance, actions.bow_force,
+                          actions.bow_velocity,
+                          m_bow_pos_along);
     }
 //zz
 }
 
 inline void ViviController::bowStop() {
+    actions.bow_velocity = 0.0;
+    actions.bow_force = 0.0;
     violin->bow(actions.string_number,
                 actions.bow_bridge_distance,
                 actions.bow_force,

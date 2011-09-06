@@ -130,14 +130,12 @@ class TaskAttack(task_base.TaskBase):
 			for count in range(self.REPS):
 				row = self.REPS*block + count
 				val = self.notes[row][col]
-#				print val[1]
 				if val[1] > 0:
 					vals.append(val[1])
-				# FIXME: do something intelligent
-				# with a value of 0 ?
-#				else:
-#					vals.append(1e-9)
-			val = scipy.stats.gmean(vals)
+			if len(vals) > 0:
+				val = scipy.stats.gmean(vals)
+			else:
+				val = 0
 			cands.append( (val, block, bow_force) )
 		cands.sort()
 		lowest_index = cands[0][1]

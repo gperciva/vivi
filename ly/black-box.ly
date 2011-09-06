@@ -9,7 +9,6 @@ violinone = \relative c' {
 
   a4\f d fis8-. a-. r4
   d16(\downbow cis b a) g4 \breathe e8\p( g) fis4
-%{
   e4\< g8 fis g4-_\mp\>
     \st "III"
     b8-_\startTextSpan a-_\stopTextSpan
@@ -30,7 +29,6 @@ violinone = \relative c' {
   fis16\p\startTextSpan a_"II" g a_"II" a a_"II" bes a_"II"
     c a_"II" bes a_"II"\stopTextSpan
   a4\breathe a,\breathe r4
-%}
 }
 
 \score {

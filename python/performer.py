@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-DEBUG_PARAMS = 0
+DEBUG_PARAMS = 1
 
 import sys
 # TODO: hack for current build system.
@@ -21,7 +21,7 @@ import style_simple
 
 EXTRA_FINAL_REST = 0.5
 
-BOW_TO_PIZZ_FORCE_MULTIPLIER = 5.0
+BOW_TO_PIZZ_FORCE_MULTIPLIER = 1.0
 
 class Performer(QtCore.QObject):
 	process_step = QtCore.pyqtSignal()
@@ -102,7 +102,10 @@ class Performer(QtCore.QObject):
 
 	def _render_rest(self, note):
 		if DEBUG_PARAMS:
-			print "rest"
+				print '---- rest'
+		if self.arco:
+			self.controller.bowStop()
+			self.arco = False
 		self.controller.rest(note.duration)
 
 	def get_duration(self):
