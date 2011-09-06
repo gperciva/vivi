@@ -4,6 +4,7 @@ import style_base
 
 import vivi_controller
 import dynamics
+import utils
 
 STACCATO_SHORTEN_MULTIPLIER = 0.7
 PORTATO_SHORTEN_MULTIPLIER = 0.9
@@ -56,9 +57,18 @@ class StyleSimple(style_base.StyleBase):
 		for note in self.notes:
 			if not self.is_note(note):
 				continue
-			note.physical = self.simple_params(note.details)
 			note.begin = vivi_controller.NoteBeginning()
+			note.begin.physical.string_number = self.get_string(note.details)
+			note.begin.physical.finger_position = self.get_finger_naive(note.details, note.begin.physical.string_number)
 			note.end = vivi_controller.NoteEnding()
+
+	def get_string(self, details):
+		pitch = float(details[0][1][0])
+		return self.get_naive_string(pitch)
+
+	def get_finger_naive(self, details, which_string):
+		pitch = float(details[0][1][0])
+		return self.get_finger(pitch, which_string)
 
 	def string_text_to_number(self, text):
 		if text == 'I':
@@ -73,18 +83,32 @@ class StyleSimple(style_base.StyleBase):
 			return None
 
 	def do_strings_explicit(self):
+		which_string_span = None
 		for note in self.notes:
 			if not self.is_note(note):
 				continue
+			text_details = self.get_details(note, "set_string")
+			will_stop = False
+			if len(text_details) > 0:
+				which_string_span = self.string_text_to_number(text_details[0][1])
+				if text_details[0][0] == '1':
+					will_stop = True
 			text_details = self.get_details(note, "text")
-			if text_details:
+			if len(text_details) > 0:
 				which_string = self.string_text_to_number(text_details[0][0])
-				if which_string:
-					pitch = float(note.details[0][1][0])
-					finger_semitones = pitch - (55 + 7*which_string)
-					position = self.semitones(finger_semitones)
-					note.physical.string_number = which_string
-					note.physical.finger_position = position
+				if which_string is not None:
+					self.pitch_string(note, which_string)
+			elif which_string_span is not None:
+				self.pitch_string(note, which_string_span)
+			if will_stop:
+				which_string_span = None
+
+	def pitch_string(self, note, which_string):
+		pitch = float(note.details[0][1][0])
+		finger_semitones = pitch - (55 + 7*which_string)
+		position = self.semitones(finger_semitones)
+		note.begin.physical.string_number = which_string
+		note.begin.physical.finger_position = position
 
 
 	def do_pizz(self):
@@ -117,7 +141,9 @@ class StyleSimple(style_base.StyleBase):
 		for note in self.notes:
 			if not self.is_note(note):
 				continue
-			note.physical.bow_velocity *= bow_dir
+			note.begin.physical.bow_velocity *= bow_dir
+			if note.end.physical.string_number >= 0:
+				note.end.physical.bow_velocity *= bow_dir
 			slur_details = self.get_details(note, "slur")
 			if slur_details:
 				if slur_details[0][0] == '-1':
@@ -146,8 +172,8 @@ class StyleSimple(style_base.StyleBase):
 			if not self.is_note(note_next):
 				note.end.lighten_bow_force = True
 			if self.is_note(note_next):
-				if (note.physical.string_number !=
-					note_next.physical.string_number):
+				if (note.begin.physical.string_number !=
+					note_next.begin.physical.string_number):
 					note.end.lighten_bow_force = True
 
 		# last note
@@ -191,28 +217,68 @@ class StyleSimple(style_base.StyleBase):
 
 	def do_dynamics(self):
 		current_dynamic = 0 # default to forte
-		for note in self.notes:
+		cresc_goal = -1
+		cresc_duration = 0
+		cresc_begin = 0
+		cresc_into = 0
+		for i, note in enumerate(self.notes):
 			if not self.is_note(note):
 				continue
 			dyn = self.get_details(note, "dynamic")
 			if dyn:
 				current_dynamic = self.dynamic_string_to_float(dyn[0][0])
-			note.physical.dynamic = current_dynamic
-			note.physical.bow_bridge_distance = dynamics.get_distance(current_dynamic)
-			note.physical.bow_force = self.get_simple_force(
-				note.physical.string_number,
-				note.physical.finger_position,
-				current_dynamic)
-			note.physical.bow_velocity = dynamics.get_velocity(current_dynamic)
+				cresc_goal = -1
+				cresc_duration = 0.0
+			cresc_details = self.get_details(note, "cresc")
+			if not cresc_details:
+				cresc_details = self.get_details(note, "decresc")
+			if cresc_details:
+				cresc_begin = float(current_dynamic)
+				cresc_into = 0.0
+				cresc_duration = note.duration
+				for later_note in self.notes[i+1:]:
+					if not self.is_note(later_note):
+						continue
+					dyn = self.get_details(later_note, "dynamic")
+					if dyn:
+						cresc_goal = self.dynamic_string_to_float(dyn[0][0])
+						break
+					cresc_duration += later_note.duration
+			if cresc_goal >= 0:
+				current_dynamic = utils.interpolate(
+					cresc_into,
+					0.0, cresc_begin,
+					cresc_duration, cresc_goal)
+				cresc_into += note.duration
+				end_dynamic = utils.interpolate(
+					cresc_into,
+					0.0, cresc_begin,
+					cresc_duration, cresc_goal)
+			self.set_dynamic(note.begin.physical, current_dynamic)
+			if cresc_goal >= 0:
+				note.end.physical.string_number = note.begin.physical.string_number
+				note.end.physical.finger_position = note.begin.physical.finger_position
+				self.set_dynamic(note.end.physical, end_dynamic)
+				if cresc_into >= cresc_goal:
+					cresc_goal = -1
+
+	def set_dynamic(self, physical, dynamic):
+		physical.dynamic = dynamic
+		physical.bow_bridge_distance = dynamics.get_distance(dynamic)
+		physical.bow_force = self.get_simple_force(
+			physical.string_number,
+			physical.finger_position,
+			dynamic)
+		physical.bow_velocity = dynamics.get_velocity(dynamic)
 
 	def dynamic_string_to_float(self, dyn):
 		if dyn == 'f':
-			return 0
+			return 0.0
 		elif dyn == 'mf':
-			return 1
+			return 1.0
 		elif dyn == 'mp':
-			return 2
+			return 2.0
 		elif dyn == 'p':
-			return 3
-		return 0
+			return 3.0
+		return None
 

@@ -10,13 +10,11 @@ import basic_training # for FINGER_MIDIS
 import utils
 
 class Note():
-	def __init__(self, physical=None, duration=0, pizz=False,
-			begin=None, end=None, point_and_click=None,
-			details=None):
-		self.physical = physical
+	def __init__(self, begin=None, duration=0, pizz=False,
+			end=None, point_and_click=None, details=None):
+		self.begin = begin
 		self.duration = duration
 		self.pizz = pizz
-		self.begin = begin
 		self.end = end
 		self.point_and_click = point_and_click
 		self.details = details
@@ -64,17 +62,6 @@ class StyleBase():
 
 
 
-	def simple_params(self, details):
-		pitch = float(details[0][1][0])
-		params = vivi_controller.PhysicalActions()
-		params.string_number, params.finger_position = self.get_finger_naive(pitch)
-		# must be fixed later
-		params.dynamic = -1
-		params.bow_bridge_distance = -1
-		params.bow_force = -1
-		params.bow_velocity = -1
-		return params
-
 	def get_simple_force(self, st, finger_position, dyn):
 		# TODO: this function is icky
 		low_index = 0
@@ -89,16 +76,15 @@ class StyleBase():
 			high_index = len(basic_training.FINGER_MIDIS) - 1
 		force = utils.interpolate(fm,
 			basic_training.FINGER_MIDIS[low_index],
-			self.controller_params[st][dyn].get_attack_force(low_index),
+			self.controller_params[st][int(dyn+0.5)].get_attack_force(low_index),
 			basic_training.FINGER_MIDIS[high_index],
-			self.controller_params[st][dyn].get_attack_force(high_index))
+			self.controller_params[st][int(dyn+0.5)].get_attack_force(high_index))
 		return force
 
-	def get_finger_naive(self,pitch):
-		which_string = self.get_naive_string(pitch)
+	def get_finger(self, pitch, which_string):
 		finger_semitones = pitch - (55 + 7*which_string)
 		position = self.semitones(finger_semitones)
-		return which_string, position
+		return position
 
 	def get_naive_string(self,pitch):
 		if (pitch < 62):

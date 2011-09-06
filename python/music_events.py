@@ -46,6 +46,7 @@ class MusicEvents():
 				return 1
 			else:
 				return 2
+
 		def _sort_with_grace(x):
 			# TODO: this is icky!
 			split_x = x.split('-')
@@ -54,6 +55,7 @@ class MusicEvents():
 			else:
 				# TODO: is this really an ok key function?
 				return float(split_x[0]) - 0.1*float(split_x[1])
+
 		def _make_event(dict_key, value):
 			details = sorted(value.details,
 						key=_sort_music_events)
@@ -62,8 +64,8 @@ class MusicEvents():
 		self.events = map(lambda(dict_key):_make_event(dict_key, events[dict_key]),
 			sorted(events.keys(),key=_sort_with_grace))
 		# strip grace notes for now
-		self.events = filter(lambda(event): event.onset.find('-')<0, self.events)
-		#self.adjust_grace()
+		#self.events = filter(lambda(event): event.onset.find('-')<0, self.events)
+		self.adjust_grace()
 
 		self.sanity_bar_time_test()
 
@@ -92,13 +94,14 @@ class MusicEvents():
 			main_onset = float(onset[0])
 			if len(onset) == 1:
 				event.onset = main_onset + delay_dur
+				event.duration -= delay_dur
 				delay_dur = 0
 			else:
-				grace_dur = GRACE_DUR_FRACTION * float(onset[1])
-				delay_dur = grace_dur
 				event.onset = main_onset + delay_dur
-			print
-			#print event.onset
+				delay_dur = 0
+				grace_dur = GRACE_DUR_FRACTION * float(onset[1])
+				event.duration = grace_dur
+				delay_dur = grace_dur
 
 
 	def print_events(self):

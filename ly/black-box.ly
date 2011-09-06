@@ -12,7 +12,7 @@ violinone = \relative c' {
   e4\< g8 fis g4-_\mp\>
     \st "III"
     b8-_\startTextSpan a-_\stopTextSpan
-    b4\p\<( d8 cis) d4(-. fis8-.^"II" e-.^"II")
+  b4\p\<( d8 cis) d4(-. fis8-.^"II" e-.^"II")
   fis16(\mf\downbow g a b c\> b a g) fis(\upbow e d c) b(\downbow a g fis)
   e8-.\mp\upbow r e'-.\upbow^"tip" r e,4->^"mb" r4
 

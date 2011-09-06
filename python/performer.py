@@ -82,22 +82,20 @@ class Performer(QtCore.QObject):
 				self.arco = False
 			if DEBUG_PARAMS:
 				print '---- pizz'
-				note.physical.print_params()
 				note.begin.print_params()
 				note.end.print_params()
-			if note.physical.dynamic < 0:
+			if note.begin.physical.dynamic < 0:
 				print "CRITICAL ERROR: dynamic below 0!"
-			note.physical.bow_force *= BOW_TO_PIZZ_FORCE_MULTIPLIER
-			self.controller.pizz(note.physical, note.duration)
+			note.begin.physical.bow_force *= BOW_TO_PIZZ_FORCE_MULTIPLIER
+			self.controller.pizz(note.begin, note.duration)
 		else:
 			if DEBUG_PARAMS:
 				print '---- note'
-				note.physical.print_params()
 				note.begin.print_params()
 				note.end.print_params()
 			self.arco = True
-			self.controller.note(note.physical, note.duration,
-				note.begin, note.end,
+			self.controller.note(note.begin, note.duration,
+				note.end,
 				note.point_and_click)
 
 	def _render_rest(self, note):

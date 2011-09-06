@@ -29,7 +29,6 @@ public:
             printf("\tbbd: %.3f\tbow_force: %.3f\tbow_velocity:%.3f\n",
                    bow_bridge_distance, bow_force, bow_velocity);
         */
-        printf("physic\t");
         printf("st: %i\td: %.1f\tfp: %.2f\t",
                string_number, dynamic, finger_position);
         printf("bbd: %.2f\tbf: %.2f\tbv:%.2f\n",
@@ -64,7 +63,8 @@ public:
                     keep_bow_force,
                     set_bow_position_along);
         */
-        printf("begin\t");
+        printf("begin\n");
+        physical.print_params();
         printf("if: %i\tkbf: %i\tsbpa: %.3f\n",
                ignore_finger,
                keep_bow_force,
@@ -92,7 +92,8 @@ public:
             printf("\tlighten_bow_force: %i\tlet_string_vibrate %i\tkeep_bow_velocity: %i\n",
                    lighten_bow_force, let_string_vibrate, keep_bow_velocity);
         */
-        printf("end\t");
+        printf("end\n");
+        physical.print_params();
         printf("lbf: %i\tlsv: %i\tkbv: %i\n",
                lighten_bow_force, let_string_vibrate, keep_bow_velocity);
     };

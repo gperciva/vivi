@@ -387,6 +387,19 @@ void ViviController::note(NoteBeginning begin, double seconds,
             }
         }
         */
+        if (end.physical.string_number >= 0) {
+            double x = m_note_samples / (44100.0 * seconds);
+            actions.bow_velocity = interpolate(x,
+                0, begin.physical.bow_velocity,
+                1, end.physical.bow_velocity);
+            actions.bow_bridge_distance = interpolate(x,
+                0, begin.physical.bow_bridge_distance,
+                1, end.physical.bow_bridge_distance);
+            actions.dynamic = interpolate(x,
+                0, begin.physical.dynamic,
+                1, end.physical.dynamic);
+            m_dyn = actions.get_dyn();
+        }
     }
     // finish final "half hop"
     int remaining_samples = seconds*44100.0 - m_note_samples;
