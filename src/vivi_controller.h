@@ -41,17 +41,17 @@ public:
 
     // special
     void comment(const char *text);
-    void basic(PhysicalActions actions_get, double seconds,
+    void basic(NoteBeginning begin, double seconds,
                double seconds_skip);
-    void make_dampen(PhysicalActions actions_get,
+    void make_dampen(NoteBeginning begin,
                      double damp, int hops_settle, int hops_reduce, int hops_wait,
                      const char *filename=NULL);
 
     // normal "everytime" stuff
     void rest(double seconds);
-    void pizz(PhysicalActions actions_get, double seconds);
-    void note(PhysicalActions actions_get, double seconds,
-              NoteBeginning begin, NoteEnding end,
+    void pizz(NoteBeginning begin, double seconds);
+    void note(NoteBeginning begin, double seconds,
+              NoteEnding end,
               const char *point_and_click=NULL);
     // TODO: make private again?
     inline void bowStop();
@@ -73,8 +73,7 @@ private:
     int cats[CATS_MEAN_LENGTH]; // TODO: to test mean
     int cats_index;
 
-    void note_setup_actions(PhysicalActions actions_get,
-                            NoteBeginning begin);
+    void note_setup_actions(NoteBeginning begin);
     void note_write_actions(const char *point_and_click);
     void finger();
 

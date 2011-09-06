@@ -7,6 +7,9 @@
 #include "artifastring/monowav.h"
 #include "actions_file.h"
 
+//#define NDEBUG
+#include <assert.h>
+
 // used in normal hops
 const double VELOCITY_STDDEV = 0.01;
 const double FORCE_STDDEV = 0.01;
@@ -159,17 +162,17 @@ bool ViviController::filesNew(const char *filenames_base) {
     return true;
 }
 
-void ViviController::basic(PhysicalActions actions_get, double seconds,
+void ViviController::basic(NoteBeginning begin, double seconds,
                            double skip_seconds)
 {
-    actions.string_number = actions_get.string_number;
-    actions.finger_position = actions_get.finger_position;
-    actions.bow_force = actions_get.bow_force;
-    actions.bow_bridge_distance = actions_get.bow_bridge_distance;
+    actions.string_number = begin.physical.string_number;
+    actions.finger_position = begin.physical.finger_position;
+    actions.bow_force = begin.physical.bow_force;
+    actions.bow_bridge_distance = begin.physical.bow_bridge_distance;
     // ok to copy bow_velocity here.
-    actions.bow_velocity = actions_get.bow_velocity;
+    actions.bow_velocity = begin.physical.bow_velocity;
 
-    int dyn = round(actions_get.dynamic);
+    int dyn = round(begin.physical.dynamic);
     char note_search_params[MAX_LINE_LENGTH];
     sprintf(note_search_params, "basic\tst %i\tdyn %i\tfinger_midi %.3f",
             actions.string_number, dyn, actions.finger_position);
@@ -248,16 +251,16 @@ void ViviController::rest(double seconds)
     }
 }
 
-void ViviController::pizz(PhysicalActions actions_get, double seconds)
+void ViviController::pizz(NoteBeginning begin, double seconds)
 {
     actions_file->comment("rest");
     cats_file->comment("rest");
 
     // set up note parameters
-    actions.string_number = actions_get.string_number;
-    actions.finger_position = actions_get.finger_position;
-    actions.bow_force = actions_get.bow_force;
-    actions.bow_bridge_distance = actions_get.bow_bridge_distance;
+    actions.string_number = begin.physical.string_number;
+    actions.finger_position = begin.physical.finger_position;
+    actions.bow_force = begin.physical.bow_force;
+    actions.bow_bridge_distance = begin.physical.bow_bridge_distance;
 
     finger();
     actions_file->pluck(m_total_samples*dt, actions.string_number,
@@ -278,28 +281,27 @@ void ViviController::pizz(PhysicalActions actions_get, double seconds)
 
 }
 
-void ViviController::note_setup_actions(PhysicalActions actions_get,
-                                        NoteBeginning begin)
+void ViviController::note_setup_actions(NoteBeginning begin)
 {
-    //actions_get.print();
-    actions.string_number = actions_get.string_number;
-    actions.bow_bridge_distance = actions_get.bow_bridge_distance;
+    //begin.physical.print();
+    actions.string_number = begin.physical.string_number;
+    actions.bow_bridge_distance = begin.physical.bow_bridge_distance;
     if (!begin.ignore_finger) {
-        actions.finger_position = actions_get.finger_position;
+        actions.finger_position = begin.physical.finger_position;
     }
     if (!begin.keep_bow_force) {
-        actions.bow_force = actions_get.bow_force;
+        actions.bow_force = begin.physical.bow_force;
     }
     if (begin.set_bow_position_along >= 0) {
         m_bow_pos_along= begin.set_bow_position_along;
     }
 
     // don't copy bow_velocity; put it in m_velocity_target instead
-    m_velocity_target = actions_get.bow_velocity;
+    m_velocity_target = begin.physical.bow_velocity;
     m_velocity_cutoff_force_adj = m_velocity_target * MIN_VELOCITY_FACTOR;
     // other setup
     m_st = actions.string_number;
-    m_dyn = round(actions_get.dynamic);
+    m_dyn = round(begin.physical.dynamic);
 }
 
 void ViviController::note_write_actions(const char *point_and_click)
@@ -323,11 +325,16 @@ void ViviController::finger()
     violin->finger(actions.string_number, actions.finger_position);
 }
 
-void ViviController::note(PhysicalActions actions_get, double seconds,
-                          NoteBeginning begin, NoteEnding end,
+void ViviController::note(NoteBeginning begin, double seconds,
+                          NoteEnding end,
                           const char *point_and_click)
 {
-    note_setup_actions(actions_get, begin);
+    assert((begin.physical.string_number >= 0) &&
+        (begin.physical.string_number < NUM_STRINGS));
+    assert((begin.physical.dynamic >= 0) &&
+        (begin.physical.dynamic < NUM_DYNAMICS));
+
+    note_setup_actions(begin);
     note_write_actions(point_and_click);
 
     if (!begin.ignore_finger) {
@@ -430,6 +437,8 @@ inline void ViviController::hop_passive(int num_samples)
 }
 
 inline void ViviController::hop(int num_samples) {
+    assert((m_st >= 0) && (m_st < NUM_STRINGS));
+    assert((m_dyn >= 0) && (m_dyn < NUM_DYNAMICS));
     // approach target velocity
     const double dv = m_velocity_target - actions.bow_velocity;
     if (dv > MAX_HAND_ACCEL*DH) {
@@ -539,16 +548,15 @@ inline double ViviController::interpolate(const double x,
 }
 
 
-void ViviController::make_dampen(PhysicalActions actions_get,
+void ViviController::make_dampen(NoteBeginning begin,
                                  double damp, int hops_settle, int hops_reduce, int hops_wait,
                                  const char *filename)
 {
-    NoteBeginning begin;
     NoteEnding end;
     end.keep_bow_velocity = true;
     filesNew(filename);
     // get note going
-    note(actions_get, hops_settle*dh, begin, end);
+    note(begin, hops_settle*dh, end);
 
     m_velocity_target = 0.0;
     m_feedback_adjust_force = false;

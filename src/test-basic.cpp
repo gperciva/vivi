@@ -9,15 +9,15 @@ int main() {
     ViviController *viviController = new ViviController();
     viviController->filesNew("basic_note");
 
-    PhysicalActions params;
-    params.string_number = 1;
-    params.dynamic = 0;
-    params.finger_position = 0.25;
-    params.bow_force = 1.0;
-    params.bow_bridge_distance = get_distance(0);
-    params.bow_velocity = get_velocity(0);
+    NoteBeginning begin;
+    begin.physical.string_number = 1;
+    begin.physical.dynamic = 0;
+    begin.physical.finger_position = 0.25;
+    begin.physical.bow_force = 1.0;
+    begin.physical.bow_bridge_distance = get_distance(0);
+    begin.physical.bow_velocity = get_velocity(0);
 
-    viviController->basic(params, PLAY, SKIP);
+    viviController->basic(begin, PLAY, SKIP);
 
     delete viviController;
 }

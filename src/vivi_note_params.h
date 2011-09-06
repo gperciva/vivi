@@ -1,11 +1,12 @@
 #ifndef VIVI_NOTE_PARAMS_H
 #define VIVI_NOTE_PARAMS_H
 
+// to be used inside NoteBeginning and NoteEnding
 class PhysicalActions {
 public:
     // require user to specify manually
     PhysicalActions() {
-        string_number = 0;
+        string_number = -1;
         dynamic = 0.0;
         finger_position = 0.0;
         bow_bridge_distance = 0.0;
@@ -50,6 +51,7 @@ public:
         set_bow_position_along = -1; // this is "false"
     };
     // data
+    PhysicalActions physical;
     bool ignore_finger;
     bool keep_bow_force;
     double set_bow_position_along;
@@ -79,6 +81,7 @@ public:
         keep_bow_velocity = false;
     };
     // data
+    PhysicalActions physical;
     bool lighten_bow_force;
     bool let_string_vibrate;
     bool keep_bow_velocity;
