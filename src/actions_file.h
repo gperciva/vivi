@@ -2,7 +2,8 @@
 #define ACTIONS_FILE
 #include <stdio.h>
 
-const int MAX_LINE_LENGTH = 256;
+// we now pass multi-line comments for NoteBeginning and NoteEnding
+const int MAX_LINE_LENGTH = 2048;
 
 class ActionsFile {
 public:

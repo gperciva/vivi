@@ -74,7 +74,8 @@ private:
     int cats_index;
 
     void note_setup_actions(NoteBeginning begin);
-    void note_write_actions(const char *point_and_click);
+    void note_write_actions(NoteBeginning begin, NoteEnding end,
+        const char *point_and_click);
     void finger();
 
 

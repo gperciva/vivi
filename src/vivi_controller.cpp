@@ -176,7 +176,7 @@ void ViviController::basic(NoteBeginning begin, double seconds,
     char note_search_params[MAX_LINE_LENGTH];
     sprintf(note_search_params, "basic\tst %i\tdyn %i\tfinger_midi %.3f",
             actions.string_number, dyn, actions.finger_position);
-    actions_file->comment(note_search_params);
+    comment(note_search_params);
 
     const double orig_force = actions.bow_force;
     const double orig_velocity = actions.bow_velocity;
@@ -232,8 +232,7 @@ void ViviController::basic(NoteBeginning begin, double seconds,
 
 void ViviController::rest(double seconds)
 {
-    actions_file->comment("rest");
-    cats_file->comment("rest");
+    comment("rest");
     bowStop();
 
     actions_file->wait(m_total_samples*dt);
@@ -253,8 +252,7 @@ void ViviController::rest(double seconds)
 
 void ViviController::pizz(NoteBeginning begin, double seconds)
 {
-    actions_file->comment("rest");
-    cats_file->comment("rest");
+    comment("rest");
 
     // set up note parameters
     actions.string_number = begin.physical.string_number;
@@ -304,7 +302,8 @@ void ViviController::note_setup_actions(NoteBeginning begin)
     m_dyn = round(begin.physical.dynamic);
 }
 
-void ViviController::note_write_actions(const char *point_and_click)
+void ViviController::note_write_actions(NoteBeginning begin,
+    NoteEnding end, const char *point_and_click)
 {
     char note_search_params[MAX_LINE_LENGTH];
     if (point_and_click == NULL) {
@@ -314,8 +313,9 @@ void ViviController::note_write_actions(const char *point_and_click)
         sprintf(note_search_params, "note\tst %i\tdyn %i\tfinger_midi %.3f %s",
                 m_st, m_dyn, actions.finger_position, point_and_click);
     }
-    actions_file->comment(note_search_params);
-    cats_file->comment(note_search_params);
+    comment(note_search_params);
+    comment(begin.params_text().c_str());
+    comment(end.params_text().c_str());
 }
 
 void ViviController::finger()
@@ -335,7 +335,7 @@ void ViviController::note(NoteBeginning begin, double seconds,
         (begin.physical.dynamic < NUM_DYNAMICS));
 
     note_setup_actions(begin);
-    note_write_actions(point_and_click);
+    note_write_actions(begin, end, point_and_click);
 
     if (!begin.ignore_finger) {
         finger();
@@ -540,8 +540,12 @@ inline void ViviController::hop(int num_samples) {
 }
 
 void ViviController::comment(const char *text) {
-    if (actions_file != NULL) {
-        actions_file->comment(text);
+    assert(actions_file != NULL);
+    actions_file->comment(text);
+    // we don't have a cats_file when doing basic training
+    //assert(cats_file != NULL);
+    if (cats_file != NULL) {
+        cats_file->comment(text);
     }
 }
 

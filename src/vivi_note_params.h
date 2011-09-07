@@ -1,6 +1,9 @@
 #ifndef VIVI_NOTE_PARAMS_H
 #define VIVI_NOTE_PARAMS_H
 
+#include <string>
+#include <boost/format.hpp>
+
 // to be used inside NoteBeginning and NoteEnding
 class PhysicalActions {
 public:
@@ -31,9 +34,18 @@ public:
         */
         printf("st: %i\td: %.1f\tfp: %.2f\t",
                string_number, dynamic, finger_position);
-        printf("bbd: %.2f\tbf: %.2f\tbv:%.2f\n",
+        printf("bbd: %.2f\tbf: %.2f\tbv: %.2f\n",
                bow_bridge_distance, bow_force, bow_velocity);
     };
+    std::string params_text() {
+        std::string text = str( boost::format(
+            "st: %i\td: %.1f\tfp: %.2f\t")
+               % string_number % dynamic % finger_position);
+        text += str( boost::format(
+            "bbd: %.2f\tbf: %.2f\tbv: %.2f\n")
+                % bow_bridge_distance % bow_force % bow_velocity);
+        return text;
+    }
     // special access
     int get_dyn() {
         return dynamic + 0.5; // round
@@ -64,12 +76,20 @@ public:
                     set_bow_position_along);
         */
         printf("begin\n");
-        physical.print_params();
+        printf("%s", physical.params_text().c_str());
         printf("if: %i\tkbf: %i\tsbpa: %.3f\n",
                ignore_finger,
                keep_bow_force,
                set_bow_position_along);
     };
+    std::string params_text() {
+        // don't include final \n
+        std::string text = str( boost::format(
+            "begin\n#\t%s#\tif: %i\tkbf: %i\tsbpa: %.3f")
+            % physical.params_text().c_str()
+            % ignore_finger % keep_bow_force % set_bow_position_along);
+        return text;
+    }
 };
 
 class NoteEnding {
@@ -93,10 +113,18 @@ public:
                    lighten_bow_force, let_string_vibrate, keep_bow_velocity);
         */
         printf("end\n");
-        physical.print_params();
+        printf("%s", physical.params_text().c_str());
         printf("lbf: %i\tlsv: %i\tkbv: %i\n",
                lighten_bow_force, let_string_vibrate, keep_bow_velocity);
     };
+    std::string params_text() {
+        // don't include final \n
+        std::string text = str( boost::format(
+            "end\n#\t%s#\tlbf: %i\tlsv: %i\tkbv: %i")
+            % physical.params_text().c_str()
+            % lighten_bow_force % let_string_vibrate % keep_bow_velocity);
+        return text;
+    }
 
 };
 
