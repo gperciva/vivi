@@ -3,6 +3,8 @@
 #include <string.h>
 #include "actions_file.h"
 
+#define REGRESSION
+
 #define INCLUDE_PITCH
 
 #ifndef LEAN
@@ -206,7 +208,7 @@ void Ears::prepNet() {
 
 void Ears::set_extra_params(int st, double finger_position) {
     mrs_real pitch = string_finger_freq(st, finger_position);
-//cout<<"# st finger pitch:"<<'\t'<<st<<' '<<finger<<'\t'<<pitch<<endl;
+//cout<<"# st finger pitch:"<<'\t'<<st<<' '<<finger_position<<'\t'<<pitch<<endl;
     parameters_input_realvec(0,0) = finger_position;
     //parameters_input_realvec(1,0) = pitch;
 
@@ -228,7 +230,7 @@ void Ears::get_info_file(string filename) {
 
     int st = filename[offset] - 48;
     double finger_midi = filename[offset+2] - 48.0;
-    //cout<<filename<<"  "<<st<<"  "<<finger<<endl;
+    //cout<<filename<<"  "<<st<<"  "<<finger_midi<<endl;
     double finger_position = 1.0 - 1.0 / pow(1.05946309,finger_midi);
 
     set_extra_params(st, finger_position);
@@ -565,10 +567,12 @@ void Ears::make_learning() {
         learning->updControl("WekaSink/wekasink/mrs_natural/nLabels",5);
 
         // use regression or classification?
-        // FIXME: expriment with regression!
-        //    learning->updControl("WekaSink/wekasink/mrs_bool/regression",true);
+#ifdef REGRESSION
+        learning->updControl("WekaSink/wekasink/mrs_bool/regression",true);
+#else
         learning->updControl("WekaSink/wekasink/mrs_string/labelNames",
                              "1_more_bow,2_more_bow,3_ok_force,4_less_bow,5_less_bow");
+#endif
         // MUST be done after linking with main network, i.e. not here!
         //learning->updControl("WekaSink/wekasink/mrs_string/filename", m_filename);
 
@@ -582,12 +586,20 @@ void Ears::make_learning() {
         classifier = mng.create("SVMClassifier", "svm_cl");
         classifier->updControl("mrs_string/mode", "train");
         // FIXME: expriment with regression!
-        //classifier->updControl("mrs_string/svm", "NU_SVR");
+#ifdef REGRESSION
+        classifier->updControl("mrs_string/svm", "NU_SVR");
+        classifier->updControl("mrs_string/kernel", "LINEAR");
+        classifier->updControl("mrs_bool/output_classPerms", false);
+	classifier->updControl("mrs_natural/nClasses", 1);
+#endif
         //learning->updControl("SVMClassifier/svm_cl/mrs_string/mode", "train");
     } else {
     }
     learning->addMarSystem(classifier);
+#ifdef REGRESSION
+#else
     learning->updControl("SVMClassifier/svm_cl/mrs_natural/nClasses", 6);
+#endif
 
 
     /*

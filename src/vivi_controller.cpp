@@ -20,8 +20,8 @@ const double DH = EARS_HOPSIZE * dt;
 const double BASIC_VELOCITY_STDDEV = 0.02;
 const double BASIC_FORCE_STDDEV = 0.02;
 
-// don't listen to sound until this speed is reached
-const double MIN_VELOCITY_FACTOR = 0.95;
+// don't listen to sound until this percent of speed is reached
+const double MIN_VELOCITY_FACTOR = 0.80;
 
 // don't listen to sound until this many hops have passed
 //const int MIN_SETTLE_HOPS = 4;
@@ -379,7 +379,7 @@ void ViviController::note(NoteBeginning begin, double seconds,
         hop();
 
         // start listening to audio?
-        if (!m_feedback_adjust_force) {
+        if ((!m_feedback_adjust_force) && (m_velocity_target != 0)) {
             if (m_velocity_cutoff_force_adj > 0) {
                 if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
                     m_feedback_adjust_force = true;
@@ -514,19 +514,20 @@ inline void ViviController::hop(int num_samples) {
                       m_bow_pos_along);
     short *buf = wavfile->request_fill(num_samples);
     violin->wait_samples(buf, num_samples);
+    // before processing
+    m_total_samples += num_samples;
+    m_note_samples  += num_samples;
 
     m_bow_pos_along += num_samples*dt*actions.bow_velocity;
 
     // don't bother listening to a too-short note snippet, or if
     // we don't care about adjusting the force
     if ((num_samples < EARS_HOPSIZE) || (m_feedback_adjust_force==false)) {
-        m_total_samples += num_samples;
-        m_note_samples  += num_samples;
         cats_file->category(m_total_samples*dt, CATEGORY_NULL);
         return;
     }
     ears[m_st][m_dyn]->listenShort(buf);
-    int cat = ears[m_st][m_dyn]->getClass();
+    double cat = ears[m_st][m_dyn]->getClass();
     /*
     // write cat to file if speed is enough
     // don't write if note hasn't settled yet
@@ -565,9 +566,6 @@ inline void ViviController::hop(int num_samples) {
     // adjust bow force
     actions.bow_force *= pow(m_K[m_st][m_dyn], 2-cat_avg);
 
-    // after processing
-    m_total_samples += num_samples;
-    m_note_samples  += num_samples;
 }
 
 void ViviController::comment(const char *text) {

@@ -177,7 +177,7 @@ class DynTrain(QtGui.QFrame):
 		if self.accuracy > 0:
 			# round number
 			self.ui.accuracy_label.setText(
-				str("%.0f%%")%(self.accuracy+0.5))
+				str("%.2f")%( round(self.accuracy) ))
 		else:
 			self.ui.accuracy_label.setText("")
 		if self.force_factor > 1.0:

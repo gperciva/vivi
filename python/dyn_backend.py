@@ -142,9 +142,12 @@ class DynBackend(QtCore.QThread):
 		self.process_step.emit()
 		# could be done better
 		for line in kea_output[0].split('\n'):
-			if line.find("Correctly Classified Instances") >= 0:
+			#if line.find("Correctly Classified Instances") >= 0:
+			#	splitline = line.split()
+			#	self.accuracy = float(splitline[4])
+			if line.find("Correlation coefficient") >= 0:
 				splitline = line.split()
-				self.accuracy = float(splitline[4])
+				self.accuracy = float(splitline[2])
 		### calculate cats for each file
 		mpl_filename = dirs.files.get_mpl_filename(
 			self.st, 'main', self.dyn)
