@@ -87,14 +87,15 @@ class PlotActions(QtGui.QWidget):
 		if not self.forces:
 			return
 		painter = QtGui.QPainter(self)
+		pen = painter.pen()
 
 		self.draw_background(painter)
 		self.draw_selection(painter)
 
 		maxforce = max(self.forces)
 
-		top_margin = 10
-		bottom_margin = 10
+		top_margin = 15
+		bottom_margin = 15
 		height = self.height()
 
 		left_margin = 10
@@ -108,19 +109,28 @@ class PlotActions(QtGui.QWidget):
 		self.draw_force_line(painter, xoffset, xscale, yoffset, yscale)
 
 		for i, cat in enumerate(self.cats):
+			if cat == -1:
+				continue
 			x = i*xscale + left_margin
 			y = self.forces[i]*yscale + yoffset
 
-			if (cat == 0) or (cat == 4):
-				direction = (2-cat)/2
-				painter.setPen(QtCore.Qt.red)
-				self.arrow(painter, x, y, direction)
-			if (cat == 1) or (cat == 3):
-				direction = 2-cat
-				painter.setPen(QtCore.Qt.blue)
-				self.arrow(painter, x, y, direction)
-			prev_x = x
-			prev_y = y
+			delta = 2 - cat
+			self.arrow(painter, x, y, delta)
+
+	def arrow(self, painter, x, y, delta):
+		scale = 0.04*self.height()
+		direction = 1 if delta> 0 else -1
+		delta = abs(delta) / 2.0
+		delta_clipped = min(delta, 1.0)
+		pen = painter.pen()
+		pen.setColor(QtGui.QColor(
+			255*delta_clipped, 255*(1-delta_clipped), 0))
+		painter.setPen(pen)
+		for left_right in [-1, 1]:
+			painter.drawLine(x, y,
+				x + scale*left_right*delta_clipped,
+				y + 3*scale*direction*delta_clipped)
+		
 
 	def draw_background(self, painter):
 		# bad way of drawing the background, but I don't
@@ -149,11 +159,6 @@ class PlotActions(QtGui.QWidget):
 			painter.drawLine(prev_x, prev_y, x, y)
 			prev_x = x
 			prev_y = y
-
-
-	def arrow(self, painter, x, y, direction):
-		painter.drawLine(x, y, x+2, y+direction*10)
-		painter.drawLine(x, y, x-2, y+direction*10)
 
 
 	def draw_selection(self, painter):

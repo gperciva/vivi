@@ -8,9 +8,12 @@ import table_play_widget
 import utils
 import shared
 
+import visualize_cats
+
 class CompareColl(QtGui.QFrame):
 	row_delete = QtCore.pyqtSignal(str, name="row_delete")
 	row_retrain = QtCore.pyqtSignal(str, name="row_retrain")
+	row_prev = None
 	
 	def __init__(self):
 		QtGui.QFrame.__init__(self)
@@ -22,8 +25,8 @@ class CompareColl(QtGui.QFrame):
 
 		self.table = table_play_widget.TablePlayWidget(self)
 		self.table.set_column_names(["cat", "stars"])
-		self.table.setColumnWidth(0, 40)
-		self.table.setColumnWidth(1, 360)
+		self.table.setColumnWidth(0, 50)
+		self.table.setColumnWidth(1, 500)
 
 		self.ui.verticalLayout.addWidget(self.table)
 
@@ -66,12 +69,15 @@ class CompareColl(QtGui.QFrame):
 		self.table.clearContents()
 		self.table.setRowCount(len(self.data))
 		for i, datum in enumerate(self.data):
-			table_item = QtGui.QTableWidgetItem(datum[0])
+			table_item = QtGui.QTableWidgetItem(str(datum[1]))
 			table_item.setTextAlignment(QtCore.Qt.AlignCenter)
 			self.table.setItem(i, 0, table_item)
-			table_item = QtGui.QTableWidgetItem(datum[1])
-			table_item.setFont(QtGui.QFont("Andale Mono", 7))
-			self.table.setItem(i, 1, table_item)
+			vc = visualize_cats.VisualizeCats()
+			vc.set_data(datum[1], datum[2])
+			self.table.setCellWidget(i, 1, vc)
+			#table_item = QtGui.QTableWidgetItem(datum[1])
+			#table_item.setFont(QtGui.QFont("Andale Mono", 7))
+			#self.table.setItem(i, 1, table_item)
 		self.table_focus()
 
 	def table_focus(self):
@@ -81,7 +87,7 @@ class CompareColl(QtGui.QFrame):
 	def table_play(self):
 		row = self.table.currentRow()
 		if row >= 0:
-			wavfile = self.data[row][2]
+			wavfile = self.data[row][0]
 			utils.play(wavfile)
 
 	def get_selected_filename(self):
@@ -90,7 +96,7 @@ class CompareColl(QtGui.QFrame):
 
 	def get_selected_filename(self):
 		row = self.table.currentRow()
-		wavfilename = self.data[row][2]
+		wavfilename = self.data[row][0]
 		filename = wavfilename[0:-4] # remove .wav
 		return filename
 
@@ -98,6 +104,12 @@ class CompareColl(QtGui.QFrame):
 		filename = self.get_selected_filename()
 		shared.examine_main.load_file(filename)
 		shared.examine_main.load_note("")
+
+		if self.row_prev >= 0:
+			self.table.cellWidget(self.row_prev, 1).highlight(False)
+		row = self.table.currentRow()
+		self.table.cellWidget(row, 1).highlight(True)
+		self.row_prev = row
 
 	def table_row_delete(self):
 		filename = self.get_selected_filename()

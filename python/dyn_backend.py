@@ -133,7 +133,7 @@ class DynBackend(QtCore.QThread):
 
 	def check_accuracy_thread(self):
 		### find overall 10-fold cross-validation accuracy
-		cmd = "kea -cl SVM -w %s" % (
+		cmd = "kea -cl SVM -svm_svm NU_SVR -svm_kernel LINEAR -w %s" % (
 			dirs.files.get_arff_filename(
 				self.st, 'main', self.dyn))
 		process = subprocess.Popen(cmd, shell=True,

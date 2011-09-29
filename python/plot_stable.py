@@ -40,21 +40,12 @@ class PlotStable(plot_actions.PlotActions):
 		self.draw_force_line(painter, xoffset, xscale, yoffset, yscale)
 
 		for i, cat in enumerate(self.cats_means):
+			if cat == -1:
+				continue
 			x = i*xscale + left_margin
 			y = self.forces[i]*yscale + yoffset
-#			if cat < 2:
-#				y += 0.1*self.height()
-#			if cat > 2:
-#				y += -0.1*self.height()
-
-			if (cat == 0) or (cat == 4):
-				direction = (2-cat)/2
-				painter.setPen(QtCore.Qt.yellow)
-				self.arrow(painter, x, y, direction)
-			if (cat == 1) or (cat == 3):
-				direction = 2-cat
-				painter.setPen(QtCore.Qt.green)
-				self.arrow(painter, x, y, direction)
+			delta = 2 - cat
+			self.arrow(painter, x, y, delta)
 
 		painter.setPen(QtCore.Qt.darkRed)
 		painter.drawText( 50, self.height()-5,
