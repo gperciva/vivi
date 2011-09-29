@@ -37,6 +37,7 @@ class TaskDampen(task_base.TaskBase):
 		task_base.TaskBase.__init__(self, st, dyn, controller, emit,
 			"dampen")
 		self.STEPS = 6
+		self.REPS = 4
 
 		self.notes = None
 		self.initial_force = None
@@ -60,26 +61,25 @@ class TaskDampen(task_base.TaskBase):
 			self.controller.set_dampen(self.st, self.dyn, damp)
 			for count in range(1, self.REPS+1):
 
-				params = vivi_controller.PhysicalActions()
-				params.string_number = self.st
-				params.dynamic = self.dyn
-				params.finger_position = 0.0
-				params.bow_force = self.initial_force
-				params.bow_bridge_distance = dynamics.get_distance(self.dyn)
-				params.bow_velocity = dynamics.get_velocity(self.dyn)
+				begin = vivi_controller.NoteBeginning()
+				begin.physical.string_number = self.st
+				begin.physical.dynamic = self.dyn
+				begin.physical.finger_position = 0.0
+				begin.physical.bow_force = self.initial_force
+				begin.physical.bow_bridge_distance = dynamics.get_distance(self.dyn)
+				begin.physical.bow_velocity = dynamics.get_velocity(self.dyn)
 
 				filename = dirs.files.make_dampen_filename(
 					self.taskname, 
 					vivi_types.AudioParams(self.st, self.dyn,
 						dynamics.get_distance(self.dyn),
-						params.bow_force,
+						begin.physical.bow_force,
 						dynamics.get_velocity(self.dyn)),
 					damp, count)
-				begin = vivi_controller.NoteBeginning()
 				end = vivi_controller.NoteEnding()
 				end.lighten_bow_force = True
 				self.controller.filesNew(filename)
-				self.controller.note(params, DAMPEN_NOTE_SECONDS, begin, end)
+				self.controller.note(begin, DAMPEN_NOTE_SECONDS, end)
 				self.controller.rest(DAMPEN_WAIT_SECONDS)
 				self.controller.filesClose()
 				self.process_step.emit()
@@ -145,7 +145,8 @@ class TaskDampen(task_base.TaskBase):
 				for i in range(HOPS_WAIT):
 					value = rmss[HOPS_SETTLE+HOPS_DAMPEN+i]
 					total_wait += value
-				total = total_damp + total_wait
+#				total = total_damp + total_wait
+				total = total_wait
 
 				self.notes[row][col] = (self.notes[row][col][0], total, filename)
 

@@ -23,10 +23,6 @@ class LilyPondCompile(QtCore.QThread):
 	def __init__(self):
 		QtCore.QThread.__init__(self)
 
-		# TODO: clean this up
-		self.ly_filename = None
-		self.ly_basename = None
-
 		self.mutex = QtCore.QMutex()
 		self.condition = QtCore.QWaitCondition()
 		self.state = 0
@@ -45,26 +41,20 @@ class LilyPondCompile(QtCore.QThread):
 		self.condition.wakeOne()
 		return 2
 
-	def lily_file_needs_compile(self, ly_filename_orig):
-		#self.ly_filename = os.path.abspath(ly_filename)
-		if ly_filename_orig[0] == "/":
-			self.ly_filename = os.path.join(
-				dirs.files.get_music_dir(),
-				ly_filename_orig[1:])
-		else:
-			self.ly_filename = os.path.join(
-				dirs.files.get_music_dir(),
-				ly_filename_orig)
-		self.ly_basename = os.path.splitext(self.ly_filename)[0]
-		self.ly_dirname = os.path.dirname(self.ly_filename)
-		self.ly_dirname_orig = os.path.abspath(
-			os.path.dirname(ly_filename_orig))
-		if not os.path.isdir(self.ly_dirname):
-			os.makedirs(self.ly_dirname)
+	def lily_file_needs_compile(self):
+		self.ly_basename = dirs.files.get_ly_extra()
+		self.ly_filename = dirs.files.get_ly_extra(".ly")
+		ly_original = dirs.files.get_ly_original()
+		self.ly_include_dir = os.path.abspath(
+			os.path.dirname(ly_original))
+
+		self.pdf_dirname = os.path.dirname(dirs.files.get_ly_extra(".pdf"))
+		if not os.path.isdir(self.pdf_dirname):
+			os.makedirs(self.pdf_dirname)
 		if (os.path.isfile(self.ly_filename) and
-			filecmp.cmp(ly_filename_orig, self.ly_filename)):
+			filecmp.cmp(ly_original, self.ly_filename)):
 			return False
-		shutil.copy(ly_filename_orig, self.ly_filename)
+		shutil.copy(ly_original, self.ly_filename)
 		return True
 
 	def remove_old_files(self, basename):
@@ -73,16 +63,14 @@ class LilyPondCompile(QtCore.QThread):
 				glob.glob(basename+extension))
 
 	def call_lilypond_thread(self):
-		origdir = os.path.abspath(os.path.curdir)
 		self.remove_old_files(self.ly_basename)
-
 		self.process_step.emit()
 
 		logfile = open(self.ly_basename+'.log', 'w')
 		# make new files
 		cmd = LILYPOND_COMMAND % (
-			self.ly_dirname_orig,
-			self.ly_dirname,
+			self.ly_include_dir,
+			self.pdf_dirname,
 			self.ly_filename)
 		cmd = cmd.split()
 		p = subprocess.Popen(cmd, stdout=logfile,
@@ -92,14 +80,4 @@ class LilyPondCompile(QtCore.QThread):
 		
 		self.process_step.emit()
 		self.done.emit()
-
-	def get_filename_pdf(self):
-		return os.path.join(dirs.files.get_music_dir(),
-			self.ly_basename+'.pdf')
-
-	def get_filename_notes(self):
-		notes_files = glob.glob(
-			os.path.join(dirs.files.get_music_dir(),
-			self.ly_basename+"*.notes"))
-		return notes_files
 

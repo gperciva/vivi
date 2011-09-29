@@ -259,7 +259,7 @@ class StyleSimple(style_base.StyleBase):
 				note.end.physical.string_number = note.begin.physical.string_number
 				note.end.physical.finger_position = note.begin.physical.finger_position
 				self.set_dynamic(note.end.physical, end_dynamic)
-				if cresc_into >= cresc_goal:
+				if cresc_into >= cresc_duration:
 					cresc_goal = -1
 
 	def set_dynamic(self, physical, dynamic):

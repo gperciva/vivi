@@ -13,17 +13,21 @@ class ViviDirs:
 	""" Convenience class for directories and files. """
 	def __init__(self, training_dirname, cache_dirname, final_dirname):
 		""" constructor """
+		self.ly_original = None
+		self.ly_basename = None
 		self.train_dir = os.path.normpath(training_dirname)
 		self.final_dir = os.path.normpath(final_dirname)
 		self.inter_dir = os.path.join(cache_dirname, "inter")
 		self.works_dir = os.path.join(cache_dirname, "works")
 		self.music_dir = os.path.join(cache_dirname, "music")
+		self.hills_dir = os.path.join(cache_dirname, "hills")
 		def _ensure_dir_exists(dirname):
 			""" create the dirname if it does not exist """
 			if not os.path.isdir(dirname):
 				os.makedirs(dirname)
 		map(_ensure_dir_exists, [self.train_dir, self.final_dir,
-			 self.inter_dir, self.works_dir, self.music_dir])
+			 self.inter_dir, self.works_dir, self.music_dir,
+			 self.hills_dir])
 
 	@staticmethod
 	def _get_basename(st, cats_type, dyn):
@@ -192,4 +196,99 @@ class ViviDirs:
 		notes_files = glob.glob(os.path.join(self.lily_dir, '*.notes'))
 		notes_files.sort()
 		return notes_files
+
+	def set_ly_basename(self, ly_filename):
+		filename = os.path.relpath(ly_filename)
+		self.ly_original = ly_filename
+		self.ly_basename = filename.replace(".ly", "")
+
+	def get_ly_original(self):
+		return self.ly_original
+
+	def get_ly_extra(self, extension=""):
+		return os.path.join(self.music_dir,
+				    self.ly_basename + extension)
+
+	def set_notes_from_ly(self):
+		search = os.path.join(self.music_dir,
+				self.ly_basename + "*.notes")
+		filenames = glob.glob(search)
+		filenames.sort()
+		self.notes = filenames[0].replace(".notes", "").replace(self.music_dir, "")
+		if self.notes[0] == '/':
+			self.notes = self.notes[1:]
+
+	def get_notes(self):
+		return os.path.join(self.music_dir, self.notes + ".notes")
+
+	def make_notes_next(self, extension=""):
+		latest = self.get_notes_last(extension)
+		if latest:
+			if extension:
+				latest = latest.replace(extension, "")
+			number = int(latest[-3:])
+			latest = latest[:-4]
+			if extension == ".alterations":
+				number += 1
+		else:
+			latest = os.path.join(self.music_dir, self.notes)
+			number = 0
+		number_text = "_%03i" % number
+		if extension:
+			filename = latest + number_text + extension
+		else:
+			filename = latest + number_text
+		return filename
+
+	def get_notes_last(self, extension="", penultimate=False):
+		search = os.path.join(self.music_dir,
+				self.notes + "*" + extension)
+		filenames = glob.glob(search)
+		filenames.sort()
+		if not filenames:
+			return None
+		if penultimate:
+			if len(filenames) >= 2:
+				filename = filenames[-2]
+			else:
+				return None
+		else:
+			filename = filenames[-1]
+		if not extension:
+			filename = os.path.splitext(filename)[0]
+		return filename
+
+	def get_hills_last(self, extension=""):
+		search = os.path.join(self.hills_dir,
+				self.notes + "*" + extension)
+		filenames = glob.glob(search)
+		filenames.sort()
+		if filenames:
+			return filenames[-1]
+		else:
+			return None
+
+	def make_hills_next(self, extension=""):
+		latest = self.get_hills_last(extension)
+		if latest:
+			if extension:
+				latest = latest.replace(extension, "")
+			number = int(latest[-3:])
+			latest = latest[:-4]
+			if extension == ".alterations":
+				number += 1
+		else:
+			latest = os.path.join(self.hills_dir, self.notes)
+			number = 0
+		number_text = "_%03i" % number
+		if extension:
+			filename = latest + number_text + extension
+		else:
+			filename = latest + number_text
+		filename_dirname = os.path.dirname(filename)
+		if not os.path.isdir(filename_dirname):
+			os.makedirs(filename_dirname)
+		return filename
+
+
 

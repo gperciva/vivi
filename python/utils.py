@@ -22,7 +22,7 @@ def play(filename, start=None, length=None):
 	(stdout, sterr) = p.communicate()
 	retcode = p.returncode
 	if retcode > 0:
-		print "FAILURE!  play returned:", retcodE
+		print "FAILURE!  play returned:", retcode
 	#print "play end:", p.returncode
 
 #def visualize_cats(cats, length=8):
@@ -143,4 +143,14 @@ def interpolate(x, x0, y0, x1, y1):
 		return y0
 	else:
 		return y0 + (x-x0)*(y1-y0)/(x1-x0)
+
+# limits printing floats to X decimal places
+def printList(list, digits=2, comma=1, eol=True):
+	line = ''
+	if comma==1:
+		for x in list: line += str(("% ."+str(digits)+"f, " ) % (x))
+		print line[:-2],
+	else:
+		for x in list: line += str(("% ."+str(digits)+"f " ) % (x))
+		print line,
 

@@ -52,9 +52,9 @@ public:
     void pizz(NoteBeginning begin, double seconds);
     void note(NoteBeginning begin, double seconds,
               NoteEnding end,
-              const char *point_and_click=NULL);
+              const char *point_and_click=NULL, double alter_force=0.0);
     // TODO: make private again?
-    inline void bowStop();
+    void bowStop();
 
 
 private:
@@ -75,7 +75,7 @@ private:
 
     void note_setup_actions(NoteBeginning begin);
     void note_write_actions(NoteBeginning begin, NoteEnding end,
-        const char *point_and_click);
+                            const char *point_and_click);
     void finger();
 
 

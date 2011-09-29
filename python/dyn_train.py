@@ -416,10 +416,11 @@ class DynTrain(QtGui.QFrame):
 			dynamics.get_velocity(self.dyn))
 
 		self.train_filename = dirs.files.make_audio_filename(params)
-		physical = self.dyn_backend.get_physical_params(params)
+		begin = vivi_controller.NoteBeginning()
+		self.dyn_backend.get_physical_params(params, begin.physical)
 		self.controller.filesNew(self.train_filename)
 		self.controller.basic(
-			physical, BASIC_SECONDS, BASIC_SKIP)
+			begin, BASIC_SECONDS, BASIC_SKIP)
 		self.controller.filesClose()
 		shared.judge.user_judge(self.train_filename)
 
@@ -603,7 +604,7 @@ class DynTrain(QtGui.QFrame):
 			lambda(x): dirs.files.get_audio_params(x[0]).bow_force,
 			filter(lambda(y):
 				dirs.files.get_audio_params(y[0]).finger_midi == finger_midi,
-				self.coll.get_items(cat)))
+				self.coll.get_items_basic(cat)))
 		return forces
 
 	def get_forces(self, cat):

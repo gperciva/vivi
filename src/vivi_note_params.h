@@ -39,11 +39,11 @@ public:
     };
     std::string params_text() {
         std::string text = str( boost::format(
-            "st: %i\td: %.1f\tfp: %.2f\t")
-               % string_number % dynamic % finger_position);
+                                    "st: %i\td: %.1f\tfp: %.2f\t")
+                                % string_number % dynamic % finger_position);
         text += str( boost::format(
-            "bbd: %.2f\tbf: %.2f\tbv: %.2f\n")
-                % bow_bridge_distance % bow_force % bow_velocity);
+                         "bbd: %.2f\tbf: %.2f\tbv: %.2f\n")
+                     % bow_bridge_distance % bow_force % bow_velocity);
         return text;
     }
     // special access
@@ -85,9 +85,9 @@ public:
     std::string params_text() {
         // don't include final \n
         std::string text = str( boost::format(
-            "begin\n#\t%s#\tif: %i\tkbf: %i\tsbpa: %.3f")
-            % physical.params_text().c_str()
-            % ignore_finger % keep_bow_force % set_bow_position_along);
+                                    "begin\n#\t%s#\tif: %i\tkbf: %i\tsbpa: %.3f")
+                                % physical.params_text().c_str()
+                                % ignore_finger % keep_bow_force % set_bow_position_along);
         return text;
     }
 };
@@ -120,9 +120,9 @@ public:
     std::string params_text() {
         // don't include final \n
         std::string text = str( boost::format(
-            "end\n#\t%s#\tlbf: %i\tlsv: %i\tkbv: %i")
-            % physical.params_text().c_str()
-            % lighten_bow_force % let_string_vibrate % keep_bow_velocity);
+                                    "end\n#\t%s#\tlbf: %i\tlsv: %i\tkbv: %i")
+                                % physical.params_text().c_str()
+                                % lighten_bow_force % let_string_vibrate % keep_bow_velocity);
         return text;
     }
 

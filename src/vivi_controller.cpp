@@ -20,12 +20,15 @@ const double DH = EARS_HOPSIZE * dt;
 const double BASIC_VELOCITY_STDDEV = 0.02;
 const double BASIC_FORCE_STDDEV = 0.02;
 
-// used elsewhere
-const double MIN_VELOCITY_FACTOR = 0.5;
+// don't listen to sound until this speed is reached
+const double MIN_VELOCITY_FACTOR = 0.95;
+
+// don't listen to sound until this many hops have passed
+//const int MIN_SETTLE_HOPS = 4;
 
 
 const double LET_VIBRATE = 0.5;
-const int LIGHTEN_NOTE_HOPS = 8; // FIXME: fix magic number
+const int LIGHTEN_NOTE_HOPS = 12; // FIXME: fix magic number for dampen
 
 ViviController::ViviController() {
 
@@ -70,12 +73,12 @@ void ViviController::reset() {
     actions.bow_velocity = 0;
 
     for (int i=0; i<CATS_MEAN_LENGTH; i++) {
-        cats[i] = -1;
+        cats[i] = 2; // neutral
     }
     cats_index = 0;
 
     m_bow_pos_along = 0.1; // default near frog?
-    m_feedback_adjust_force = true;
+    m_feedback_adjust_force = false;
 }
 
 Ears* ViviController::getEars(int st, int dyn) {
@@ -303,7 +306,7 @@ void ViviController::note_setup_actions(NoteBeginning begin)
 }
 
 void ViviController::note_write_actions(NoteBeginning begin,
-    NoteEnding end, const char *point_and_click)
+                                        NoteEnding end, const char *point_and_click)
 {
     char note_search_params[MAX_LINE_LENGTH];
     if (point_and_click == NULL) {
@@ -327,15 +330,21 @@ void ViviController::finger()
 
 void ViviController::note(NoteBeginning begin, double seconds,
                           NoteEnding end,
-                          const char *point_and_click)
+                          const char *point_and_click,
+                          double alter_force)
 {
     assert((begin.physical.string_number >= 0) &&
-        (begin.physical.string_number < NUM_STRINGS));
+           (begin.physical.string_number < NUM_STRINGS));
     assert((begin.physical.dynamic >= 0) &&
-        (begin.physical.dynamic < NUM_DYNAMICS));
+           (begin.physical.dynamic < NUM_DYNAMICS));
 
     note_setup_actions(begin);
     note_write_actions(begin, end, point_and_click);
+
+    char alter_force_text[MAX_LINE_LENGTH];
+    sprintf(alter_force_text, "alter bow force: %.3f", alter_force);
+    actions_file->comment(alter_force_text);
+    actions.bow_force *= pow(m_K[m_st][m_dyn], alter_force);
 
     if (!begin.ignore_finger) {
         finger();
@@ -361,19 +370,44 @@ void ViviController::note(NoteBeginning begin, double seconds,
     }
 
     m_note_samples = 0;
-    m_feedback_adjust_force = true;
+    m_feedback_adjust_force = false;
+
+    double final_lighten_step = -1;
 
     for (int i = 0; i < main_hops; i++) {
 //        printf("i: %i\n", i);
         hop();
+
+        // start listening to audio?
+        if (!m_feedback_adjust_force) {
+            if (m_velocity_cutoff_force_adj > 0) {
+                if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
+                    m_feedback_adjust_force = true;
+                }
+            } else {
+                if (actions.bow_velocity < m_velocity_cutoff_force_adj) {
+                    m_feedback_adjust_force = true;
+                }
+            }
+        }
         if (i == decel_hop) {
             m_feedback_adjust_force = false;
             m_velocity_target = 0.0;
         }
         if (i >= lighten_hop) {
             m_feedback_adjust_force = false;
-            if (end.lighten_bow_force) {
-                actions.bow_force *= m_dampen[m_st][m_dyn];
+            if (final_lighten_step < 0) {
+                if (end.lighten_bow_force) {
+                    actions.bow_force *= m_dampen[m_st][m_dyn];
+                }
+                if (actions.bow_force < 0.1) { // in Newtons
+                    final_lighten_step = actions.bow_force / (main_hops-lighten_hop);
+                }
+            } else {
+                actions.bow_force -= final_lighten_step;
+                if (actions.bow_force < 0) {
+                    actions.bow_force = 0.0;
+                }
             }
         }
         /*
@@ -390,14 +424,14 @@ void ViviController::note(NoteBeginning begin, double seconds,
         if (end.physical.string_number >= 0) {
             double x = m_note_samples / (44100.0 * seconds);
             actions.bow_velocity = interpolate(x,
-                0, begin.physical.bow_velocity,
-                1, end.physical.bow_velocity);
+                                               0, begin.physical.bow_velocity,
+                                               1, end.physical.bow_velocity);
             actions.bow_bridge_distance = interpolate(x,
-                0, begin.physical.bow_bridge_distance,
-                1, end.physical.bow_bridge_distance);
+                                          0, begin.physical.bow_bridge_distance,
+                                          1, end.physical.bow_bridge_distance);
             actions.dynamic = interpolate(x,
-                0, begin.physical.dynamic,
-                1, end.physical.dynamic);
+                                          0, begin.physical.dynamic,
+                                          1, end.physical.dynamic);
             m_dyn = actions.get_dyn();
         }
     }
@@ -427,7 +461,7 @@ void ViviController::note(NoteBeginning begin, double seconds,
 //zz
 }
 
-inline void ViviController::bowStop() {
+void ViviController::bowStop() {
     actions.bow_velocity = 0.0;
     actions.bow_force = 0.0;
     violin->bow(actions.string_number,
@@ -483,56 +517,53 @@ inline void ViviController::hop(int num_samples) {
 
     m_bow_pos_along += num_samples*dt*actions.bow_velocity;
 
-    ears[m_st][m_dyn]->listenShort(buf);
-    int cat = ears[m_st][m_dyn]->getClass();
-    // TODO: sort this out as well
+    // don't bother listening to a too-short note snippet, or if
+    // we don't care about adjusting the force
     if ((num_samples < EARS_HOPSIZE) || (m_feedback_adjust_force==false)) {
         m_total_samples += num_samples;
         m_note_samples  += num_samples;
+        cats_file->category(m_total_samples*dt, CATEGORY_NULL);
         return;
     }
+    ears[m_st][m_dyn]->listenShort(buf);
+    int cat = ears[m_st][m_dyn]->getClass();
+    /*
     // write cat to file if speed is enough
-    if (m_velocity_cutoff_force_adj > 0) {
-        if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
-            cats_file->category(m_total_samples*dt, cat);
-        } else {
-            cats_file->category(m_total_samples*dt, CATEGORY_NULL);
-        }
+    // don't write if note hasn't settled yet
+    if (m_note_samples < MIN_SETTLE_HOPS * EARS_HOPSIZE) {
+        cats_file->category(m_total_samples*dt, CATEGORY_NULL);
     } else {
-        if (actions.bow_velocity < m_velocity_cutoff_force_adj) {
-            cats_file->category(m_total_samples*dt, cat);
+        if (m_velocity_cutoff_force_adj > 0) {
+            if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
+                cats_file->category(m_total_samples*dt, cat);
+            } else {
+                cats_file->category(m_total_samples*dt, CATEGORY_NULL);
+            }
         } else {
-            cats_file->category(m_total_samples*dt, CATEGORY_NULL);
+            if (actions.bow_velocity < m_velocity_cutoff_force_adj) {
+                cats_file->category(m_total_samples*dt, cat);
+            } else {
+                cats_file->category(m_total_samples*dt, CATEGORY_NULL);
+            }
         }
     }
+    */
     // record cat, calculate cat_avg
     cats[cats_index] = cat;
     cats_index++;
     if (cats_index == CATS_MEAN_LENGTH) {
         cats_index = 0;
     }
+    // write to file
+    cats_file->category(m_total_samples*dt, cat);
+    // adjust based on average
     double cat_avg = 0.0;
-    int cat_ok = 1;
     for (int i=0; i<CATS_MEAN_LENGTH; i++) {
-        if (cats[i] < 0) {
-            cat_ok = 0;
-        }
         cat_avg += cats[i];
     }
     cat_avg /= CATS_MEAN_LENGTH;
-    // TODO: sort out this conditional
-    if (cat_ok == 1) {
-        if (m_velocity_cutoff_force_adj > 0) {
-            if (actions.bow_velocity > m_velocity_cutoff_force_adj) {
-                // adjust bow force
-                actions.bow_force *= pow(m_K[m_st][m_dyn], 2-cat_avg);
-            }
-        } else {
-            if (actions.bow_velocity < m_velocity_cutoff_force_adj) {
-                actions.bow_force *= pow(m_K[m_st][m_dyn], 2-cat_avg);
-            }
-        }
-    }
+    // adjust bow force
+    actions.bow_force *= pow(m_K[m_st][m_dyn], 2-cat_avg);
 
     // after processing
     m_total_samples += num_samples;

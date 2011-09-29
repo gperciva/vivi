@@ -85,6 +85,21 @@ class Collection:
 				to_return.append(pair)
 		return to_return
 
+	def get_items_basic(self, cat):
+		""" returns all pairs matching the category """
+		self._sort()
+		to_return = []
+		for pair in self.coll:
+			if cat < 0:
+				to_return.append(pair)
+			elif int(pair[1][0]) == cat:
+				# skip "zoomed" audio
+				filename = pair[0].split('/')[1]
+				if 'z' in filename:
+					continue
+				to_return.append(pair)
+		return to_return
+
 	def add_item(self, filename, judgement, replace=False, warning=True):
 		""" adds a (filename, judgement) pair """
 		new_pair = (filename, judgement)

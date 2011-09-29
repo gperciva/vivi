@@ -153,9 +153,8 @@ class ViviMainwindow(QtGui.QMainWindow):
 ######################### old stuffs
 
 	def load_ly_file(self, ly_filename):
-		#self.ly_basename = os.path.splitext(ly_filename)[0]
-		self.ly_basename = ly_filename[:-3]
-		if shared.lily.lily_file_needs_compile(ly_filename):
+		dirs.files.set_ly_basename(ly_filename)
+		if shared.lily.lily_file_needs_compile():
 			self.progress_dialog("Generating score", 2)
 			shared.lily.call_lilypond()
 		elif self.always_lilypond:
@@ -165,12 +164,11 @@ class ViviMainwindow(QtGui.QMainWindow):
 			self.finished_ly_compile()
 
 	def finished_ly_compile(self):
-		self.score.load_file(shared.lily.get_filename_pdf())
-		self.performer_feeder.load_file(shared.lily.get_filename_notes())
-#		self.performer_feeder.read_music(self.ly_basename)
-#		self.examine.load_file(self.ly_basename)
-#		if self.only_one:
-#			self.rehearse()
+		self.score.load_file(dirs.files.get_ly_extra(".pdf"))
+		dirs.files.set_notes_from_ly()
+		# FIXME: remove list
+		self.performer_feeder.load_file(
+			[dirs.files.get_notes()] )
 
 	def save_training(self):
 		self.string_train.save()
@@ -314,16 +312,14 @@ class ViviMainwindow(QtGui.QMainWindow):
 		#print "generate low-quality preview video"
 		basename = shared.lily.get_filename_pdf()[:-4]
 		self.movie.end_time = self.performer_feeder.get_duration()
-		steps = self.movie.generate_preview(basename,
-			self.performer_feeder.performer.audio_filename)
+		steps = self.movie.generate_preview()
 		self.progress_dialog("Generating movie", steps)
 
 	def generate_video(self):
 		#print "generate high-quality video"
 		basename = shared.lily.get_filename_pdf()[:-4]
 		self.movie.end_time = self.performer_feeder.get_duration()
-		steps = self.movie.generate_movie(basename,
-			self.performer_feeder.performer.audio_filename)
+		steps = self.movie.generate_movie()
 		self.progress_dialog("Generating movie", steps)
 
 	def watch(self):

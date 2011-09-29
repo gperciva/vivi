@@ -149,7 +149,6 @@ class NoteActionsCats:
 				note_cats_means.append(-1)
 			else:
 				mean = float(sum(filt)) / length
-				mean = int(round(mean))
 				note_cats_means.append(mean)
 		return note_cats_means
 

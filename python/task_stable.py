@@ -66,17 +66,16 @@ class TaskStable(task_base.TaskBase):
 						self.controller.comment("stable st %i dyn %i finger_midi %.3f"
 							% (self.st, self.dyn, finger_midi))
 
-						params = vivi_controller.PhysicalActions()
-						params.string_number = self.st
-						params.dynamic = self.dyn
-						params.finger_position = utils.midi2pos(finger_midi)
-						params.bow_force = bow_force
-						params.bow_bridge_distance = dynamics.get_distance(self.dyn)
-						params.bow_velocity = bow_direction * dynamics.get_velocity(self.dyn)
-
 						begin = vivi_controller.NoteBeginning()
+						begin.physical.string_number = self.st
+						begin.physical.dynamic = self.dyn
+						begin.physical.finger_position = utils.midi2pos(finger_midi)
+						begin.physical.bow_force = bow_force
+						begin.physical.bow_bridge_distance = dynamics.get_distance(self.dyn)
+						begin.physical.bow_velocity = bow_direction * dynamics.get_velocity(self.dyn)
+
 						end = vivi_controller.NoteEnding()
-						self.controller.note(params, STABLE_LENGTH, begin, end)
+						self.controller.note(begin, STABLE_LENGTH, end)
 						bow_direction *= -1
 					self.controller.filesClose()
 				self.process_step.emit()

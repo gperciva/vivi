@@ -4,6 +4,7 @@ import shutil
 from PyQt4 import QtCore
 
 import glob
+import dirs
 
 GENERATE_MOVIE = 1
 WATCH_MOVIE = 2
@@ -96,30 +97,28 @@ class ViviMovie(QtCore.QThread):
 		return movie_audio_filename
 
 
-	def generate_movie(self, basename, audio_filename):
+	def generate_movie(self):
 		self.quality = 1
 		self.state = GENERATE_MOVIE
 
-		map(os.remove,
-			glob.glob(os.path.join(basename + '*.movie.actions')))
-		actions_files = glob.glob(basename + "*.actions")
+		#map(os.remove,
+		#	glob.glob(os.path.join(basename + '*.movie.actions')))
+		self.audio_filename = dirs.files.get_notes_last("*.wav")
 		self.actions_filename = self.make_movie_actions_file(
-			actions_files[0])
-		self.audio_filename = audio_filename+".wav"
+			dirs.files.get_notes_last("*.actions"))
 
 		self.condition.wakeOne()
 		return 4*IMAGE_THREAD_STEPS + 3
 
-	def generate_preview(self, basename, audio_filename):
+	def generate_preview(self):
 		self.quality = 0
 		self.state = GENERATE_MOVIE
 
-		map(os.remove,
-			glob.glob(os.path.join(basename + '*.movie.actions')))
-		actions_files = glob.glob(basename + "*.actions")
+		#map(os.remove,
+		#	glob.glob(os.path.join(basename + '*.movie.actions')))
+		self.audio_filename = dirs.files.get_notes_last("*.wav")
 		self.actions_filename = self.make_movie_actions_file(
-			actions_files[0])
-		self.audio_filename = audio_filename+".wav"
+			dirs.files.get_notes_last("*.actions"))
 
 		self.condition.wakeOne()
 		return 4*IMAGE_THREAD_STEPS + 3
