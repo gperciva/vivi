@@ -10,6 +10,8 @@
 //#define NDEBUG
 #include <assert.h>
 
+using namespace std;
+
 // used in normal hops
 const double VELOCITY_STDDEV = 0.01;
 const double FORCE_STDDEV = 0.01;
@@ -73,7 +75,7 @@ void ViviController::reset() {
     actions.bow_velocity = 0;
 
     for (int i=0; i<CATS_MEAN_LENGTH; i++) {
-        cats[i] = 2; // neutral
+        cats[i] = 0; // neutral
     }
     cats_index = 0;
 
@@ -549,14 +551,18 @@ inline void ViviController::hop(int num_samples) {
         }
     }
     */
+    // write to file
+    cats_file->category(m_total_samples*dt, cat);
+    if (cat == CATEGORY_NULL) {
+    //cout<<0<<'\t'<<0<<'\t'<<actions.bow_force;
+        return;
+    }
     // record cat, calculate cat_avg
     cats[cats_index] = cat;
     cats_index++;
     if (cats_index == CATS_MEAN_LENGTH) {
         cats_index = 0;
     }
-    // write to file
-    cats_file->category(m_total_samples*dt, cat);
     // adjust based on average
     double cat_avg = 0.0;
     for (int i=0; i<CATS_MEAN_LENGTH; i++) {
@@ -564,7 +570,9 @@ inline void ViviController::hop(int num_samples) {
     }
     cat_avg /= CATS_MEAN_LENGTH;
     // adjust bow force
-    actions.bow_force *= pow(m_K[m_st][m_dyn], 2-cat_avg);
+    //cout<<cat<<'\t'<<cat_avg<<'\t'<<actions.bow_force;
+    actions.bow_force *= pow(m_K[m_st][m_dyn], -cat_avg);
+    //cout<<'\t'<<m_K[m_st][m_dyn]<<'\t'<<actions.bow_force<<endl;
 
 }
 

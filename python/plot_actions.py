@@ -2,6 +2,8 @@
 
 from PyQt4 import QtGui, QtCore
 
+import collection
+
 class PlotActions(QtGui.QWidget):
 	def __init__(self):
 		QtGui.QWidget.__init__(self)
@@ -109,27 +111,31 @@ class PlotActions(QtGui.QWidget):
 		self.draw_force_line(painter, xoffset, xscale, yoffset, yscale)
 
 		for i, cat in enumerate(self.cats):
-			if cat == -1:
-				continue
 			x = i*xscale + left_margin
 			y = self.forces[i]*yscale + yoffset
 
-			delta = 2 - cat
-			self.arrow(painter, x, y, delta)
+			self.arrow(painter, x, y, cat)
 
-	def arrow(self, painter, x, y, delta):
-		scale = 0.04*self.height()
-		direction = 1 if delta> 0 else -1
-		delta = abs(delta) / 2.0
-		delta_clipped = min(delta, 1.0)
+	def arrow(self, painter, x, y, cat):
+		if cat == collection.CATEGORY_NULL:
+			return
+		scale = 0.05*self.height()
+		direction = -1 if cat> 0 else 1
+		cat_clipped = min( abs(cat)/2.0, 1.0)
+		cat_scale = cat_clipped ** 0.3
 		pen = painter.pen()
-		pen.setColor(QtGui.QColor(
-			255*delta_clipped, 255*(1-delta_clipped), 0))
+
+		#red = 255*2*min(cat_clipped, 0.5)
+		red = 255*2*abs(cat_clipped - 0.5)
+		green = 255*(1 - 2*max(cat_clipped-0.5, 0))
+		blue = 0
+		#print cat_clipped, '\t', red, '\t', green
+		pen.setColor(QtGui.QColor(red, green, blue))
 		painter.setPen(pen)
 		for left_right in [-1, 1]:
 			painter.drawLine(x, y,
-				x + scale*left_right*delta_clipped,
-				y + 3*scale*direction*delta_clipped)
+				x + scale*left_right*cat_scale,
+				y + 3*scale*direction*cat_scale)
 		
 
 	def draw_background(self, painter):

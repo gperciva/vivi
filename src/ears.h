@@ -21,7 +21,9 @@ const int EARS_HOPSIZE = 256;
 const int EARS_WINDOWSIZE = 1024;
 //const int EARS_WINDOWSIZE = 2048;
 
-const int CATEGORY_NULL = -1;
+const int CATEGORY_NULL = -99999;
+// marsyas can't handle negative values in regression
+const int CATEGORY_OFFSET = 100;
 
 
 const int SAMPLE_RATE = 44100;

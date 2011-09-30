@@ -112,9 +112,9 @@ class DynBackend(QtCore.QThread):
 	def compute_thread(self):
 		self.ears.reset()
 		arff_filename = dirs.files.get_arff_filename(
-			self.st, 'main', self.dyn)
+			self.st, self.dyn)
 		mpl_filename = dirs.files.get_mpl_filename(
-			self.st, 'main', self.dyn)
+			self.st, self.dyn)
 
 		self.ears.set_training(self.mf_filename, arff_filename)
 		self.ears.processFile()
@@ -134,8 +134,7 @@ class DynBackend(QtCore.QThread):
 	def check_accuracy_thread(self):
 		### find overall 10-fold cross-validation accuracy
 		cmd = "kea -cl SVM -svm_svm NU_SVR -svm_kernel LINEAR -w %s" % (
-			dirs.files.get_arff_filename(
-				self.st, 'main', self.dyn))
+			dirs.files.get_arff_filename(self.st, self.dyn))
 		process = subprocess.Popen(cmd, shell=True,
 			stdout=subprocess.PIPE)
 		kea_output = process.communicate()
@@ -149,8 +148,7 @@ class DynBackend(QtCore.QThread):
 				splitline = line.split()
 				self.accuracy = float(splitline[2])
 		### calculate cats for each file
-		mpl_filename = dirs.files.get_mpl_filename(
-			self.st, 'main', self.dyn)
+		mpl_filename = dirs.files.get_mpl_filename(self.st, self.dyn)
 		self.ears.reset()
 		self.ears.set_predict_wavfile(mpl_filename)
 		for pair in self.coll_accuracy.coll:

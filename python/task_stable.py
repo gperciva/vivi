@@ -14,8 +14,9 @@ import utils
 import vivi_types
 import basic_training
 
+import collection
 
-STABLE_LENGTH = 0.75
+STABLE_LENGTH = 1.0
 
 
 class TaskStable(task_base.TaskBase):
@@ -23,7 +24,7 @@ class TaskStable(task_base.TaskBase):
 	def __init__(self, st, dyn, controller, emit):
 		task_base.TaskBase.__init__(self, st, dyn, controller, emit,
 			"stable")
-		self.STEPS = 6
+		self.STEPS = 4
 
 		self.LOW_INIT = 1.0 # blah numbers to start with
 		self.HIGH_INIT = 1.1
@@ -33,6 +34,7 @@ class TaskStable(task_base.TaskBase):
 		# TODO: eliminate this
 		self.most_stable = 1.0
 		self.notes = None
+
 
 	def set_forces(self, forces):
 		self.stable_forces = forces
@@ -120,7 +122,6 @@ class TaskStable(task_base.TaskBase):
 			col_base = 3*self.forces_initial.index(force)
 			for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
 				col = col_base+fmi
-#				print row, col, fmi, filename
 				nac = note_actions_cats.NoteActionsCats()
 				nac.load_file(filename[0:-4])
 				to_find = "finger_midi %i" % fm
@@ -153,41 +154,42 @@ class TaskStable(task_base.TaskBase):
 				#print vals
 				row_stable = scipy.stats.gmean(vals)
 				block_vals.append(row_stable)
-			#print "%.2f\t%.3f" % (self.extras[block], scipy.gmean(block_vals)),
+			print "%.2f\t%.3f" % (self.extras[block], scipy.stats.gmean(block_vals)),
+			print
 			#print "\t%.3f" % (scipy.std(block_vals))
 			candidates.append( 
 				(scipy.stats.gmean(block_vals), self.extras[block], block) )
 		candidates.sort()
 		#print candidates
-		most_stable = candidates[-1][1]
-		index = candidates[-1][2]
+		most_stable = candidates[0][1]
+		index = candidates[0][2]
 		return index, most_stable
 
 	def get_stability(self,cats):
 		direction = 1
 		areas = []
 		area = []
-		zeros = 1
 		for cat in cats:
-			if cat < 0:
+			if cat == collection.CATEGORY_NULL:
 				continue
-			err = 2-cat
-			if err == 0:
+			if abs(cat) < 0.5:
 				continue
-			if err * direction > 0:
-				area.append(err)
+			if cat * direction > 0:
+				area.append(cat*cat)
 			else:
 				if area:
 					areas.append(area)
 				area = []
-				area.append(err)
-				direction = math.copysign(1, err)
-				zeros += 1
+				area.append(cat*cat)
+				direction = math.copysign(1, cat)
 		if area:
 			areas.append(area)
 		stable = 1.0
 		for a in areas:
-			area_fitness = 1.0 / math.sqrt(len(a))
+			#area_fitness = sum(a)
+			#area_fitness = sum(a) / math.sqrt(len(a))
+			#area_fitness = 1.0 / math.sqrt(len(a))
+			area_fitness = len(a)
 			stable *= area_fitness
 		return stable
 

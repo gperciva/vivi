@@ -13,14 +13,11 @@ class CheckColl:
 	def check(self, coll, st, dyn):
 		self.data = []
 
-		cat_text = "main"
-		cats_type = collection.CATS_MAIN
-		training_file = dirs.files.get_mf_filename(
-			st, cat_text, dyn).replace(".mf", ".mpl")
+		training_file = dirs.files.get_mpl_filename(st, dyn)
 
 		for coll_index,pair in enumerate(coll.coll):
-			cat = int(pair[1][0])
-			if coll.is_cat(pair[1], cats_type):
+			cat = pair[1]
+			if coll.is_cat_valid(cat):
 				self.judge_wav_file(pair[0], cat)
 
 	def judge_wav_file(self, wavfile, user_cat):

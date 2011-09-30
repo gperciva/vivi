@@ -78,6 +78,6 @@ class TaskBase():
 
 	def _setup_controller(self):
 		self.controller.load_ears_training(self.st, self.dyn,
-			dirs.files.get_mpl_filename(self.st, 'main', self.dyn))
+			dirs.files.get_mpl_filename(self.st, self.dyn))
 
 

@@ -20,7 +20,7 @@ def _get_matching_fingers(dyn, coll):
 	bbd = dynamics.get_distance(dyn)
 	bv  = dynamics.get_velocity(dyn)
 	match_level = filter(lambda(pair): is_level_match(pair, bbd, bv),
-						coll.get_items(-1))
+						coll.coll)
 
 	### split forces+cats into fingers
 	def is_finger_match(pair, finger_midi):
@@ -35,8 +35,8 @@ def _get_matching_fingers(dyn, coll):
 		params = dirs.files.get_audio_params(pair[0])
 		for i, fm in enumerate(FINGER_MIDIS):
 			if is_finger_match(pair, fm):
-				cat = int(pair[1][0])
-				if cat < 6: # cat is normal
+				cat = pair[1]
+				if coll.is_cat_valid(cat):
 					cats[i].append(cat)
 					forces[i].append(params.bow_force)
 				else:
@@ -47,6 +47,7 @@ def _get_between(forces, cats, cat, unknowns):
 	""" finds a force between the boundaries """
 	# get extremes
 	combo = zip(forces, cats)
+	print combo
 	higher_force = min(map(lambda(x):x[0],
 	                       filter(lambda(x):x[1]>cat, combo)))
 	lower_force  = max(map(lambda(x):x[0],
@@ -68,16 +69,16 @@ def _get_missing_force(forces, cats, unknowns):
 	if not forces:
 		force = 1.0
 	### get extremes
-	elif not 5 in cats:
+	elif not 2 in cats:
 		force = 2.0 * max(forces+unknowns)
-	elif not 1 in cats:
+	elif not -2 in cats:
 		force = 0.5 * min(forces+unknowns)
 	### fill in missing
-	elif not 3 in cats:
+	elif not 0 in cats:
 		force = _get_between(forces, cats, 3, unknowns)
-	elif not 4 in cats:
+	elif not 1 in cats:
 		force = _get_between(forces, cats, 4, unknowns)
-	elif not 2 in cats:
+	elif not -1 in cats:
 		force = _get_between(forces, cats, 2, unknowns)
 	else:
 		force = None

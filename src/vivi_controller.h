@@ -70,7 +70,7 @@ private:
     double m_K[NUM_STRINGS][NUM_DYNAMICS];
     double m_dampen[NUM_STRINGS][NUM_DYNAMICS];
 
-    int cats[CATS_MEAN_LENGTH]; // TODO: to test mean
+    double cats[CATS_MEAN_LENGTH]; // TODO: to test mean
     int cats_index;
 
     void note_setup_actions(NoteBeginning begin);

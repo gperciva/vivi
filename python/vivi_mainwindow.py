@@ -235,7 +235,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 		self.performer_feeder.play()
 
 	def select_note(self, lily_line, lily_col):
-		filename = shared.lily.get_filename_pdf()[:-4]
+		filename = dirs.files.get_ly_extra("")
 		import glob
 		filename = glob.glob(filename+'*.actions')[0]
 		filename = filename[:-8]
@@ -310,14 +310,12 @@ class ViviMainwindow(QtGui.QMainWindow):
 
 	def quick_preview(self):
 		#print "generate low-quality preview video"
-		basename = shared.lily.get_filename_pdf()[:-4]
 		self.movie.end_time = self.performer_feeder.get_duration()
 		steps = self.movie.generate_preview()
 		self.progress_dialog("Generating movie", steps)
 
 	def generate_video(self):
 		#print "generate high-quality video"
-		basename = shared.lily.get_filename_pdf()[:-4]
 		self.movie.end_time = self.performer_feeder.get_duration()
 		steps = self.movie.generate_movie()
 		self.progress_dialog("Generating movie", steps)

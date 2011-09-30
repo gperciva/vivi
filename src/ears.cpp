@@ -286,7 +286,7 @@ void Ears::listenShort(short *audio) {
 double Ears::getClass() {
     if (ticks_count > stabilizingDelay) {
         realvec data = net->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
-        return data(0,0);
+        return data(0,0) - CATEGORY_OFFSET;
     } else {
         return CATEGORY_NULL;
     }
@@ -359,6 +359,9 @@ void Ears::make_input() {
     if (mode == TRAIN_FILE) {
         audio_input->addMarSystem(mng.create("SoundFileSource", "gextract_src"));
         audio_input->updControl("SoundFileSource/gextract_src/mrs_string/filename", in_filename);
+#ifdef REGRESSION
+        audio_input->updControl("SoundFileSource/gextract_src/mrs_bool/regression",true);
+#endif
     }
     if (mode == PREDICT_FILE) {
         audio_input->addMarSystem(mng.create("SoundFileSource", "gextract_src"));

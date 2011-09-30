@@ -17,6 +17,8 @@ import basic_training
 
 import note_actions_cats
 
+import collection
+
 ATTACK_LENGTH = 0.75
 
 
@@ -27,6 +29,8 @@ class TaskAttack(task_base.TaskBase):
 		task_base.TaskBase.__init__(self, st, dyn, controller, emit,
 			"attack-%i"%finger_index)
 		#self.STEPS = 8
+		self.STEPS = 4
+		self.REPS = 2
 		self.best_attack = 0 # a "null" value
 		self.fmi = finger_index
 
@@ -154,7 +158,7 @@ class TaskAttack(task_base.TaskBase):
 		M = 0.5
 		filled = 0
 		for val in values:
-			if val < 0:
+			if val == collection.CATEGORY_NULL:
 				continue
 			newvalues.append(val)
 			past_values[pvi] = val
@@ -166,17 +170,14 @@ class TaskAttack(task_base.TaskBase):
 				mse = self.mse(past_values)
 				if M > mse:
 					break
-		#print newvalues
-		#sys.exit(1)
-		return newvalues			
+		return newvalues
 
 	def mse(self, values):
 		if len(values) == 0:
 			return 0
 		total = 0
 		for val in values:
-			err = 2 - val
-			total += err*err
+			total += val*val
 		total /= float(len(values))
 		return total
 

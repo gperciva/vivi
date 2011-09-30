@@ -40,12 +40,9 @@ class PlotAttack(plot_actions.PlotActions):
 		self.draw_force_line(painter, xoffset, xscale, yoffset, yscale)
 
 		for i, cat in enumerate(self.cats_means):
-			if cat == -1:
-				continue
 			x = i*xscale + left_margin
 			y = self.forces[i]*yscale + yoffset
-			delta = 2 - cat
-			self.arrow(painter, x, y, delta)
+			self.arrow(painter, x, y, cat)
 		painter.setPen(QtCore.Qt.darkRed)
 		painter.drawText( 50, self.height()-5,
 			"%.3f" % self.stability)

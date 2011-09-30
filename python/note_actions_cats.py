@@ -5,6 +5,8 @@ import os
 import dynamics
 import dirs
 
+import collection
+
 import vivi_types
 
 HOP_SECONDS = 44100.0 / shared.vivi_controller.EARS_HOPSIZE
@@ -138,15 +140,15 @@ class NoteActionsCats:
 		# get cat_means
 		note_cats_means = []
 		length = shared.vivi_controller.CATS_MEAN_LENGTH
-		filt = [-1] * length
+		filt = [collection.CATEGORY_NULL] * length
 		filt_index = 0
 		for seconds, c in cats:
 			filt[filt_index] = c
 			filt_index += 1
 			if filt_index == length:
 				filt_index = 0
-			if -1 in filt:
-				note_cats_means.append(-1)
+			if collection.CATEGORY_NULL in filt:
+				note_cats_means.append(collection.CATEGORY_NULL)
 			else:
 				mean = float(sum(filt)) / length
 				note_cats_means.append(mean)

@@ -30,39 +30,36 @@ class ViviDirs:
 			 self.hills_dir])
 
 	@staticmethod
-	def _get_basename(st, cats_type, dyn):
+	def _get_basename(st, dyn):
 		""" used internally to construct 0_0. or wierd_0_0. """
-		if cats_type == 'main':
-			basename = '%i_%i.' % (st, dyn)
-		else:
-			basename = 'weird_%i_%i.' % (st, dyn)
+		basename = '%i_%i.' % (st, dyn)
 		return basename
 
-	def get_mf_filename(self, st, cats_type, dyn):
+	def get_mf_filename(self, st, dyn):
 		""" marsyas collection .mf file. """
 		filename = os.path.join(self.train_dir,
-			self._get_basename(st, cats_type, dyn)
+			self._get_basename(st, dyn)
 			+ 'mf')
 		return filename
 
-	def get_arff_filename(self, st, cats_type, dyn):
+	def get_arff_filename(self, st, dyn):
 		""" weka training .arff file. """
 		filename = os.path.join(self.inter_dir,
-			self._get_basename(st, cats_type, dyn)
+			self._get_basename(st, dyn)
 			+ 'arff')
 		return filename
 
-	def get_mpl_filename(self, st, cats_type, dyn):
+	def get_mpl_filename(self, st, dyn):
 		""" saved MarSystems (for training) .mpl file. """
 		filename = os.path.join(self.final_dir,
-			self._get_basename(st, cats_type, dyn)
+			self._get_basename(st, dyn)
 			+ 'mpl')
 		return filename
 
 	def get_dyn_vivi_filename(self, st, dyn):
 		""" trained dynamic .vivi file. """
 		filename = os.path.join(self.final_dir,
-			self._get_basename(st, 'main', dyn)
+			self._get_basename(st, dyn)
 			+ 'vivi')
 		return filename
 

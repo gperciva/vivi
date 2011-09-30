@@ -2,7 +2,7 @@
 #include "vivi_controller.h"
 #include "dynamics.h"
 
-const double PLAY = 0.5;
+const double PLAY = 1.0;
 
 int main() {
     ViviController *viviController = new ViviController();

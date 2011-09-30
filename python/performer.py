@@ -40,7 +40,7 @@ class Performer(QtCore.QObject):
 	def _setup_controller(self):
 		for st in range(4):
 			for dyn in range(4):
-				mpl_filename = dirs.files.get_mpl_filename(st, 'main', dyn)
+				mpl_filename = dirs.files.get_mpl_filename(st, dyn)
 				if not os.path.exists(mpl_filename):
 					mpl_filename = None
 				self.controller.load_ears_training(st, dyn,

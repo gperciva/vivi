@@ -30,6 +30,7 @@ class VisualizeCats(QtGui.QWidget):
 		# the right way
 		painter.fillRect(0, 0, self.width(), self.height(), self.back)
 
+		x_center = self.width() / 2.0
 		x_scale = self.width() / 6.0
 
 
@@ -39,19 +40,19 @@ class VisualizeCats(QtGui.QWidget):
 		painter.setPen(pen)
 		for i in range(len(self.cats)):
 			y = i * self.height() / float(len(self.cats))
-			x = self.user_cat * x_scale
+			x = int(x_center + self.user_cat * x_scale)
 			painter.drawPoint(x,y)
 
 		# draw predicted cat
 		for i, cat in enumerate(self.cats):
-			y = i * self.height() / float(len(self.cats))
-			x = (cat+1) * x_scale
+			y = i * self.height() / len(self.cats)
+			x = int(x_center + cat * x_scale)
 			if x < 0:
 				x = 0
 			elif x >= self.width():
 				x = self.width() - 1
 
-			delta = abs(cat + 1 - self.user_cat) / 0.5
+			delta = abs(cat - self.user_cat) / 0.5
 			delta_clipped = min(delta, 1.0)
 			pen.setColor(QtGui.QColor(
 				255*delta_clipped, 255*(1-delta_clipped), 0))

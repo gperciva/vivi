@@ -4,8 +4,10 @@
 from PyQt4 import QtGui, QtCore
 import judge_audio_gui
 
-NUM_CATEGORIES = 6 # including "unknown"
 import utils # to play sound
+import collection
+
+JUDGEMENT_CANCEL = -1234
 
 #pylint: disable=C0103,R0904
 # I can't change the overriden method names, nor the Qt naming scheme.
@@ -83,10 +85,10 @@ class JudgeAudioWidget(QtGui.QFrame):
 
 	def _user_key(self, key):
 		""" user pressed this key or button """
-		if (key > 0) and (key <= NUM_CATEGORIES):
-			self.judged_cat.emit(key)
+		if (key > 0) and (key <= collection.NUM_CATEGORIES):
+			self.judged_cat.emit(key - 1 - collection.CATEGORY_CENTER)
 		elif key == 8:
 			utils.play(self.judge_filename+'.wav')
 		elif key == 9:
-			self.judged_cat.emit(-1)
+			self.judged_cat.emit(JUDGEMENT_CANCEL)
 

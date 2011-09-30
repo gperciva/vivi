@@ -177,7 +177,7 @@ class DynTrain(QtGui.QFrame):
 		if self.accuracy > 0:
 			# round number
 			self.ui.accuracy_label.setText(
-				str("%.2f")%( round(self.accuracy) ))
+				str("%.3f")%( self.accuracy ))
 		else:
 			self.ui.accuracy_label.setText("")
 		if self.force_factor > 1.0:
@@ -271,11 +271,8 @@ class DynTrain(QtGui.QFrame):
 
 	def read(self):
 		### read collection
-		for cat_type in [collection.CATS_MAIN, collection.CATS_WEIRD]:
-			cat_text = self.coll.get_cat_text(cat_type)
-			filename = dirs.files.get_mf_filename(
-				self.st, cat_text, self.dyn)
-			self.coll.add_mf_file(filename)
+		filename = dirs.files.get_mf_filename(self.st, self.dyn)
+		self.coll.add_mf_file(filename)
 		self.judged_main_num = self.coll.num_main()
 		### read forces
 		self.controller_params.load_file()
@@ -304,11 +301,8 @@ class DynTrain(QtGui.QFrame):
 
 	def write(self):
 		### write collection
-		for cat_type in [collection.CATS_WEIRD, collection.CATS_MAIN]:
-			cat_text = self.coll.get_cat_text(cat_type)
-			filename = dirs.files.get_mf_filename(
-				self.st, cat_text, self.dyn)
-			self.coll.write_mf_file(filename, cat_type)
+		filename = dirs.files.get_mf_filename(self.st, self.dyn)
+		self.coll.write_mf_file(filename)
 		#self.modified = False
 		### write forces
 		for i in range(3):
@@ -338,28 +332,25 @@ class DynTrain(QtGui.QFrame):
 		if job_type == state.BASIC_TRAINING:
 			self.basic_train()
 		elif job_type == state.SVM:
-			cat_text = self.coll.get_cat_text(
-				collection.CATS_MAIN)
-			mf_filename = dirs.files.get_mf_filename(
-				self.st, cat_text, self.dyn)
+			mf_filename = dirs.files.get_mf_filename(self.st, self.dyn)
 			self.dyn_backend.compute_training(mf_filename)
 		elif job_type == state.ACCURACY:
 			self.dyn_backend.check_accuracy()
 		elif job_type == state.STABLE:
 			finger_forces = []
 			for fm in [0, 4, 7]:
-				low_force = max(self.get_forces_finger(1, fm))
-				middle_force = scipy.mean(self.get_forces_finger(3,fm))
-				high_force = min(self.get_forces_finger(5, fm))
+				low_force = min(self.get_forces_finger(-2, fm))
+				middle_force = scipy.mean(self.get_forces_finger(0,fm))
+				high_force = max(self.get_forces_finger(2, fm))
 				finger_forces.append( [low_force, middle_force, high_force] )
 			self.dyn_backend.learn_stable(finger_forces)
 		elif job_type == state.ATTACKS:
 			finger_forces = []
 			for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
 				# yes, reversed
-				low_force = min(self.get_forces_finger(1, fm))
-				middle_force = scipy.mean(self.get_forces_finger(3,fm))
-				high_force = max(self.get_forces_finger(5, fm))
+				low_force = min(self.get_forces_finger(-2, fm))
+				middle_force = scipy.mean(self.get_forces_finger(0,fm))
+				high_force = max(self.get_forces_finger(2, fm))
 				finger_forces.append( [low_force, middle_force, high_force] )
 				self.dyn_backend.task_attacks[fmi].set_K(self.force_factor)
 			self.dyn_backend.learn_attacks(finger_forces)
@@ -436,26 +427,25 @@ class DynTrain(QtGui.QFrame):
 		shared.judge.display(show=False)
 
 	def judged_cat(self, cat):
-		if cat >= 0:
+		if cat == shared.judge_audio_widget.JUDGEMENT_CANCEL:
+			if self.cancel_will_delete:
+				os.remove(self.train_filename+".wav")
+				os.remove(self.train_filename+".actions")
+		else:
 			self.train_filename = dirs.files.move_works_to_train(
 				self.train_filename)
 			if self.cancel_will_delete:
 				self.coll.add_item(self.train_filename+'.wav',
-					collection.CATEGORIES[cat-1])
+					cat)
 			else:
 				self.coll.add_item(self.train_filename+'.wav',
-					collection.CATEGORIES[cat-1], replace=True)
+					cat, replace=True)
 				self.compare.compare(self.st, self.dyn,
 					self.accuracy, self.coll)
-			if cat <= 5:
-				self.judged_main_num = self.coll.num_main()
-				self.set_modified()
-		else:
-			if self.cancel_will_delete:
-				os.remove(self.train_filename+".wav")
-				os.remove(self.train_filename+".actions")
+			self.judged_main_num = self.coll.num_main()
+			self.set_modified()
 		if self.state.job_type == state.BASIC_TRAINING:
-			if cat >= 0:
+			if self.coll.is_cat_valid(cat):
 				self.basic_train_next()
 			else:
 				self.basic_train_end()
@@ -604,7 +594,7 @@ class DynTrain(QtGui.QFrame):
 			lambda(x): dirs.files.get_audio_params(x[0]).bow_force,
 			filter(lambda(y):
 				dirs.files.get_audio_params(y[0]).finger_midi == finger_midi,
-				self.coll.get_items_basic(cat)))
+				self.coll.get_items(cat)))
 		return forces
 
 	def get_forces(self, cat):

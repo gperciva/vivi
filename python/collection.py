@@ -1,22 +1,16 @@
 #!/usr/bin/env python
 """ deals with .mf collections of string-dynamic .wav files """
 
-# TODO: this is more complicated than it needs to be.
-
 import operator
 
-CATEGORIES = [
-	'1_more_more_force',
-	'2_more_force',
-	'3_ok',
-	'4_less_force',
-	'5_less_less_force',
-	'6__unknown',
-]
+import vivi_controller # for CATEGORY_NULL
+CATEGORY_NULL = vivi_controller.CATEGORY_NULL
 
-CATS_ALL = 0
-CATS_WEIRD = 1
-CATS_MAIN = 2
+# marsyas can't handle negative values in regression
+POSITIVE_OFFSET = vivi_controller.CATEGORY_OFFSET
+
+NUM_CATEGORIES = 5
+CATEGORY_CENTER = 2
 
 class Collection:
 	""" a .mf collection of string-dynamic .wav files with judgements """
@@ -35,74 +29,43 @@ class Collection:
 			return
 		for line in lines:
 			splitline = line.split()
-			self.add_item(splitline[0], splitline[1], False, False)
+			self.add_item(splitline[0],
+				int(splitline[1])-POSITIVE_OFFSET,
+				False, False)
 		self._sort()
 
-	def write_mf_file(self, filename, inout):
+	def write_mf_file(self, filename):
 		""" writes a mf file with all items with the appropriate inout categories """
 		self._sort()
 		outfile = open(filename, 'w')
 		for pair in self.coll:
 			wavfile = pair[0]
-			judgement = pair[1]
-			if self.is_cat(judgement, inout):
-				outfile.write(wavfile+'\t'+judgement+'\n')
+			judgement = pair[1] + POSITIVE_OFFSET
+			if self.is_cat_valid(judgement):
+				outfile.write(wavfile+'\t'+str(judgement)+'\n')
+			else:
+				outfile.write('#'+wavfile+'\t'+str(judgement)+'\n')
 		outfile.close()
 
 	@staticmethod
-	def get_cat_text(cat_type):
-		""" returns 'all' or 'weird' or 'main' """
-		if cat_type == CATS_ALL:
-			return 'all'
-		elif cat_type == CATS_WEIRD:
-			return 'weird'
-		elif cat_type == CATS_MAIN:
-			return 'main'
-		return None
-
-	@staticmethod
-	def is_cat(judgement, cat_type):
-		""" is the judgement part of the cat_type """
-		cat = judgement[0]
-		if cat_type == CATS_ALL:
+	def is_cat_valid(judgement):
+		""" is the judgement non-unknown? """
+		if judgement is None:
+			return False
+		elif judgement is CATEGORY_NULL:
+			return False
+		else:
 			return True
-		elif cat_type == CATS_WEIRD:
-			if (cat=='6'):
-				return True
-		elif cat_type == CATS_MAIN:
-			if ((cat>='1') and (cat<='5')):
-				return True
-		return False
 
 	def get_items(self, cat):
 		""" returns all pairs matching the category """
-		self._sort()
-		to_return = []
-		for pair in self.coll:
-			if cat < 0:
-				to_return.append(pair)
-			elif int(pair[1][0]) == cat:
-				to_return.append(pair)
-		return to_return
-
-	def get_items_basic(self, cat):
-		""" returns all pairs matching the category """
-		self._sort()
-		to_return = []
-		for pair in self.coll:
-			if cat < 0:
-				to_return.append(pair)
-			elif int(pair[1][0]) == cat:
-				# skip "zoomed" audio
-				filename = pair[0].split('/')[1]
-				if 'z' in filename:
-					continue
-				to_return.append(pair)
-		return to_return
+		return filter(lambda x: x[1] == cat, self.coll)
 
 	def add_item(self, filename, judgement, replace=False, warning=True):
 		""" adds a (filename, judgement) pair """
 		new_pair = (filename, judgement)
+		if filename[0] == '#':
+			filename = filename[1:]
 		for i, pair in enumerate(self.coll):
 			if pair[0] == filename:
 				if (not replace) and warning:
@@ -129,8 +92,7 @@ class Collection:
 		""" number of files which have 'main' categories """
 		number = 0
 		for pair in self.coll:
-			cat = pair[1][0]
-			if ((cat>='1') and (cat<='5')):
+			if pair[1] is not CATEGORY_NULL:
 				number += 1
 		return number
 
