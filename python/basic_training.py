@@ -5,7 +5,7 @@ import dirs
 import dynamics
 import utils
 
-FINGER_MIDIS = [0.0, 4.0, 7.0]
+FINGER_MIDIS = [0.0, 4.0, 6.0]
 
 def _get_matching_fingers(dyn, coll):
 	""" finds all items in coll that match the dynamic.  Splits
@@ -47,7 +47,6 @@ def _get_between(forces, cats, cat, unknowns):
 	""" finds a force between the boundaries """
 	# get extremes
 	combo = zip(forces, cats)
-	print combo
 	higher_force = min(map(lambda(x):x[0],
 	                       filter(lambda(x):x[1]>cat, combo)))
 	lower_force  = max(map(lambda(x):x[0],
@@ -75,11 +74,11 @@ def _get_missing_force(forces, cats, unknowns):
 		force = 0.5 * min(forces+unknowns)
 	### fill in missing
 	elif not 0 in cats:
-		force = _get_between(forces, cats, 3, unknowns)
+		force = _get_between(forces, cats, 0, unknowns)
 	elif not 1 in cats:
-		force = _get_between(forces, cats, 4, unknowns)
+		force = _get_between(forces, cats, 1, unknowns)
 	elif not -1 in cats:
-		force = _get_between(forces, cats, 2, unknowns)
+		force = _get_between(forces, cats, -1, unknowns)
 	else:
 		force = None
 	return force

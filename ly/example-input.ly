@@ -4,8 +4,10 @@
 
 \relative c' {
   %\tempo 4 = 120
+  g4 a b c
+  d e fis g
 %  c2..\p\< d8\f
-  d4\f\> e fis g\p
+%  d4\f\> e fis g\p
 %  c4\p\< d e fis\f
 
 %  g8\p r d' r a' r e' r

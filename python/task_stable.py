@@ -154,8 +154,8 @@ class TaskStable(task_base.TaskBase):
 				#print vals
 				row_stable = scipy.stats.gmean(vals)
 				block_vals.append(row_stable)
-			print "%.2f\t%.3f" % (self.extras[block], scipy.stats.gmean(block_vals)),
-			print
+			#print "%.2f\t%.3f" % (self.extras[block], scipy.stats.gmean(block_vals)),
+			#print
 			#print "\t%.3f" % (scipy.std(block_vals))
 			candidates.append( 
 				(scipy.stats.gmean(block_vals), self.extras[block], block) )

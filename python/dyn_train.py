@@ -338,10 +338,11 @@ class DynTrain(QtGui.QFrame):
 			self.dyn_backend.check_accuracy()
 		elif job_type == state.STABLE:
 			finger_forces = []
-			for fm in [0, 4, 7]:
+			for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
 				low_force = min(self.get_forces_finger(-2, fm))
 				middle_force = scipy.mean(self.get_forces_finger(0,fm))
 				high_force = max(self.get_forces_finger(2, fm))
+				#middle_force = (high_force+low_force) / 2.0
 				finger_forces.append( [low_force, middle_force, high_force] )
 			self.dyn_backend.learn_stable(finger_forces)
 		elif job_type == state.ATTACKS:
@@ -351,6 +352,7 @@ class DynTrain(QtGui.QFrame):
 				low_force = min(self.get_forces_finger(-2, fm))
 				middle_force = scipy.mean(self.get_forces_finger(0,fm))
 				high_force = max(self.get_forces_finger(2, fm))
+				#middle_force = (high_force+low_force) / 2.0
 				finger_forces.append( [low_force, middle_force, high_force] )
 				self.dyn_backend.task_attacks[fmi].set_K(self.force_factor)
 			self.dyn_backend.learn_attacks(finger_forces)

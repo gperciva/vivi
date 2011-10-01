@@ -37,7 +37,7 @@ HOPSIZE = 1024
 NUM_AUDIO_BUFFERS = 4
 
 # for pitch and buffers
-PRINT_EXTRA_DISPLAY = 0
+PRINT_EXTRA_DISPLAY = 1
 
 class Parameters():
     def __init__(self, st=0, fp=0, bp=.08, f=1.0, v=0.4, T=1.0):
@@ -261,7 +261,7 @@ class InteractiveViolin():
 
         scipy.io.wavfile.write(filename, 44100, complete)
         mf_file = open('collection.mf', 'a')
-        mf_file.write(str("%s\t%i\n" % (filename, cat-3+100)) )
+        mf_file.write(str("train/%s\t%i\n" % (filename, cat-3+100)) )
         mf_file.close()
 
     def main_loop(self):
@@ -327,6 +327,18 @@ def main(stdscr):
         instrument_number = int(sys.argv[1])
     except:
         instrument_number = 0
+    try:
+        st = int(sys.argv[2])
+    except:
+        st = 0
+    try:
+        dyn = int(sys.argv[3])
+    except:
+        dyn = 0
+    try:
+        finger = int(sys.argv[4])
+    except:
+        finger = 0
 
     p = pyaudio.PyAudio()
     audio_stream = p.open(
@@ -338,6 +350,12 @@ def main(stdscr):
     )
 
     vln = InteractiveViolin(instrument_number, stdscr, audio_stream)
+    vln.turn_off_current_string()
+    vln.params.violin_string = st
+    # FIXME: dyn
+    vln.params.finger_position = 1.0 - 1.0 / (1.05946309**finger)
+    vln.params_queue.put(vln.params)
+
     vln.main_loop()
 
     audio_stream.close()
