@@ -11,119 +11,119 @@ import shared
 import visualize_cats
 
 class CompareColl(QtGui.QFrame):
-	row_delete = QtCore.pyqtSignal(str, name="row_delete")
-	row_retrain = QtCore.pyqtSignal(str, name="row_retrain")
-	row_prev = None
-	
-	def __init__(self):
-		QtGui.QFrame.__init__(self)
-		# set up GUI
-		self.ui = examine_widget_gui.Ui_Frame()
-		self.ui.setupUi(self)
+    row_delete = QtCore.pyqtSignal(str, name="row_delete")
+    row_retrain = QtCore.pyqtSignal(str, name="row_retrain")
+    row_prev = None
+    
+    def __init__(self):
+        QtGui.QFrame.__init__(self)
+        # set up GUI
+        self.ui = examine_widget_gui.Ui_Frame()
+        self.ui.setupUi(self)
 
-		self.check_coll = check_coll.CheckColl()
+        self.check_coll = check_coll.CheckColl()
 
-		self.table = table_play_widget.TablePlayWidget(self)
-		self.table.set_column_names(["cat", "stars"])
-		self.table.setColumnWidth(0, 50)
-		self.table.setColumnWidth(1, 500)
+        self.table = table_play_widget.TablePlayWidget(self)
+        self.table.set_column_names(["cat", "stars"])
+        self.table.setColumnWidth(0, 50)
+        self.table.setColumnWidth(1, 500)
 
-		self.ui.verticalLayout.addWidget(self.table)
+        self.ui.verticalLayout.addWidget(self.table)
 
-		self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
-		self.table.action_play.connect(self.table_play)
-		self.table.action_delete.connect(self.table_row_delete)
-		self.table.action_retrain.connect(self.table_row_retrain)
-		self.table.action_quit.connect(self.table_quit)
-		self.table.itemSelectionChanged.connect(self.selection_changed)
-		self.ui.button_play.clicked.connect(self.table_play)
+        self.table.action_play.connect(self.table_play)
+        self.table.action_delete.connect(self.table_row_delete)
+        self.table.action_retrain.connect(self.table_row_retrain)
+        self.table.action_quit.connect(self.table_quit)
+        self.table.itemSelectionChanged.connect(self.selection_changed)
+        self.ui.button_play.clicked.connect(self.table_play)
 
-		# add extra buttons
-		button = QtGui.QPushButton("re&train")
-		self.ui.examine_commands.insertWidget(1, button)
-		button.clicked.connect(self.table_row_retrain)
-		button = QtGui.QPushButton("&delete")
-		self.ui.examine_commands.insertWidget(2, button)
-		button.clicked.connect(self.table_row_delete)
+        # add extra buttons
+        button = QtGui.QPushButton("re&train")
+        self.ui.examine_commands.insertWidget(1, button)
+        button.clicked.connect(self.table_row_retrain)
+        button = QtGui.QPushButton("&delete")
+        self.ui.examine_commands.insertWidget(2, button)
+        button.clicked.connect(self.table_row_delete)
 
 
-	def display(self):
-		text = utils.st_to_text(self.st) + " string "
-		self.ui.string_label.setText(text)
+    def display(self):
+        text = utils.st_to_text(self.st) + " string "
+        self.ui.string_label.setText(text)
 
-		text = utils.dyn_to_text(self.dyn)
-		self.ui.dyn_label.setText(text)
+        text = utils.dyn_to_text(self.dyn)
+        self.ui.dyn_label.setText(text)
 
-		self.ui.examine_type_label.setText("collection")
+        self.ui.examine_type_label.setText("collection")
 
-	def compare(self, st, dyn, accuracy, coll):
-		self.st = st
-		self.dyn = dyn
-		self.accuracy = accuracy
-		self.display()
+    def compare(self, st, dyn, accuracy, coll):
+        self.st = st
+        self.dyn = dyn
+        self.accuracy = accuracy
+        self.display()
 
-		self.check_coll.check(coll, self.st, self.dyn)
-		self.data = list(self.check_coll.data)
+        self.check_coll.check(coll, self.st, self.dyn)
+        self.data = list(self.check_coll.data)
 
-		self.table.clearContents()
-		self.table.setRowCount(len(self.data))
-		for i, datum in enumerate(self.data):
-			table_item = QtGui.QTableWidgetItem(str(datum[1]))
-			table_item.setTextAlignment(QtCore.Qt.AlignCenter)
-			self.table.setItem(i, 0, table_item)
-			vc = visualize_cats.VisualizeCats()
-			vc.set_data(datum[1], datum[2])
-			self.table.setCellWidget(i, 1, vc)
-			#table_item = QtGui.QTableWidgetItem(datum[1])
-			#table_item.setFont(QtGui.QFont("Andale Mono", 7))
-			#self.table.setItem(i, 1, table_item)
-		self.table_focus()
+        self.table.clearContents()
+        self.table.setRowCount(len(self.data))
+        for i, datum in enumerate(self.data):
+            table_item = QtGui.QTableWidgetItem(str(datum[1]))
+            table_item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.table.setItem(i, 0, table_item)
+            vc = visualize_cats.VisualizeCats()
+            vc.set_data(datum[1], datum[2])
+            self.table.setCellWidget(i, 1, vc)
+            #table_item = QtGui.QTableWidgetItem(datum[1])
+            #table_item.setFont(QtGui.QFont("Andale Mono", 7))
+            #self.table.setItem(i, 1, table_item)
+        self.table_focus()
 
-	def table_focus(self):
-		self.table.setFocus()
-		self.show()
+    def table_focus(self):
+        self.table.setFocus()
+        self.show()
 
-	def table_play(self):
-		row = self.table.currentRow()
-		if row >= 0:
-			wavfile = self.data[row][0]
-			utils.play(wavfile)
+    def table_play(self):
+        row = self.table.currentRow()
+        if row >= 0:
+            wavfile = self.data[row][0]
+            utils.play(wavfile)
 
-	def get_selected_filename(self):
-		row = self.table.currentRow()
-		col = self.table.currentColumn()
+    def get_selected_filename(self):
+        row = self.table.currentRow()
+        col = self.table.currentColumn()
 
-	def get_selected_filename(self):
-		row = self.table.currentRow()
-		wavfilename = self.data[row][0]
-		filename = wavfilename[0:-4] # remove .wav
-		return filename
+    def get_selected_filename(self):
+        row = self.table.currentRow()
+        wavfilename = self.data[row][0]
+        filename = wavfilename[0:-4] # remove .wav
+        return filename
 
-	def selection_changed(self):
-		filename = self.get_selected_filename()
-		shared.examine_main.load_file(filename)
-		shared.examine_main.load_note("")
+    def selection_changed(self):
+        filename = self.get_selected_filename()
+        shared.examine_main.load_file(filename)
+        shared.examine_main.load_note("")
 
-		if self.row_prev >= 0:
-			self.table.cellWidget(self.row_prev, 1).highlight(False)
-		row = self.table.currentRow()
-		self.table.cellWidget(row, 1).highlight(True)
-		self.row_prev = row
+        if self.row_prev >= 0:
+            self.table.cellWidget(self.row_prev, 1).highlight(False)
+        row = self.table.currentRow()
+        self.table.cellWidget(row, 1).highlight(True)
+        self.row_prev = row
 
-	def table_row_delete(self):
-		filename = self.get_selected_filename()
-		row = self.table.currentRow()
-		self.table.removeRow(row)
-		self.data.pop(row)
-		self.row_delete.emit(filename)
+    def table_row_delete(self):
+        filename = self.get_selected_filename()
+        row = self.table.currentRow()
+        self.table.removeRow(row)
+        self.data.pop(row)
+        self.row_delete.emit(filename)
 
-	def table_row_retrain(self):
-		# TODO: update display with new category
-		filename = self.get_selected_filename()
-		self.row_retrain.emit(filename)
+    def table_row_retrain(self):
+        # TODO: update display with new category
+        filename = self.get_selected_filename()
+        self.row_retrain.emit(filename)
 
-	def table_quit(self):
-		shared.examine_main.reset()
-		self.close()
+    def table_quit(self):
+        shared.examine_main.reset()
+        self.close()
 
