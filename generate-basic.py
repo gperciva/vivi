@@ -7,7 +7,7 @@ import shutil
 import glob
 
 TRAIN_DIRNAME = "train"
-
+BASIC_FINGERS = [0]
 
 def run(instrument_number, st, dyn, finger):
 	script = "python interactive-artifastring.py "
@@ -16,7 +16,7 @@ def run(instrument_number, st, dyn, finger):
 	os.system(cmd)
 
 def basic(instrument_number, st, dyn):
-	for finger in [0, 4, 6]:
+	for finger in BASIC_FINGERS:
 		print "Doing string %i, finger %i" % (st, finger)
 		raw_input("(press enter to continue)")
 		run(instrument_number, st, dyn, finger)

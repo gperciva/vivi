@@ -33,7 +33,14 @@ import scipy.io.wavfile
 import pyaudio
 import aubio.aubiowrapper
 
-HOPSIZE = 1024
+# TODO: hack for current build system.
+sys.path.append('python/')
+sys.path.append('build/python/')
+sys.path.append('build/swig/')
+import actions_file
+import vivi_controller
+HOPSIZE = vivi_controller.EARS_HOPSIZE
+
 NUM_AUDIO_BUFFERS = 4
 
 # for pitch and buffers
@@ -249,15 +256,29 @@ class InteractiveViolin():
             self.params.force,
             self.params.velocity,
             num)
-        complete = None
+        actions_out = actions_file.ActionsFile(
+            filename.replace(".wav", ".actions"));
+        actions_out.comment("basic\tst %i\tdyn %i\tfinger_midi %.3f" % (
+                    self.params.violin_string, 0,
+                    finger_midi))
+        actions_out.finger(0, self.params.violin_string,
+            self.params.finger_position)
+        complete = numpy.empty(0, dtype=numpy.int16)
         seconds = 0.2
+        bow_pos_along = 0.1
         for j in xrange( int(math.ceil(seconds * 44100.0 / HOPSIZE)) ):
             arr = self.output_audio_queue.get()
-            if complete == None:
-                complete = numpy.array(arr)
-            else:
-                complete = numpy.append(complete, arr)
+            complete = numpy.append(complete, arr)
             self.input_audio_queue.put(arr)
+
+            seconds = j*HOPSIZE/44100.0
+            actions_out.bow(seconds, self.params.violin_string,
+                self.params.bow_position,
+                self.params.force,
+                self.params.velocity,
+                bow_pos_along
+                )
+            bow_pos_along += self.params.velocity/44100.0
 
         scipy.io.wavfile.write(filename, 44100, complete)
         mf_file = open('collection.mf', 'a')

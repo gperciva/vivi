@@ -33,6 +33,11 @@ env.SharedLibrary(
 )
 
 env.SharedLibrary(
+  target = '_actions_file.so',
+  source = (['actions_file.i', '../src/actions_file.cpp']),
+)
+
+env.SharedLibrary(
   target = '_controller_params.so',
   source = (['controller_params.i', '../src/controller_params.cpp']),
 )
