@@ -188,7 +188,7 @@ class NoteActionsCats:
                 if first_seconds < 0:
                     first_seconds = seconds
                 seconds = seconds - first_seconds
-                 if seconds <= dur:
+                if seconds <= dur:
                     splitline[1] = str(seconds)
                     done_line = "\t".join(splitline) + "\n"
                     out.write(done_line)
