@@ -9,8 +9,8 @@ CATEGORY_NULL = vivi_controller.CATEGORY_NULL
 # marsyas can't handle negative values in regression
 POSITIVE_OFFSET = vivi_controller.CATEGORY_OFFSET
 
-NUM_CATEGORIES = 5
-CATEGORY_CENTER = 2
+CATEGORIES_NUMBER = 7
+CATEGORIES_CENTER_OFFSET = (CATEGORIES_NUMBER+1)/2
 
 class Collection:
     """ a .mf collection of string-dynamic .wav files with judgements """

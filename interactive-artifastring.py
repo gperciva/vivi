@@ -40,6 +40,7 @@ sys.path.append('build/swig/')
 import actions_file
 import vivi_controller
 HOPSIZE = vivi_controller.EARS_HOPSIZE
+import collection
 
 NUM_AUDIO_BUFFERS = 4
 
@@ -97,8 +98,6 @@ class InteractiveViolin():
     stdscr = None
     row = 5
     instrument_number = 0
-
-    cats = [0]*7
 
     def __init__(self, instrument_number, stdscr, audio_stream):
         self.instrument_number = instrument_number
@@ -217,9 +216,9 @@ class InteractiveViolin():
                 alter = 1.1
             self.change_tension(alter)
             skip_violin_print = True
-        if c >= '1' and c <= '7':
+        if c >= '1' and c <= str(collection.CATEGORIES_NUMBER):
             skip_violin_print = True
-            self.snapshot(int(c))
+            self.snapshot(int(c)-collection.CATEGORIES_CENTER_OFFSET)
             self.stdscr.addstr(self.row, 0, str("file written"))
 
         if c == ord('b'):
@@ -243,10 +242,6 @@ class InteractiveViolin():
         self.stdscr.addstr(23, 5, str("T=%.3f" % tension))
 
     def snapshot(self, cat):
-        prev_num = self.cats[cat-1]
-        num = prev_num + 1
-        self.cats[cat-1] += 1
-
         finger_midi = 12.0*math.log(1.0 /
             (1.0 - self.params.finger_position)) / math.log(2.0)
         filename = "audio_%i_%.3f_%.3f_%.3f_%.3f_%i.wav" % (
@@ -255,7 +250,7 @@ class InteractiveViolin():
             self.params.bow_position,
             self.params.force,
             self.params.velocity,
-            num)
+            1)
         actions_out = actions_file.ActionsFile(
             filename.replace(".wav", ".actions"));
         actions_out.comment("basic\tst %i\tdyn %i\tfinger_midi %.3f" % (
@@ -282,7 +277,7 @@ class InteractiveViolin():
 
         scipy.io.wavfile.write(filename, 44100, complete)
         mf_file = open('collection.mf', 'a')
-        mf_file.write(str("train/%s\t%i\n" % (filename, cat-3+100)) )
+        mf_file.write(str("train/%s\t%i\n" % (filename, cat+collection.POSITIVE_OFFSET)) )
         mf_file.close()
 
     def main_loop(self):
