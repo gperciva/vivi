@@ -25,6 +25,7 @@ class TaskStable(task_base.TaskBase):
         task_base.TaskBase.__init__(self, st, dyn, controller, emit,
             "stable")
         self.STEPS = 4
+        self.REPS = 1
 
         self.LOW_INIT = 1.0 # blah numbers to start with
         self.HIGH_INIT = 1.1
@@ -50,85 +51,97 @@ class TaskStable(task_base.TaskBase):
             for count in range(self.REPS):
                 # TODO: this loop could be done in a separate C++ file
                 for force_relative_index in range(3):
-                    bow_direction = 1
-                    # TODO: bow force varies, so this is fake?
-                    bow_force = self.stable_forces[0][force_relative_index]
-                    # the finger_midi position is fake, as is the
-                    # bow force
-                    stable_filename = dirs.files.make_stable_filename(
-                        vivi_types.AudioParams(self.st, 0,
-                            dynamics.get_distance(self.dyn),
-                            bow_force,
-                            bow_direction*dynamics.get_velocity(self.dyn)),
-                        K, count+1)
-
-                    self.controller.filesNew(stable_filename)
                     for fmi, finger_midi in enumerate(basic_training.FINGER_MIDIS):
                         bow_force = self.stable_forces[fmi][force_relative_index]
-                        self.controller.comment("stable st %i dyn %i finger_midi %.3f"
+                        audio_params = vivi_types.AudioParams(
+                                self.st, finger_midi,
+                                dynamics.get_distance(self.dyn),
+                                bow_force,
+                                dynamics.get_velocity(self.dyn))
+                        stable_filename = dirs.files.make_stable_filename(
+                            audio_params,
+                            K, count+1)
+                        self.controller.filesNew(stable_filename)
+                        self.controller.comment(
+                            "stable st %i dyn %i finger_midi %.3f"
                             % (self.st, self.dyn, finger_midi))
-
                         begin = vivi_controller.NoteBeginning()
-                        begin.physical.string_number = self.st
-                        begin.physical.dynamic = self.dyn
-                        begin.physical.finger_position = utils.midi2pos(finger_midi)
-                        begin.physical.bow_force = bow_force
-                        begin.physical.bow_bridge_distance = dynamics.get_distance(self.dyn)
-                        begin.physical.bow_velocity = bow_direction * dynamics.get_velocity(self.dyn)
-
+                        vivi_types.audio_params_to_physical(
+                            audio_params, self.dyn, begin.physical)
                         end = vivi_controller.NoteEnding()
+                        end.keep_bow_velocity = True
+                        #for bow_direction in [1, -1]:
+                        #    begin.physical.bow_velocity *= bow_direction
+                        #    self.controller.note(begin, STABLE_LENGTH, end)
                         self.controller.note(begin, STABLE_LENGTH, end)
-                        bow_direction *= -1
                     self.controller.filesClose()
                 self.process_step.emit()
 
     def get_stable_files_info(self):
         files = self._get_files()
 
-        # 3 notes per file, 9 notes per line
-        num_rows = 3*len(files)/9
-
         # variables about the files
-        self.finger_midi_indices = range(3)
-        self.forces_initial = []
-        self.extras = []
-        self.counts = []
+        self.forces_initial = {}
+        self.extra_k = {}
+        self.counts = {}
+        self.finger_midis = []
         # get info about the files
         for filename in files:
             params, extra, count = dirs.files.get_audio_params_extra(filename)
+            finger_midi = params.finger_midi
             force = params.bow_force
-            if not force in self.forces_initial:
-                self.forces_initial.append(force)
-            if not extra in self.extras:
-                self.extras.append(extra)
-            if not count in self.counts:
-                self.counts.append(count)
 
-        self.num_counts = len(self.counts)
+            if not finger_midi in self.finger_midis:
+                self.finger_midis.append(finger_midi)
+            # setup dictionaries
+            if not finger_midi in self.forces_initial:
+                self.forces_initial[finger_midi] = []
+            if not finger_midi in self.extra_k:
+                self.extra_k[finger_midi] = []
+            if not finger_midi in self.counts:
+                self.counts[finger_midi] = []
+            # setup lists
+            forces_initial = self.forces_initial[finger_midi]
+            extra_k = self.extra_k[finger_midi]
+            counts = self.counts[finger_midi]
+
+            if not force in forces_initial:
+                forces_initial.append(force)
+            if not extra in extra_k:
+                extra_k.append(extra)
+            if not count in counts:
+                counts.append(count)
+
+        # ASSUME: no screw-ups in the file creation
+        self.num_rows = len(self.counts[0]) * len(self.extra_k[0])
+        self.num_cols = len(self.forces_initial[0])*len(self.finger_midis)
+        self.num_counts = len(self.counts[0])
 
         # initialize 2d array
         self.notes = []
-        for i in range(num_rows):
+        for i in range(self.num_rows):
             self.notes.append([])
-            for j in range(9):
+            for j in range(self.num_cols):
                 self.notes[i].append(None)
-
         for filename in files:
             params, extra, count = dirs.files.get_audio_params_extra(filename)
+            finger_midi = params.finger_midi
             force = params.bow_force
 
             # and setup self.examines
-            row = self.num_counts*self.extras.index(extra) + self.counts.index(count)
-            col_base = 3*self.forces_initial.index(force)
-            for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
-                col = col_base+fmi
-                nac = note_actions_cats.NoteActionsCats()
-                nac.load_file(filename[0:-4])
-                to_find = "finger_midi %i" % fm
-                nac.load_note(to_find)
-                stability = self.get_stability(nac.note_cats_means)
-                self.notes[row][col] = (nac, stability)
-
+            row = (self.num_counts*self.extra_k[finger_midi].index(extra)
+                    + self.counts[finger_midi].index(count))
+            col = (len(self.finger_midis) * 
+                    self.forces_initial[finger_midi].index(force)
+                    + self.finger_midis.index(finger_midi)
+                    )
+            nac = note_actions_cats.NoteActionsCats()
+            nac.load_file(filename[0:-4])
+            #to_find = "finger_midi %i" % fm
+            to_find = "finger_midi"
+            nac.load_note(to_find)
+            stability = self.get_stability(nac.note_cats_means)
+            self.notes[row][col] = (nac, stability)
 
     def _examine_files(self):
         self.get_stable_files_info()
@@ -140,7 +153,7 @@ class TaskStable(task_base.TaskBase):
             block_vals = []
             for count in range(self.num_counts):
                 vals = []
-                for col_block in range(3):
+                for col_block in range(self.num_cols/3):
                     cvs = []
                     for col_i in range(3):
                         row = self.num_counts*block + count
@@ -158,7 +171,7 @@ class TaskStable(task_base.TaskBase):
             #print
             #print "\t%.3f" % (scipy.std(block_vals))
             candidates.append( 
-                (scipy.stats.gmean(block_vals), self.extras[block], block) )
+                (scipy.stats.gmean(block_vals), self.extra_k[0][block], block) )
         candidates.sort()
         #print candidates
         most_stable = candidates[0][1]
@@ -185,11 +198,14 @@ class TaskStable(task_base.TaskBase):
         if area:
             areas.append(area)
         stable = 1.0
+        scale_factor = 1.0 / float(len(cats))
         for a in areas:
-            #area_fitness = sum(a)
+            area_fitness = sum(a) * sum(a) / len(a)
             #area_fitness = sum(a) / math.sqrt(len(a))
             #area_fitness = 1.0 / math.sqrt(len(a))
-            area_fitness = len(a)
+            #area_fitness = len(a) * sum(a) / all_bad
+            #area_fitness = len(a)
             stable *= area_fitness
+        stable *= scale_factor
         return stable
 

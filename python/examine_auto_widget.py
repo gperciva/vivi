@@ -119,20 +119,21 @@ class ExamineAutoWidget(QtGui.QFrame):
         if not self.task_stable.notes:
             self.task_stable.get_stable_files_info()
 
-        # setup table and gui
-        self.table = table_play_widget.TablePlayWidget(self)
-        self.table.set_column_names([
-            str("Low 0"),
-            "low 4", "low 7",
-            str("Middle 0"),
-            "mid 4", "mid 7",
-            str("High 0"),
-            "high 4", "high 7",
-            ])
         # clear previous widget if exists
         if self.ui.verticalLayout.count() == 3:
             self.ui.verticalLayout.takeAt(2)
 
+        num_rows = self.task_stable.num_rows
+        num_cols = self.task_stable.num_cols
+        num_counts = self.task_stable.num_counts
+
+        # setup table and gui
+        self.table = table_play_widget.TablePlayWidget(self)
+        col_names = []
+        col_names.extend(map(lambda x: "Low %i" % x, self.task_stable.finger_midis))
+        col_names.extend(map(lambda x: "Middle %i" % x, self.task_stable.finger_midis))
+        col_names.extend(map(lambda x: "High %i" % x, self.task_stable.finger_midis))
+        self.table.set_column_names(col_names)
         self.ui.verticalLayout.addWidget(self.table)
 
         self.table.action_play.connect(self.table_play)
@@ -142,28 +143,26 @@ class ExamineAutoWidget(QtGui.QFrame):
         self.ui.button_play.clicked.connect(self.table_play)
 
 
-        num_rows = len(self.task_stable.notes)
-        num_counts = self.task_stable.num_counts
-
         self.table.clearContents()
         self.table.setRowCount(num_rows)
 
         for i in range(num_rows):
             item = QtGui.QTableWidgetItem()
             mod = i % num_counts + 1
-            item.setText(str("%.2f-%i" % (self.task_stable.extras[i/num_counts], mod)))
+            item.setText(str("%.2f-%i" % (self.task_stable.extra_k[0][i/num_counts], mod)))
             self.table.setVerticalHeaderItem(i, item)
 
         self.examines = []
         for row in range(num_rows):
             examines_row = []
-            for col in range(9):
+            for col in range(num_cols):
                 examines_row.append(None)
             self.examines.append( examines_row )
                     
+        fmis = len(self.task_stable.finger_midis)
         # populate table
         for row in range(num_rows):
-            for col in range(9):
+            for col in range(num_cols):
                 examine = examine_note_widget.ExamineNoteWidget(
                     shared.examine_note_widget.PLOT_STABLE)
                 examine.set_examine_note( self.task_stable.notes[row][col] )
@@ -172,9 +171,9 @@ class ExamineAutoWidget(QtGui.QFrame):
                 self.table.setCellWidget(row, col,
                     examine.plot_actions)
                 self.table.setRowHeight(row, 50.0)
-                if col % 3 == 0 and col > 0:
+                if col % fmis == 0 and col > 0:
                     self.examines[row][col].plot_actions.set_border([0,0,0,1])
-                if col % 3 == 2 and col < 8:
+                if col % fmis == 2 and col < (num_cols-1):
                     self.examines[row][col].plot_actions.set_border([0,1,0,0])
                 if row % num_counts == 0 and row > 0:
                     self.examines[row][col].plot_actions.set_border([1,0,0,0])

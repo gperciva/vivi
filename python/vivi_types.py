@@ -2,6 +2,9 @@
 """ custom types used in Vivi """
 
 import collections
+import utils
+import dynamics
+
 AudioParams = collections.namedtuple('AudioParams', """
     string_number,
     finger_midi,
@@ -10,11 +13,12 @@ AudioParams = collections.namedtuple('AudioParams', """
     bow_velocity
     """)
 
-#NoteParams = collections.namedtuple('NoteParams', """
-#    string_number,
-#    dynamic,
-#    finger_midi,
-#    bow_force
-#""")
-
+def audio_params_to_physical(audio_params, dyn, physical):
+    physical.string_number = audio_params.string_number
+    physical.dynamic = dyn
+    physical.finger_position = utils.midi2pos(audio_params.finger_midi)
+    physical.bow_force = audio_params.bow_force
+    physical.bow_bridge_distance = audio_params.bow_bridge_distance
+    physical.bow_velocity = audio_params.bow_velocity
+    return None # it's done with pass-by-reference
 

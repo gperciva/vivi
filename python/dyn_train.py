@@ -261,6 +261,15 @@ class DynTrain(QtGui.QFrame):
             self.ui.force_init3.setStyleSheet(
                 "")
 
+        if self.modified_dampen:
+            # TODO: really bad way of highlighting!
+            # but QPushButtons don't seem
+            # to have a nice way to highlight!
+            self.ui.dampen.setStyleSheet(
+                "background-color: darkBlue; color: white;")
+        else:
+            self.ui.dampen.setStyleSheet("")
+
     def set_modified(self):
         self.modified_training = True
         self.modified_accuracy = True
@@ -339,9 +348,11 @@ class DynTrain(QtGui.QFrame):
         elif job_type == state.STABLE:
             finger_forces = []
             for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
-                low_force = min(self.get_forces_finger(-2, fm))
+                low_force = min(self.get_forces_finger(
+                    -collection.CATEGORIES_EXTREME, fm))
                 middle_force = scipy.mean(self.get_forces_finger(0,fm))
-                high_force = max(self.get_forces_finger(2, fm))
+                high_force = max(self.get_forces_finger(
+                    collection.CATEGORIES_EXTREME, fm))
                 #middle_force = (high_force+low_force) / 2.0
                 finger_forces.append( [low_force, middle_force, high_force] )
             self.dyn_backend.learn_stable(finger_forces)

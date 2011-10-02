@@ -85,8 +85,8 @@ class JudgeAudioWidget(QtGui.QFrame):
 
     def _user_key(self, key):
         """ user pressed this key or button """
-        if (key > 0) and (key <= collection.NUM_CATEGORIES):
-            self.judged_cat.emit(key - 1 - collection.CATEGORY_CENTER)
+        if (key > 0) and (key <= collection.CATEGORIES_NUMBER):
+            self.judged_cat.emit(key - collection.CATEGORIES_CENTER_OFFSET)
         elif key == 8:
             utils.play(self.judge_filename+'.wav')
         elif key == 9:

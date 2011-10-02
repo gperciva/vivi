@@ -10,7 +10,8 @@ CATEGORY_NULL = vivi_controller.CATEGORY_NULL
 POSITIVE_OFFSET = vivi_controller.CATEGORY_OFFSET
 
 CATEGORIES_NUMBER = 7
-CATEGORIES_CENTER_OFFSET = (CATEGORIES_NUMBER+1)/2
+CATEGORIES_EXTREME = CATEGORIES_NUMBER / 2 # rounding down is correct
+CATEGORIES_CENTER_OFFSET = CATEGORIES_EXTREME + 1
 
 class Collection:
     """ a .mf collection of string-dynamic .wav files with judgements """

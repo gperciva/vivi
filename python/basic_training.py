@@ -6,7 +6,7 @@ import dynamics
 import utils
 
 #FINGER_MIDIS = [0.0, 4.0, 6.0]
-FINGER_MIDIS = [0.0]
+FINGER_MIDIS = [0.0, 6.0]
 
 def _get_matching_fingers(dyn, coll):
     """ finds all items in coll that match the dynamic.  Splits
