@@ -6,6 +6,7 @@ import dynamics
 import dirs
 
 import collection
+import vivi_defines
 
 import vivi_types
 
@@ -140,15 +141,15 @@ class NoteActionsCats:
         # get cat_means
         note_cats_means = []
         length = shared.vivi_controller.CATS_MEAN_LENGTH
-        filt = [collection.CATEGORY_NULL] * length
+        filt = [vivi_defines.CATEGORY_NULL] * length
         filt_index = 0
         for seconds, c in cats:
             filt[filt_index] = c
             filt_index += 1
             if filt_index == length:
                 filt_index = 0
-            if collection.CATEGORY_NULL in filt:
-                note_cats_means.append(collection.CATEGORY_NULL)
+            if vivi_defines.CATEGORY_NULL in filt:
+                note_cats_means.append(vivi_defines.CATEGORY_NULL)
             else:
                 mean = float(sum(filt)) / length
                 note_cats_means.append(mean)

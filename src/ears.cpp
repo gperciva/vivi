@@ -286,7 +286,7 @@ void Ears::listenShort(short *audio) {
 double Ears::getClass() {
     if (ticks_count > stabilizingDelay) {
         realvec data = net->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
-        return data(0,0) - CATEGORY_OFFSET;
+        return data(0,0) - CATEGORY_POSITIVE_OFFSET;
     } else {
         return CATEGORY_NULL;
     }

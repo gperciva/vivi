@@ -38,9 +38,8 @@ sys.path.append('python/')
 sys.path.append('build/python/')
 sys.path.append('build/swig/')
 import actions_file
-import vivi_controller
-HOPSIZE = vivi_controller.EARS_HOPSIZE
-import collection
+import vivi_defines
+HOPSIZE = vivi_defines.HOPSIZE
 
 NUM_AUDIO_BUFFERS = 4
 
@@ -216,9 +215,9 @@ class InteractiveViolin():
                 alter = 1.1
             self.change_tension(alter)
             skip_violin_print = True
-        if c >= '1' and c <= str(collection.CATEGORIES_NUMBER):
+        if c >= '1' and c <= str(vivi_defines.CATEGORIES_NUMBER):
             skip_violin_print = True
-            self.snapshot(int(c)-collection.CATEGORIES_CENTER_OFFSET)
+            self.snapshot(int(c) - vivi_defines.CATEGORIES_CENTER_OFFSET)
             self.stdscr.addstr(self.row, 0, str("file written"))
 
         if c == ord('b'):
@@ -277,7 +276,8 @@ class InteractiveViolin():
 
         scipy.io.wavfile.write(filename, 44100, complete)
         mf_file = open('collection.mf', 'a')
-        mf_file.write(str("train/%s\t%i\n" % (filename, cat+collection.POSITIVE_OFFSET)) )
+        mf_file.write(str("train/%s\t%i\n" % (filename,
+            cat+vivi_defines.CATEGORIES_CENTER_OFFSET)) )
         mf_file.close()
 
     def main_loop(self):

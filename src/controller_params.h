@@ -1,6 +1,8 @@
 #ifndef CONTROLLER_PARAMS
 #define CONTROLLER_PARAMS
 
+#include "vivi_defines.h"
+
 const int CP_MAX_FILENAME_LENGTH = 256;
 const int CP_MAX_LINE_LENGTH = 256;
 
@@ -21,7 +23,7 @@ public:
 
     // main data
     double stable_K;
-    double attack_forces[3];
+    double attack_forces[BASIC_FINGER_MIDIS_SIZE];
     double accuracy;
     double dampen;
     // accessors for iffy python swig stuff

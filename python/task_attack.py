@@ -3,6 +3,7 @@
 import math
 
 import task_base
+import vivi_defines
 
 import scipy.stats
 import dirs
@@ -155,7 +156,7 @@ class TaskAttack(task_base.TaskBase):
         M = 0.5
         filled = 0
         for val in values:
-            if val == collection.CATEGORY_NULL:
+            if val == vivi_defines.CATEGORY_NULL:
                 continue
             newvalues.append(val)
             past_values[pvi] = val

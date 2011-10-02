@@ -4,6 +4,7 @@ from PyQt4 import QtGui, QtCore
 import dyn_train_gui
 
 import collection
+import vivi_defines
 
 import scipy
 
@@ -328,10 +329,10 @@ class DynTrain(QtGui.QFrame):
             finger_forces = []
             for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
                 low_force = min(self.get_forces_finger(
-                    -collection.CATEGORIES_EXTREME, fm))
+                    -vivi_defines.CATEGORIES_EXTREME, fm))
                 middle_force = scipy.mean(self.get_forces_finger(0,fm))
                 high_force = max(self.get_forces_finger(
-                    collection.CATEGORIES_EXTREME, fm))
+                    vivi_defines.CATEGORIES_EXTREME, fm))
                 #middle_force = (high_force+low_force) / 2.0
                 finger_forces.append( [low_force, middle_force, high_force] )
             self.dyn_backend.learn_stable(finger_forces)
@@ -340,10 +341,10 @@ class DynTrain(QtGui.QFrame):
             for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
                 # yes, reversed
                 low_force = min(self.get_forces_finger(
-                    -collection.CATEGORIES_EXTREME, fm))
+                    -vivi_defines.CATEGORIES_EXTREME, fm))
                 middle_force = scipy.mean(self.get_forces_finger(0,fm))
                 high_force = max(self.get_forces_finger(
-                    collection.CATEGORIES_EXTREME, fm))
+                    vivi_defines.CATEGORIES_EXTREME, fm))
                 #middle_force = (high_force+low_force) / 2.0
                 finger_forces.append( [low_force, middle_force, high_force] )
                 self.dyn_backend.task_attacks[fmi].set_K(self.force_factor)

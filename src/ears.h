@@ -2,6 +2,8 @@
 #ifndef EARS
 #define EARS
 
+#include "vivi_defines.h"
+
 //#define LEAN
 /*
 #ifndef LEAN
@@ -15,18 +17,12 @@
 //using namespace std;
 
 //const int EARS_HOPSIZE = 128;
-const int EARS_HOPSIZE = 256;
+const int EARS_HOPSIZE = HOPSIZE;
 //const int EARS_HOPSIZE = 512;
 // needs to be at least 1024 for yin pitch
 const int EARS_WINDOWSIZE = 1024;
 //const int EARS_WINDOWSIZE = 2048;
 
-const int CATEGORY_NULL = -99999;
-// marsyas can't handle negative values in regression
-const int CATEGORY_OFFSET = 100;
-
-
-const int SAMPLE_RATE = 44100;
 const double dh = (double) EARS_HOPSIZE / SAMPLE_RATE;
 
 

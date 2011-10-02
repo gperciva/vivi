@@ -5,6 +5,7 @@
 class MonoWav;
 class ActionsFile;
 class Ears;
+#include "vivi_defines.h"
 #include "ears.h"
 #include "artifastring/violin_instrument.h"
 #include "dynamics.h" // for NUM_DYNAMICS

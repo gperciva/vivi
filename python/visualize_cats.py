@@ -2,7 +2,7 @@
 
 from PyQt4 import QtGui, QtCore
 
-import collection
+import vivi_defines
 
 class VisualizeCats(QtGui.QWidget):
     def __init__(self):
@@ -33,7 +33,7 @@ class VisualizeCats(QtGui.QWidget):
         painter.fillRect(0, 0, self.width(), self.height(), self.back)
 
         x_center = self.width() / 2.0
-        x_scale = self.width() / float(collection.CATEGORIES_NUMBER + 1)
+        x_scale = self.width() / float(vivi_defines.CATEGORIES_NUMBER + 1)
 
         # draw actual user category
         pen.setColor(QtCore.Qt.blue)

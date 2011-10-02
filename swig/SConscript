@@ -28,6 +28,11 @@ env['LIBPREFIX']=""
 
 
 env.SharedLibrary(
+  target = '_vivi_defines.so',
+  source = (['vivi_defines.i']),
+)
+
+env.SharedLibrary(
   target = '_dynamics.so',
   source = (['dynamics.i', '../src/dynamics.cpp']),
 )

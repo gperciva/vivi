@@ -4,6 +4,7 @@ import math
 import scipy.stats
 
 import task_base
+import vivi_defines
 
 import dirs
 import note_actions_cats
@@ -153,7 +154,7 @@ class TaskStable(task_base.TaskBase):
         areas = []
         area = []
         for cat in cats:
-            if cat == collection.CATEGORY_NULL:
+            if cat == vivi_defines.CATEGORY_NULL:
                 continue
             if abs(cat) < 0.5:
                 continue

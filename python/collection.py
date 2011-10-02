@@ -3,15 +3,7 @@
 
 import operator
 
-import vivi_controller # for CATEGORY_NULL
-CATEGORY_NULL = vivi_controller.CATEGORY_NULL
-
-# marsyas can't handle negative values in regression
-POSITIVE_OFFSET = vivi_controller.CATEGORY_OFFSET
-
-CATEGORIES_NUMBER = 7
-CATEGORIES_EXTREME = CATEGORIES_NUMBER / 2 # rounding down is correct
-CATEGORIES_CENTER_OFFSET = CATEGORIES_EXTREME + 1
+import vivi_defines
 
 class Collection:
     """ a .mf collection of string-dynamic .wav files with judgements """
@@ -31,7 +23,7 @@ class Collection:
         for line in lines:
             splitline = line.split()
             self.add_item(splitline[0],
-                int(splitline[1])-POSITIVE_OFFSET,
+                int(splitline[1]) - vivi_defines.CATEGORY_POSITIVE_OFFSET,
                 False, False)
         self._sort()
 
@@ -41,7 +33,7 @@ class Collection:
         outfile = open(filename, 'w')
         for pair in self.coll:
             wavfile = pair[0]
-            judgement = pair[1] + POSITIVE_OFFSET
+            judgement = pair[1] + vivi_defines.CATEGORY_POSITIVE_OFFSET
             if self.is_cat_valid(judgement):
                 outfile.write(wavfile+'\t'+str(judgement)+'\n')
             else:
@@ -53,7 +45,7 @@ class Collection:
         """ is the judgement non-unknown? """
         if judgement is None:
             return False
-        elif judgement is CATEGORY_NULL:
+        elif judgement is vivi_defines.CATEGORY_NULL:
             return False
         else:
             return True
@@ -93,7 +85,7 @@ class Collection:
         """ number of files which have 'main' categories """
         number = 0
         for pair in self.coll:
-            if pair[1] is not CATEGORY_NULL:
+            if pair[1] is not vivi_defines.CATEGORY_NULL:
                 number += 1
         return number
 

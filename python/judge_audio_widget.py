@@ -6,6 +6,7 @@ import judge_audio_gui
 
 import utils # to play sound
 import collection
+import vivi_defines
 
 JUDGEMENT_CANCEL = -1234
 
@@ -85,8 +86,8 @@ class JudgeAudioWidget(QtGui.QFrame):
 
     def _user_key(self, key):
         """ user pressed this key or button """
-        if (key > 0) and (key <= collection.CATEGORIES_NUMBER):
-            self.judged_cat.emit(key - collection.CATEGORIES_CENTER_OFFSET)
+        if (key > 0) and (key <= vivi_defines.CATEGORIES_NUMBER):
+            self.judged_cat.emit(key - vivi_defines.CATEGORIES_CENTER_OFFSET)
         elif key == 8:
             utils.play(self.judge_filename+'.wav')
         elif key == 9:

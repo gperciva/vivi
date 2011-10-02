@@ -2,7 +2,7 @@
 
 from PyQt4 import QtGui, QtCore
 
-import collection
+import vivi_defines
 
 class PlotActions(QtGui.QWidget):
     def __init__(self):
@@ -117,7 +117,7 @@ class PlotActions(QtGui.QWidget):
             self.arrow(painter, x, y, cat)
 
     def arrow(self, painter, x, y, cat):
-        if cat == collection.CATEGORY_NULL:
+        if cat == vivi_defines.CATEGORY_NULL:
             return
         scale = 0.05*self.height()
         direction = -1 if cat> 0 else 1

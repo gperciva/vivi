@@ -16,7 +16,7 @@ using namespace std;
 const double VELOCITY_STDDEV = 0.01;
 const double FORCE_STDDEV = 0.01;
 const double MAX_HAND_ACCEL = 5.0; // m/s
-const double DH = EARS_HOPSIZE * dt;
+const double DH = HOPSIZE * dt;
 
 // used in basic
 const double BASIC_VELOCITY_STDDEV = 0.02;
@@ -190,7 +190,7 @@ void ViviController::basic(NoteBeginning begin, double seconds,
 
     // skip, maybe going slightly over given time
     actions_file->skipStart(m_total_samples*dt);
-    short mem_buf[EARS_HOPSIZE];
+    short mem_buf[HOPSIZE];
     for (int i = 0; i < skip_seconds/DH; i++) {
         actions.bow_force = norm_bounded(orig_force,
                                          BASIC_FORCE_STDDEV
@@ -207,8 +207,8 @@ void ViviController::basic(NoteBeginning begin, double seconds,
                           actions.bow_bridge_distance, actions.bow_force,
                           actions.bow_velocity,
                           m_bow_pos_along);
-        violin->wait_samples(mem_buf, EARS_HOPSIZE);
-        m_total_samples += EARS_HOPSIZE;
+        violin->wait_samples(mem_buf, HOPSIZE);
+        m_total_samples += HOPSIZE;
     }
     actions_file->skipStop(m_total_samples*dt);
 
@@ -229,9 +229,9 @@ void ViviController::basic(NoteBeginning begin, double seconds,
                           actions.bow_bridge_distance, actions.bow_force,
                           actions.bow_velocity,
                           m_bow_pos_along);
-        short *buf = wavfile->request_fill(EARS_HOPSIZE);
-        violin->wait_samples(buf, EARS_HOPSIZE);
-        m_total_samples += EARS_HOPSIZE;
+        short *buf = wavfile->request_fill(HOPSIZE);
+        violin->wait_samples(buf, HOPSIZE);
+        m_total_samples += HOPSIZE;
     }
 }
 
@@ -524,7 +524,7 @@ inline void ViviController::hop(int num_samples) {
 
     // don't bother listening to a too-short note snippet, or if
     // we don't care about adjusting the force
-    if ((num_samples < EARS_HOPSIZE) || (m_feedback_adjust_force==false)) {
+    if ((num_samples < HOPSIZE) || (m_feedback_adjust_force==false)) {
         cats_file->category(m_total_samples*dt, CATEGORY_NULL);
         return;
     }
@@ -533,7 +533,7 @@ inline void ViviController::hop(int num_samples) {
     /*
     // write cat to file if speed is enough
     // don't write if note hasn't settled yet
-    if (m_note_samples < MIN_SETTLE_HOPS * EARS_HOPSIZE) {
+    if (m_note_samples < MIN_SETTLE_HOPS * HOPSIZE) {
         cats_file->category(m_total_samples*dt, CATEGORY_NULL);
     } else {
         if (m_velocity_cutoff_force_adj > 0) {

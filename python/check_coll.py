@@ -5,6 +5,7 @@ import collection
 import utils
 import shared
 import dirs
+import vivi_defines
 
 class CheckColl:
     def __init__(self):
@@ -29,7 +30,7 @@ class CheckColl:
                 continue
             splitline = line.split()
             cat = float( splitline[2].rstrip() )
-            if cat != shared.vivi_controller.CATEGORY_NULL:
+            if cat != vivi_defines.CATEGORY_NULL:
                 cats.append(cat)
         self.data.append( (wavfile, user_cat, cats) )
 
