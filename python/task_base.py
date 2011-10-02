@@ -57,6 +57,40 @@ class TaskBase():
     def _make_files(self):
         pass
 
+    def _setup_lists_from_files(self, files):
+        # variables about the files
+        self.forces_initial = {}
+        self.extras = {}
+        self.counts = {}
+        self.finger_midis = []
+        # get info about the files
+        for filename in files:
+            params, extra, count = dirs.files.get_audio_params_extra(filename)
+            finger_midi = params.finger_midi
+            force = params.bow_force
+
+            if not finger_midi in self.finger_midis:
+                self.finger_midis.append(finger_midi)
+            # setup dictionaries
+            if not finger_midi in self.forces_initial:
+                self.forces_initial[finger_midi] = []
+            if not finger_midi in self.extras:
+                self.extras[finger_midi] = []
+            if not finger_midi in self.counts:
+                self.counts[finger_midi] = []
+            # setup lists
+            forces_initial = self.forces_initial[finger_midi]
+            extras = self.extras[finger_midi]
+            counts = self.counts[finger_midi]
+
+            if not force in forces_initial:
+                forces_initial.append(force)
+            if not extra in extras:
+                extras.append(extra)
+            if not count in counts:
+                counts.append(count)
+
+
     def _examine_files(self):
         pass
 

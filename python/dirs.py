@@ -119,8 +119,11 @@ class ViviDirs:
         audio_params = self.get_audio_params(filename)
         basename = os.path.splitext(os.path.basename(filename))[0]
         params = basename.split('_')[1:]
-        extra = float(params[5])
-        count = int(params[6])
+        if len(params) == 7:
+            extra = float(params[5])
+        else:
+            extra = None
+        count = int(params[-1])
         return audio_params, extra, count
 
     def get_audio_params_count(self, filename):

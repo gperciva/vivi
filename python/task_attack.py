@@ -29,10 +29,11 @@ class TaskAttack(task_base.TaskBase):
         task_base.TaskBase.__init__(self, st, dyn, controller, emit,
             "attack-%i"%finger_index)
         #self.STEPS = 8
-        self.STEPS = 4
-        self.REPS = 2
+        self.STEPS = 6
+        self.REPS = 3
         self.best_attack = 0 # a "null" value
         self.fmi = finger_index
+        self.fm = basic_training.FINGER_MIDIS[finger_index]
 
         self.notes = None
         self.forces = None
@@ -91,47 +92,43 @@ class TaskAttack(task_base.TaskBase):
     def _examine_files(self):
         files = self._get_files()
 
-        # awkward splitting
-        self.files = []
-        self.forces = []
-        for filename in files:
-            params, count = dirs.files.get_audio_params_count(filename)
-            if params.finger_midi == basic_training.FINGER_MIDIS[self.fmi]:
-                self.files.append(filename)
-                if count == 1:
-                    self.forces.append(params.bow_force)
-        self.num_rows = len(self.files)
+        self._setup_lists_from_files(files)
+
+        self.num_rows = len(self.counts[self.fm])
+        self.num_cols = len(self.forces_initial[self.fm])
+
+        # hack
+        self.forces = self.forces_initial[self.fm]
 
         # initialize 2d array
         self.notes = []
         for i in range(self.num_rows):
             self.notes.append([])
-            for j in range(1):
+            for j in range(self.num_cols):
                 self.notes[i].append(None)
 
-        for row, filename in enumerate(self.files):
-            col = 0
+        for filename in files:
+            params, extra, count = dirs.files.get_audio_params_extra(filename)
+            finger_midi = params.finger_midi
+            if finger_midi != self.fm:
+                continue
+
+            row = self.counts[finger_midi].index(count)
+            col = self.forces_initial[finger_midi].index(params.bow_force)
             nac = note_actions_cats.NoteActionsCats()
             nac.load_file(filename[0:-4])
-            to_find = "finger_midi %i" % basic_training.FINGER_MIDIS[self.fmi]
+            #to_find = "finger_midi %i" % basic_training.FINGER_MIDIS[self.fm]
+            to_find = "finger_midi"
             nac.load_note(to_find)
             cats_means = nac.note_cats_means
             att = self.portion_attack(cats_means)
             mse = self.mse(att)
             self.notes[row][col] = (nac, mse, filename)
 
-#        for n in self.notes:
-#            print n
-
         cands = []
-        col = 0
-        for block in range(len(self.notes)/self.REPS):
-            params = dirs.files.get_audio_params(
-                self.notes[self.REPS*block][col][2])
-            bow_force = params.bow_force
+        for col, bow_force in enumerate(self.forces_initial[self.fm]):
             vals = []
-            for count in range(self.REPS):
-                row = self.REPS*block + count
+            for row, count in enumerate(self.counts[self.fm]):
                 val = self.notes[row][col]
                 if val[1] > 0:
                     vals.append(val[1])
@@ -139,7 +136,7 @@ class TaskAttack(task_base.TaskBase):
                 val = scipy.stats.gmean(vals)
             else:
                 val = 0
-            cands.append( (val, block, bow_force) )
+            cands.append( (val, col, bow_force) )
         cands.sort()
         lowest_index = cands[0][1]
         self.best_attack = cands[0][2]

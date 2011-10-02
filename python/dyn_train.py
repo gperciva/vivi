@@ -67,10 +67,18 @@ class DynTrain(QtGui.QFrame):
         self.ui.modify.clicked.connect(self.set_modified)
         self.ui.force_factor.clicked.connect(self.click_force_factor)
         self.ui.accuracy_label.clicked.connect(self.click_accuracy)
-        self.ui.force_init1.clicked.connect(self.click_force1)
-        self.ui.force_init2.clicked.connect(self.click_force2)
-        self.ui.force_init3.clicked.connect(self.click_force3)
-        self.ui.dampen.clicked.connect(self.click_dampen)
+
+        self.force_buttons = QtGui.QButtonGroup(self)
+        for i in range(len(basic_training.FINGER_MIDIS)):
+            force_button = QtGui.QPushButton(self)
+            force_button.setObjectName("force-%i" % i)
+            force_button.setMaximumSize(QtCore.QSize(40, 16777215))
+            self.ui.verticalLayout.insertWidget(
+                self.ui.verticalLayout.count()-1,force_button)
+            self.force_buttons.addButton(force_button, i)
+        self.force_buttons.buttonClicked.connect(self.click_force)
+
+        #self.ui.dampen.clicked.connect(self.click_dampen)
 
         ### setup variables
         self.judged_main_num = 0
@@ -159,10 +167,9 @@ class DynTrain(QtGui.QFrame):
             self.ui.num_trained_label.setText("")
             self.ui.accuracy_label.setText("")
             self.ui.force_factor.setText("")
-            self.ui.force_init1.setText("")
-            self.ui.force_init2.setText("")
-            self.ui.force_init3.setText("")
-            self.ui.dampen.setText("")
+            for i in range(len(basic_training.FINGER_MIDIS)):
+                self.force_buttons.button(i).setText("")
+            #self.ui.dampen.setText("")
             return
 
         if self.basic_trained:
@@ -185,26 +192,18 @@ class DynTrain(QtGui.QFrame):
                 str("%.2f")%self.force_factor)
         else:
             self.ui.force_factor.setText("")
-        if self.force_init[0] > 0:
-            self.ui.force_init1.setText(
-                str("%.1f N")%self.force_init[0])
-        else:
-            self.ui.force_init1.setText("")
-        if self.force_init[1] > 0:
-            self.ui.force_init2.setText(
-                str("%.1f N")%self.force_init[1])
-        else:
-            self.ui.force_init2.setText("")
-        if self.force_init[2] > 0:
-            self.ui.force_init3.setText(
-                str("%.1f N")%self.force_init[2])
-        else:
-            self.ui.force_init3.setText("")
-        if self.dampen > 0:
-            self.ui.dampen.setText(
-                str("%.2f")%self.dampen)
-        else:
-            self.ui.dampen.setText("")
+
+        for i in range(len(basic_training.FINGER_MIDIS)):
+            if self.force_init[i] > 0:
+                self.force_buttons.button(i).setText("%.1f N"
+                    % self.force_init[i])
+            else:
+                self.force_buttons.button(i).setText("")
+#        if self.dampen > 0:
+#            self.ui.dampen.setText(
+#                str("%.2f")%self.dampen)
+#        else:
+#            self.ui.dampen.setText("")
     
         if self.modified_training:
             self.ui.num_trained_label.setBackgroundRole(
@@ -228,47 +227,27 @@ class DynTrain(QtGui.QFrame):
         else:
             self.ui.force_factor.setStyleSheet("")
 
-        if self.modified_attack:
-            self.ui.force_init1.setBackgroundRole(
-                QtGui.QPalette.Highlight)
-            self.ui.force_init2.setBackgroundRole(
-                QtGui.QPalette.Highlight)
-            self.ui.force_init3.setBackgroundRole(
-                QtGui.QPalette.Highlight)
-            # TODO: really bad way of highlighting!
-            # but QPushButtons don't seem
-            # to have a nice way to highlight!
-            self.ui.force_init1.setStyleSheet(
-                "background-color: darkBlue; color: white;")
-            self.ui.force_init2.setStyleSheet(
-                "background-color: darkBlue; color: white;")
-            self.ui.force_init3.setStyleSheet(
-                "background-color: darkBlue; color: white;")
-        else:
-            self.ui.force_init1.setBackgroundRole(
-                QtGui.QPalette.Window)
-            self.ui.force_init2.setBackgroundRole(
-                QtGui.QPalette.Window)
-            self.ui.force_init3.setBackgroundRole(
-                QtGui.QPalette.Window)
-            # TODO: really bad way of highlighting!
-            # but QPushButtons don't seem
-            # to have a nice way to highlight!
-            self.ui.force_init1.setStyleSheet(
-                "")
-            self.ui.force_init2.setStyleSheet(
-                "")
-            self.ui.force_init3.setStyleSheet(
-                "")
 
-        if self.modified_dampen:
+        if self.modified_attack:
+            for i in range(len(basic_training.FINGER_MIDIS)):
+                #self.force_buttons.button(i).setBackgroundRole(
+                #    QtGui.QPalette.Highlight)
             # TODO: really bad way of highlighting!
             # but QPushButtons don't seem
             # to have a nice way to highlight!
-            self.ui.dampen.setStyleSheet(
+                self.force_buttons.button(i).setStyleSheet(
                 "background-color: darkBlue; color: white;")
         else:
-            self.ui.dampen.setStyleSheet("")
+            for i in range(len(basic_training.FINGER_MIDIS)):
+                self.force_buttons.button(i).setStyleSheet("")
+#        if self.modified_dampen:
+#            # TODO: really bad way of highlighting!
+#            # but QPushButtons don't seem
+#            # to have a nice way to highlight!
+#            self.ui.dampen.setStyleSheet(
+#                "background-color: darkBlue; color: white;")
+#        else:
+#            self.ui.dampen.setStyleSheet("")
 
     def set_modified(self):
         self.modified_training = True
@@ -286,7 +265,7 @@ class DynTrain(QtGui.QFrame):
         ### read forces
         self.controller_params.load_file()
         self.force_init = []
-        for i in range(3):
+        for i in range(len(basic_training.FINGER_MIDIS)):
             self.force_init.append(
                 self.controller_params.get_attack_force(i))
         self.force_factor = self.controller_params.stable_K
@@ -314,7 +293,7 @@ class DynTrain(QtGui.QFrame):
         self.coll.write_mf_file(filename)
         #self.modified = False
         ### write forces
-        for i in range(3):
+        for i in range(len(basic_training.FINGER_MIDIS)):
             self.controller_params.set_force(i, self.force_init[i])
         self.controller_params.stable_K = self.force_factor
         self.controller_params.accuracy = self.accuracy
@@ -360,9 +339,11 @@ class DynTrain(QtGui.QFrame):
             finger_forces = []
             for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
                 # yes, reversed
-                low_force = min(self.get_forces_finger(-2, fm))
+                low_force = min(self.get_forces_finger(
+                    -collection.CATEGORIES_EXTREME, fm))
                 middle_force = scipy.mean(self.get_forces_finger(0,fm))
-                high_force = max(self.get_forces_finger(2, fm))
+                high_force = max(self.get_forces_finger(
+                    collection.CATEGORIES_EXTREME, fm))
                 #middle_force = (high_force+low_force) / 2.0
                 finger_forces.append( [low_force, middle_force, high_force] )
                 self.dyn_backend.task_attacks[fmi].set_K(self.force_factor)
@@ -683,17 +664,10 @@ class DynTrain(QtGui.QFrame):
 #zzz
 
 
-    def click_force1(self):
+    def click_force(self, event):
+        force_index = int(event.objectName()[6])
         self.examine.examine("attack", self.st, self.dyn,
-            self.dyn_backend.task_attacks[0], 1)
-
-    def click_force2(self):
-        self.examine.examine("attack", self.st, self.dyn,
-            self.dyn_backend.task_attacks[1], 2)
-
-    def click_force3(self):
-        self.examine.examine("attack", self.st, self.dyn,
-            self.dyn_backend.task_attacks[2], 3)
+            self.dyn_backend.task_attacks[force_index], force_index)
 
     def click_dampen(self):
         self.examine.examine("dampen", self.st, self.dyn,

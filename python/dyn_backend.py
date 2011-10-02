@@ -24,6 +24,8 @@ import task_stable
 import task_attack
 import task_dampen
 
+import basic_training
+
 CALCULATE_TRAINING = 1
 CHECK_ACCURACY = 2
 LEARN_ATTACKS = 3
@@ -55,7 +57,7 @@ class DynBackend(QtCore.QThread):
             lambda(fmi): task_attack.TaskAttack(
                 self.st, self.dyn,
                 self.controller, self.process_step, fmi),
-            range(3))
+            range(len(basic_training.FINGER_MIDIS)))
         self.task_dampen = task_dampen.TaskDampen(self.st,
             self.dyn, self.controller, self.process_step)
 
@@ -161,14 +163,14 @@ class DynBackend(QtCore.QThread):
 
     def learn_attacks_steps(self):
         steps = 0
-        for i in range(3):
+        for i in range(len(basic_training.FINGER_MIDIS)):
             steps += self.task_attacks[i].steps_full()
         steps += 1
         return steps
 
     def learn_attacks(self, finger_forces):
         #self.performer.load_forces()
-        for i in range(3):
+        for i in range(len(basic_training.FINGER_MIDIS)):
             self.task_attacks[i].set_forces(finger_forces[i])
         self.state = LEARN_ATTACKS
         self.condition.wakeOne()
@@ -295,7 +297,7 @@ class DynBackend(QtCore.QThread):
 
     def learn_attacks_thread(self):
         self.force_init = []
-        for fmi in range(3):
+        for fmi in range(len(basic_training.FINGER_MIDIS)):
             force = self.task_attacks[fmi].calculate_full()
             self.force_init.append(force)
         return

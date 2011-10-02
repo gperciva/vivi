@@ -80,40 +80,10 @@ class TaskStable(task_base.TaskBase):
     def get_stable_files_info(self):
         files = self._get_files()
 
-        # variables about the files
-        self.forces_initial = {}
-        self.extra_k = {}
-        self.counts = {}
-        self.finger_midis = []
-        # get info about the files
-        for filename in files:
-            params, extra, count = dirs.files.get_audio_params_extra(filename)
-            finger_midi = params.finger_midi
-            force = params.bow_force
-
-            if not finger_midi in self.finger_midis:
-                self.finger_midis.append(finger_midi)
-            # setup dictionaries
-            if not finger_midi in self.forces_initial:
-                self.forces_initial[finger_midi] = []
-            if not finger_midi in self.extra_k:
-                self.extra_k[finger_midi] = []
-            if not finger_midi in self.counts:
-                self.counts[finger_midi] = []
-            # setup lists
-            forces_initial = self.forces_initial[finger_midi]
-            extra_k = self.extra_k[finger_midi]
-            counts = self.counts[finger_midi]
-
-            if not force in forces_initial:
-                forces_initial.append(force)
-            if not extra in extra_k:
-                extra_k.append(extra)
-            if not count in counts:
-                counts.append(count)
+        self._setup_lists_from_files(files)
 
         # ASSUME: no screw-ups in the file creation
-        self.num_rows = len(self.counts[0]) * len(self.extra_k[0])
+        self.num_rows = len(self.counts[0]) * len(self.extras[0])
         self.num_cols = len(self.forces_initial[0])*len(self.finger_midis)
         self.num_counts = len(self.counts[0])
 
@@ -129,7 +99,7 @@ class TaskStable(task_base.TaskBase):
             force = params.bow_force
 
             # and setup self.examines
-            row = (self.num_counts*self.extra_k[finger_midi].index(extra)
+            row = (self.num_counts*self.extras[finger_midi].index(extra)
                     + self.counts[finger_midi].index(count))
             col = (len(self.finger_midis) * 
                     self.forces_initial[finger_midi].index(force)
@@ -171,7 +141,7 @@ class TaskStable(task_base.TaskBase):
             #print
             #print "\t%.3f" % (scipy.std(block_vals))
             candidates.append( 
-                (scipy.stats.gmean(block_vals), self.extra_k[0][block], block) )
+                (scipy.stats.gmean(block_vals), self.extras[0][block], block) )
         candidates.sort()
         #print candidates
         most_stable = candidates[0][1]

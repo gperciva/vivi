@@ -60,7 +60,7 @@ class ExamineAutoWidget(QtGui.QFrame):
             self.task_attack.get_attack_files_info()
 
         num_rows = self.task_attack.num_rows
-        num_counts = self.task_attack.REPS
+        num_cols = self.task_attack.num_cols
 
         forces_strings = map(str, self.task_attack.forces)
         # setup table and gui
@@ -80,25 +80,23 @@ class ExamineAutoWidget(QtGui.QFrame):
         self.ui.button_play.clicked.connect(self.table_play)
 
         self.table.clearContents()
-        self.table.setRowCount(3)
+        self.table.setRowCount(num_rows)
 
         self.examines = []
-        for row in range(num_counts):
+        for row in range(num_rows):
             examines_row = []
-            for col in range(num_rows/3):
+            for col in range(num_cols):
                 examines_row.append(None)
             self.examines.append( examines_row )
                     
         # populate table
-        for row in range(num_counts):
+        for row in range(num_rows):
             # oh god ick: names of rows vs. cols
-            for col in range(num_rows/3):
+            for col in range(num_cols):
                 examine = examine_note_widget.ExamineNoteWidget(
                     shared.examine_note_widget.PLOT_ATTACK)
 
-                en_col = 0
-                en_row = col*num_counts + row
-                examine.set_examine_note( self.task_attack.notes[en_row][en_col] )
+                examine.set_examine_note( self.task_attack.notes[row][col] )
                 self.examines[row][col] = examine
 
                 self.table.setCellWidget(row, col,
@@ -106,11 +104,11 @@ class ExamineAutoWidget(QtGui.QFrame):
                 self.table.setRowHeight(row, 50.0)
                 if col % 1 == 0 and col > 0:
                     self.examines[row][col].plot_actions.set_border([0,0,0,1])
-                if col % 1 == 0 and col < 3:
+                if col % 1 == 0 and col < num_cols-1:
                     self.examines[row][col].plot_actions.set_border([0,1,0,0])
-                if row % num_counts == 0 and row > 0:
+                if row % num_rows == 0 and row > 0:
                     self.examines[row][col].plot_actions.set_border([1,0,0,0])
-                if row % num_counts == (num_counts-1) and row < num_rows:
+                if row % num_rows == (num_rows-1) and row < num_rows:
                     self.examines[row][col].plot_actions.set_border([0,0,1,0])
 
 
@@ -149,7 +147,7 @@ class ExamineAutoWidget(QtGui.QFrame):
         for i in range(num_rows):
             item = QtGui.QTableWidgetItem()
             mod = i % num_counts + 1
-            item.setText(str("%.2f-%i" % (self.task_stable.extra_k[0][i/num_counts], mod)))
+            item.setText(str("%.2f-%i" % (self.task_stable.extras[0][i/num_counts], mod)))
             self.table.setVerticalHeaderItem(i, item)
 
         self.examines = []
