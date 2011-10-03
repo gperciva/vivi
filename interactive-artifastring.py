@@ -39,6 +39,8 @@ sys.path.append('build/python/')
 sys.path.append('build/swig/')
 import actions_file
 import vivi_defines
+import dynamics
+import midi_pos
 HOPSIZE = vivi_defines.HOPSIZE
 
 NUM_AUDIO_BUFFERS = 4
@@ -277,7 +279,7 @@ class InteractiveViolin():
         scipy.io.wavfile.write(filename, 44100, complete)
         mf_file = open('collection.mf', 'a')
         mf_file.write(str("train/%s\t%i\n" % (filename,
-            cat+vivi_defines.CATEGORIES_CENTER_OFFSET)) )
+            cat + vivi_defines.CATEGORY_POSITIVE_OFFSET)) )
         mf_file.close()
 
     def main_loop(self):
@@ -368,8 +370,9 @@ def main(stdscr):
     vln = InteractiveViolin(instrument_number, stdscr, audio_stream)
     vln.turn_off_current_string()
     vln.params.violin_string = st
-    # FIXME: dyn
-    vln.params.finger_position = 1.0 - 1.0 / (1.05946309**finger)
+    vln.params.finger_position = midi_pos.midi2pos(finger)
+    vln.params.bow_position = dynamics.get_distance(dyn)
+    vln.params.velocity = dynamics.get_velocity(dyn)
     vln.params_queue.put(vln.params)
 
     vln.main_loop()

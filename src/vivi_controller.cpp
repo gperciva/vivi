@@ -10,6 +10,8 @@
 //#define NDEBUG
 #include <assert.h>
 
+#include "midi_pos.h"
+
 using namespace std;
 
 // used in normal hops
@@ -180,7 +182,8 @@ void ViviController::basic(NoteBeginning begin, double seconds,
     int dyn = round(begin.physical.dynamic);
     char note_search_params[MAX_LINE_LENGTH];
     sprintf(note_search_params, "basic\tst %i\tdyn %i\tfinger_midi %.3f",
-            actions.string_number, dyn, actions.finger_position);
+            actions.string_number, dyn,
+            pos2midi(actions.finger_position));
     comment(note_search_params);
 
     const double orig_force = actions.bow_force;
@@ -313,10 +316,13 @@ void ViviController::note_write_actions(NoteBeginning begin,
     char note_search_params[MAX_LINE_LENGTH];
     if (point_and_click == NULL) {
         sprintf(note_search_params, "note\tst %i\tdyn %i\tfinger_midi %.3f",
-                m_st, m_dyn, actions.finger_position);
+                m_st, m_dyn,
+                pos2midi(actions.finger_position));
     } else {
         sprintf(note_search_params, "note\tst %i\tdyn %i\tfinger_midi %.3f %s",
-                m_st, m_dyn, actions.finger_position, point_and_click);
+                m_st, m_dyn,
+                pos2midi(actions.finger_position),
+                point_and_click);
     }
     comment(note_search_params);
     comment(begin.params_text().c_str());

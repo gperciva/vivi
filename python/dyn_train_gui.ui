@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>78</width>
-    <height>115</height>
+    <height>121</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -104,6 +104,19 @@
      </property>
      <property name="text">
       <string>1.05</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="dampen">
+     <property name="maximumSize">
+      <size>
+       <width>40</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>0.25</string>
      </property>
     </widget>
    </item>

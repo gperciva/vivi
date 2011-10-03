@@ -75,11 +75,11 @@ class DynTrain(QtGui.QFrame):
             force_button.setObjectName("force-%i" % i)
             force_button.setMaximumSize(QtCore.QSize(40, 16777215))
             self.ui.verticalLayout.insertWidget(
-                self.ui.verticalLayout.count()-1,force_button)
+                self.ui.verticalLayout.count()-2,force_button)
             self.force_buttons.addButton(force_button, i)
         self.force_buttons.buttonClicked.connect(self.click_force)
 
-        #self.ui.dampen.clicked.connect(self.click_dampen)
+        self.ui.dampen.clicked.connect(self.click_dampen)
 
         ### setup variables
         self.judged_main_num = 0
@@ -170,7 +170,7 @@ class DynTrain(QtGui.QFrame):
             self.ui.force_factor.setText("")
             for i in range(len(basic_training.FINGER_MIDIS)):
                 self.force_buttons.button(i).setText("")
-            #self.ui.dampen.setText("")
+            self.ui.dampen.setText("")
             return
 
         if self.basic_trained:
@@ -200,11 +200,11 @@ class DynTrain(QtGui.QFrame):
                     % self.force_init[i])
             else:
                 self.force_buttons.button(i).setText("")
-#        if self.dampen > 0:
-#            self.ui.dampen.setText(
-#                str("%.2f")%self.dampen)
-#        else:
-#            self.ui.dampen.setText("")
+        if self.dampen > 0:
+            self.ui.dampen.setText(
+                str("%.2f")%self.dampen)
+        else:
+            self.ui.dampen.setText("")
     
         if self.modified_training:
             self.ui.num_trained_label.setBackgroundRole(
@@ -241,14 +241,14 @@ class DynTrain(QtGui.QFrame):
         else:
             for i in range(len(basic_training.FINGER_MIDIS)):
                 self.force_buttons.button(i).setStyleSheet("")
-#        if self.modified_dampen:
-#            # TODO: really bad way of highlighting!
-#            # but QPushButtons don't seem
-#            # to have a nice way to highlight!
-#            self.ui.dampen.setStyleSheet(
-#                "background-color: darkBlue; color: white;")
-#        else:
-#            self.ui.dampen.setStyleSheet("")
+        if self.modified_dampen:
+            # TODO: really bad way of highlighting!
+            # but QPushButtons don't seem
+            # to have a nice way to highlight!
+            self.ui.dampen.setStyleSheet(
+                "background-color: darkBlue; color: white;")
+        else:
+            self.ui.dampen.setStyleSheet("")
 
     def set_modified(self):
         self.modified_training = True

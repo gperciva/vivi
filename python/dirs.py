@@ -177,7 +177,7 @@ class ViviDirs:
 
     def get_task_files(self, taskname, st, bow_bridge_distance, bow_velocity):
         """ gets stable or attack files. """
-        filename_pattern = str("%s_%i_?????_%.3f_?????_%.3f_*.wav"
+        filename_pattern = str("%s_%i_*_%.3f_*_%.3f_*.wav"
             % (taskname, st, bow_bridge_distance, bow_velocity))
         task_files = glob.glob(os.path.join(self.works_dir, filename_pattern))
         task_files.sort()

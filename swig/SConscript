@@ -28,6 +28,11 @@ env['LIBPREFIX']=""
 
 
 env.SharedLibrary(
+  target = '_midi_pos.so',
+  source = (['midi_pos.i']),
+)
+
+env.SharedLibrary(
   target = '_vivi_defines.so',
   source = (['vivi_defines.i']),
 )
