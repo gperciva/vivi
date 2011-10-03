@@ -511,7 +511,7 @@ void Ears::make_features() {
     audio_features = mng.create("Fanout", "audio_features");
     audio_features->addMarSystem( timeDomain() );
     //mar->linkControl("Fanout/main_fanout/Fanout/td/mrs_real/pitch_mult",
-    //	"mrs_real/pitch_mult");
+    //"mrs_real/pitch_mult");
 
     MarSystem *spectral = mng.create("Series", "spectral");
     audio_features->addMarSystem(spectral);
@@ -593,7 +593,7 @@ void Ears::make_learning() {
         classifier->updControl("mrs_string/svm", "NU_SVR");
         classifier->updControl("mrs_string/kernel", "LINEAR");
         classifier->updControl("mrs_bool/output_classPerms", false);
-	classifier->updControl("mrs_natural/nClasses", 1);
+        classifier->updControl("mrs_natural/nClasses", 1);
 #endif
         //learning->updControl("SVMClassifier/svm_cl/mrs_string/mode", "train");
     } else {
@@ -656,7 +656,7 @@ void Ears::make_net() {
     //net->addMarSystem(overall_par);
     if ((mode == PREDICT_FILE) || (mode == TRAIN_FILE)) {
         /*
-          	      net->linkControl("Series/learning/mrs_natural/currentLabel",
+                 net->linkControl("Series/learning/mrs_natural/currentLabel",
                                  "Series/audio_input/mrs_natural/currentLabel");
         */
         net->linkControl("Series/learning/Annotator/annotator/mrs_real/label",

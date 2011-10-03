@@ -560,7 +560,7 @@ inline void ViviController::hop(int num_samples) {
     // write to file
     cats_file->category(m_total_samples*dt, cat);
     if (cat == CATEGORY_NULL) {
-    //cout<<0<<'\t'<<0<<'\t'<<actions.bow_force;
+        //cout<<0<<'\t'<<0<<'\t'<<actions.bow_force;
         return;
     }
     // record cat, calculate cat_avg
