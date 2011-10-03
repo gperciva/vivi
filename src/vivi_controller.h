@@ -11,6 +11,8 @@ class Ears;
 #include "dynamics.h" // for NUM_DYNAMICS
 #include "vivi_note_params.h"
 #include "controller_params.h"
+#include "midi_pos.h"
+
 
 extern "C" {
 #include <gsl/gsl_randist.h>
@@ -19,7 +21,7 @@ extern "C" {
 // TODO: move to artifastring?
 const int NUM_STRINGS = 4;
 
-const int CATS_MEAN_LENGTH = 4;
+const int CATS_MEAN_LENGTH = 2;
 
 class ViviController {
 

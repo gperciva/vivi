@@ -29,7 +29,7 @@ env['LIBPREFIX']=""
 
 env.SharedLibrary(
   target = '_midi_pos.so',
-  source = (['midi_pos.i']),
+  source = (['midi_pos.i', '../src/midi_pos.cpp']),
 )
 
 env.SharedLibrary(
@@ -58,7 +58,7 @@ env.SharedLibrary(
   source = (['vivi_controller.i', '../src/vivi_controller.cpp']
 		+ ['../src/ears.cpp', '../src/actions_file.cpp']
 		+ ['../src/dynamics.cpp']
-		+ ['../src/controller_params.cpp']),
+		+ ['../src/controller_params.cpp', '../src/midi_pos.cpp']),
 )
 
 # TODO: hard-coded python version again!

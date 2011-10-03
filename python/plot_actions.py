@@ -121,16 +121,28 @@ class PlotActions(QtGui.QWidget):
             return
         scale = 0.05*self.height()
         direction = -1 if cat> 0 else 1
-        cat_clipped = min( abs(cat)/2.0, 1.0)
+        cat_clipped = min( abs(cat) / vivi_defines.CATEGORIES_EXTREME , 1.0)
         cat_scale = cat_clipped ** 0.3
         pen = painter.pen()
 
-        #red = 255*2*min(cat_clipped, 0.5)
-        red = 255*2*abs(cat_clipped - 0.5)
-        green = 255*(1 - 2*max(cat_clipped-0.5, 0))
-        blue = 0
-        #print cat_clipped, '\t', red, '\t', green
-        pen.setColor(QtGui.QColor(red, green, blue))
+        #third = (cat_clipped * 3.0) - round(cat_clipped*3.0)
+        if cat_clipped < 0.333:
+            third = 3.0*(cat_clipped)
+            red = 1.0 - third
+            green = 1.0
+            blue = third
+        elif cat_clipped < 0.667:
+            third = 3.0*(cat_clipped - 0.333)
+            red = third
+            green = 1.0 - third
+            blue = 1.0
+        else:
+            third = 3.0*(cat_clipped - 0.667)
+            red = third
+            green = 0.0
+            blue = 1.0 - third
+#        print cat_clipped, third, '\t', red, green, blue
+        pen.setColor(QtGui.QColor(255*red, 255*green, 255*blue))
         painter.setPen(pen)
         for left_right in [-1, 1]:
             painter.drawLine(x, y,

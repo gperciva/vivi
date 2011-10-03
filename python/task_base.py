@@ -46,6 +46,7 @@ class TaskBase():
         self._make_files()
         # TODO: second_answer_index is not trustworthy!
         second_answer_index, second_answer = self._examine_files()
+        #second_answer = first_answer
         return second_answer
 
     def _init_range(self):

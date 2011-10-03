@@ -5,13 +5,13 @@ gextract_files = Split("""
 	test-gextract.cpp
 """)
 gextract = env.Program (target='test-gextract',
-	source = [gextract_files] + env['ears_files'] + ['actions_file.cpp'],
+	source = [gextract_files] + env['ears_files'] + ['actions_file.cpp', 'midi_pos.cpp'],
 	LIBS=["marsyas"],
 )
 
 basic = env.Program (target='test-basic',
 	source = (env['vivi_controller_files'] + ['test-basic.cpp']
-		+ ['ears.o', 'actions_file.o', 'dynamics.cpp']),
+		+ ['ears.o', 'actions_file.o', 'dynamics.cpp', 'midi_pos.o']),
 	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
 )
 
@@ -21,10 +21,15 @@ controllerparams = env.Program(target='test-params',
 
 stable = env.Program (target='test-stable',
 	source = (['test-stable.cpp']
-		+ ['ears.o', 'vivi_controller.o', 'controller_params.o', 'actions_file.o', 'dynamics.o']),
+		+ ['ears.o', 'vivi_controller.o', 'controller_params.o', 'actions_file.o', 'dynamics.o', 'midi_pos.o']),
 	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
 )
 
+dampen = env.Program (target='test-dampen',
+	source = (['test-dampen.cpp']
+		+ ['ears.o', 'vivi_controller.o', 'controller_params.o', 'actions_file.o', 'dynamics.o', 'midi_pos.o']),
+	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
+)
 
 #instrument = env.Program (target='test-instrument',
 #	source =(['test-instrument.cpp']

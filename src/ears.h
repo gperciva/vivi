@@ -51,7 +51,8 @@ public:
     void listenShort(short *audio);
 
     // for extra params
-    void set_extra_params(int st, double finger_position);
+    void set_extra_params(int st, double finger_position,
+        double bbd, double force, double velocity);
 
     // information
     double getClass();

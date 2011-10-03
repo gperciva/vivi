@@ -7,6 +7,8 @@
 
 #define INCLUDE_PITCH
 
+//#define FULL_VIOLIN_PARAMS
+
 #ifndef LEAN
 #else
 #include "marsyas/Series.h"
@@ -49,6 +51,11 @@ using namespace std;
 
 #include <limits.h>
 
+#include "midi_pos.h"
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+
 // C++ requires an external definition of static member variables!
 //MarSystemManager Ears::mng;
 
@@ -85,8 +92,11 @@ void Ears::reset()
     in_filename = "";
 
     audio_input_realvec.create(EARS_HOPSIZE);
-    //parameters_input_realvec.create(2,1);
+#ifdef FULL_VIOLIN_PARAMS
+    parameters_input_realvec.create(5,1);
+#else
     parameters_input_realvec.create(1,1);
+#endif
 
     parameters_input = NULL;
 
@@ -206,11 +216,24 @@ void Ears::prepNet() {
 */
 
 
-void Ears::set_extra_params(int st, double finger_position) {
+void Ears::set_extra_params(int st, double finger_position,
+double bbd, double force, double velocity) {
     mrs_real pitch = string_finger_freq(st, finger_position);
 //cout<<"# st finger pitch:"<<'\t'<<st<<' '<<finger_position<<'\t'<<pitch<<endl;
+    // to avoid training bug in marsyas (bug doesn't exist in weka)
+    double epsilon = 0.0;
+#ifdef FULL_VIOLIN_PARAMS
+    // workaround for marsyas bug with class with all same value
+    epsilon = rand() * 1e-6;
+    parameters_input_realvec(0,0) = st + epsilon;
+    epsilon = 0.0;
+    parameters_input_realvec(1,0) = finger_position + epsilon;
+    parameters_input_realvec(2,0) = bbd + epsilon;
+    parameters_input_realvec(3,0) = force;
+    parameters_input_realvec(4,0) = velocity + epsilon;
+#else
     parameters_input_realvec(0,0) = finger_position;
-    //parameters_input_realvec(1,0) = pitch;
+#endif
 
     if (parameters_input != NULL) {
         parameters_input->updControl("mrs_realvec/inject", parameters_input_realvec);
@@ -225,15 +248,17 @@ void Ears::set_extra_params(int st, double finger_position) {
 
 void Ears::get_info_file(string filename) {
     // assume that we use '_' as the separator
-    size_t offset = filename.find("_") + 1;
-    //cout<<offset<<endl;
+    vector<string> SplitVec;
+    boost::split(SplitVec, filename, boost::is_any_of("_"));
 
-    int st = filename[offset] - 48;
-    double finger_midi = filename[offset+2] - 48.0;
-    //cout<<filename<<"  "<<st<<"  "<<finger_midi<<endl;
-    double finger_position = 1.0 - 1.0 / pow(1.05946309,finger_midi);
+    int st = boost::lexical_cast<int>(SplitVec[1]);
+    double finger_midi = boost::lexical_cast<double>(SplitVec[2]);
+    double finger_position = midi2pos(finger_midi);
+    double bbd = boost::lexical_cast<double>(SplitVec[3]);
+    double force = boost::lexical_cast<double>(SplitVec[4]);
+    double velocity = boost::lexical_cast<double>(SplitVec[5]);
 
-    set_extra_params(st, finger_position);
+    set_extra_params(st, finger_position, bbd, force, velocity);
 }
 
 // ick, this doens't really belong here!
@@ -286,7 +311,11 @@ void Ears::listenShort(short *audio) {
 double Ears::getClass() {
     if (ticks_count > stabilizingDelay) {
         realvec data = net->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
-        return data(0,0) - CATEGORY_POSITIVE_OFFSET;
+        double value = data(0,0) - CATEGORY_POSITIVE_OFFSET;
+        if (value != value) { // is a NaN
+            value = CATEGORY_NULL;
+        }
+        return value;
     } else {
         return CATEGORY_NULL;
     }
@@ -637,10 +666,16 @@ void Ears::make_net() {
 
 #ifdef INCLUDE_PITCH
     parameters_input = mng.create("Inject", "parameters_input");
+#ifdef FULL_VIOLIN_PARAMS
+    parameters_input->updControl("mrs_natural/injectSize", 5);
+    parameters_input->updControl("mrs_string/injectNames",
+        "string,finger,bow-bridge-distance,force,velocity");
+#else
     parameters_input->updControl("mrs_natural/injectSize", 1);
     parameters_input->updControl("mrs_string/injectNames",
-                                 "finger,");
-    //"finger,intended_pitch,");
+        "finger");
+#endif
+
     // get the onObservations correct!
     parameters_input->updControl("mrs_realvec/inject",
                                  parameters_input_realvec);

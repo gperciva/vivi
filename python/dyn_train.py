@@ -200,7 +200,7 @@ class DynTrain(QtGui.QFrame):
                     % self.force_init[i])
             else:
                 self.force_buttons.button(i).setText("")
-        if self.dampen > 0:
+        if self.dampen < 1.0:
             self.ui.dampen.setText(
                 str("%.2f")%self.dampen)
         else:
@@ -328,10 +328,10 @@ class DynTrain(QtGui.QFrame):
         elif job_type == state.STABLE:
             finger_forces = []
             for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
-                low_force = min(self.get_forces_finger(
+                low_force = scipy.mean(self.get_forces_finger(
                     -vivi_defines.CATEGORIES_EXTREME, fm))
                 middle_force = scipy.mean(self.get_forces_finger(0,fm))
-                high_force = max(self.get_forces_finger(
+                high_force = scipy.mean(self.get_forces_finger(
                     vivi_defines.CATEGORIES_EXTREME, fm))
                 #middle_force = (high_force+low_force) / 2.0
                 finger_forces.append( [low_force, middle_force, high_force] )

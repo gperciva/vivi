@@ -34,7 +34,7 @@ void ControllerParams::load_file()
             attack_forces[i] = 0.0;
         }
         accuracy = 0.0;
-        dampen = 0.0;
+        dampen = 1.0;
     }
 }
 

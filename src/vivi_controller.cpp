@@ -10,8 +10,6 @@
 //#define NDEBUG
 #include <assert.h>
 
-#include "midi_pos.h"
-
 using namespace std;
 
 // used in normal hops
@@ -32,7 +30,7 @@ const double MIN_VELOCITY_FACTOR = 0.80;
 
 
 const double LET_VIBRATE = 0.5;
-const int LIGHTEN_NOTE_HOPS = 12; // FIXME: fix magic number for dampen
+const int DAMPEN_HOPS = 8; // FIXME: fix magic number for dampen
 
 ViviController::ViviController() {
 
@@ -370,17 +368,15 @@ void ViviController::note(NoteBeginning begin, double seconds,
 
     int lighten_hop = main_hops; // don't lighten?
     if (end.lighten_bow_force) {
-        //decel_hop -= LIGHTEN_NOTE_HOPS;
-        lighten_hop = main_hops - LIGHTEN_NOTE_HOPS;
+        //decel_hop -= DAMPEN_HOPS;
+        lighten_hop = main_hops - DAMPEN_HOPS;
     }
     if (end.let_string_vibrate) {
-        //lighten_hop = main_hops - LIGHTEN_NOTE_HOPS;
+        //lighten_hop = main_hops - DAMPEN_HOPS;
     }
 
     m_note_samples = 0;
     m_feedback_adjust_force = false;
-
-    double final_lighten_step = -1;
 
     for (int i = 0; i < main_hops; i++) {
 //        printf("i: %i\n", i);
@@ -404,19 +400,7 @@ void ViviController::note(NoteBeginning begin, double seconds,
         }
         if (i >= lighten_hop) {
             m_feedback_adjust_force = false;
-            if (final_lighten_step < 0) {
-                if (end.lighten_bow_force) {
-                    actions.bow_force *= m_dampen[m_st][m_dyn];
-                }
-                if (actions.bow_force < 0.1) { // in Newtons
-                    final_lighten_step = actions.bow_force / (main_hops-lighten_hop);
-                }
-            } else {
-                actions.bow_force -= final_lighten_step;
-                if (actions.bow_force < 0) {
-                    actions.bow_force = 0.0;
-                }
-            }
+            actions.bow_force *= m_dampen[m_st][m_dyn];
         }
         /*
         // FIXME: oh god ick
@@ -509,12 +493,19 @@ inline void ViviController::hop(int num_samples) {
     actions.bow_velocity += norm_bounded(0, fabs(actions.bow_velocity)
                                          * VELOCITY_STDDEV);
     actions.bow_force += norm_bounded(0, actions.bow_force * FORCE_STDDEV);
+    if (actions.bow_force < 0) {
+        actions.bow_force = 0;
+    }
     violin->bow(actions.string_number,
                 actions.bow_bridge_distance,
                 actions.bow_force,
                 actions.bow_velocity);
     ears[m_st][m_dyn]->set_extra_params(
-        m_st, actions.finger_position);
+        m_st,
+        actions.finger_position,
+                actions.bow_bridge_distance,
+                actions.bow_force,
+                actions.bow_velocity);
 
     actions_file->bow(m_total_samples*dt, actions.string_number,
                       actions.bow_bridge_distance, actions.bow_force,
@@ -614,16 +605,36 @@ void ViviController::make_dampen(NoteBeginning begin,
 {
     NoteEnding end;
     end.keep_bow_velocity = true;
+    //end.keep_bow_velocity = false;
     filesNew(filename);
     // get note going
-    note(begin, hops_settle*dh, end);
+    const int PRE_STOP = 4;
+    //begin.physical.finger_position = 0.123;
+    //note(begin, (hops_settle - PRE_STOP)*dh, end);
+//    cout<<"end note:\t"<<(0.5 - PRE_STOP*dh)<<endl;
+    note(begin, 0.5 - PRE_STOP*dh, end);
 
-    m_velocity_target = 0.0;
     m_feedback_adjust_force = false;
-    for (int i=0; i<hops_reduce; i++) {
-        actions.bow_force *= damp;
+    double stop_force = actions.bow_force;
+
+    for (int i=0; i<PRE_STOP; i++) {
+        //double factor = 1.0 - double(i)/PRE_STOP;
+        //double factor = 0.0;
+        double factor = 0.2;
+        actions.bow_force *= factor;
+        //actions.bow_force = stop_force * factor;
+        //actions.bow_force -= stop_force / PRE_STOP;
+//        cout<<factor<<'\t'<<actions.bow_force<<endl;
         hop();
     }
+    /*
+    stop_force = actions.bow_force;
+    for (int i=0; i<PRE_STOP; i++) {
+        actions.bow_force -= stop_force / PRE_STOP;
+        hop();
+    }
+    */
+    m_velocity_target = 0.0;
     actions.bow_force = 0.0;
     for (int i=0; i<hops_wait; i++) {
         hop();

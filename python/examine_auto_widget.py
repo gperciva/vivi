@@ -182,10 +182,10 @@ class ExamineAutoWidget(QtGui.QFrame):
         if not self.task_dampen.notes:
             self.task_dampen.get_dampen_files_info()
 
-        num_rows = len(self.task_dampen.extras)
-        num_counts = self.task_dampen.REPS
+        num_rows = self.task_dampen.num_rows
+        num_cols = self.task_dampen.num_cols
 
-        forces_strings = map(str, self.task_dampen.extras)
+        forces_strings = map(str, self.task_dampen.extras[0])
         # setup table and gui
         self.table = table_play_widget.TablePlayWidget(self)
         self.table.set_column_names(forces_strings)
@@ -203,23 +203,23 @@ class ExamineAutoWidget(QtGui.QFrame):
         self.ui.button_play.clicked.connect(self.table_play)
 
         self.table.clearContents()
-        self.table.setRowCount(3)
+        self.table.setRowCount(num_rows)
 
         self.examines = []
-        for row in range(num_counts):
+        for row in range(num_rows):
             examines_row = []
-            for col in range(num_rows):
+            for col in range(num_cols):
                 examines_row.append(None)
             self.examines.append( examines_row )
 
         # populate table
-        for row in range(num_counts):
-            for col in range(num_rows):
+        for row in range(num_rows):
+            for col in range(num_cols):
                 # TODO: define a PLOT_DAMPEN
                 examine = examine_note_widget.ExamineNoteWidget(
                     shared.examine_note_widget.PLOT_ATTACK)
 
-                examine.set_examine_note(self.task_dampen.notes[col][row] )
+                examine.set_examine_note(self.task_dampen.notes[row][col] )
                 self.examines[row][col] = examine
 
                 self.table.setCellWidget(row, col,
@@ -228,11 +228,11 @@ class ExamineAutoWidget(QtGui.QFrame):
 
                 if col % 1 == 0 and col > 0:
                     self.examines[row][col].plot_actions.set_border([0,0,0,1])
-                if col % 1 == 0 and col < 3:
+                if col % 1 == 0 and col < num_cols-1:
                     self.examines[row][col].plot_actions.set_border([0,1,0,0])
-                if row % num_counts == 0 and row > 0:
+                if row % num_rows == 0 and row > 0:
                     self.examines[row][col].plot_actions.set_border([1,0,0,0])
-                if row % num_counts == (num_counts-1) and row < num_rows:
+                if row % num_rows == (num_rows-1) and row < num_rows:
                     self.examines[row][col].plot_actions.set_border([0,0,1,0])
 
 
