@@ -48,8 +48,8 @@ class TaskDampen(task_base.TaskBase):
             "dampen")
         #self.STEPS = 6
         #self.REPS = 4
-        self.STEPS = 8
-        self.REPS = 10
+        self.STEPS = 6
+        self.REPS = 1
 
         self.notes = None
         self.initial_force = None

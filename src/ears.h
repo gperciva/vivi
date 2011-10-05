@@ -52,7 +52,7 @@ public:
 
     // for extra params
     void set_extra_params(int st, double finger_position,
-        double bbd, double force, double velocity);
+                          double bbd, double force, double velocity);
 
     // information
     double getClass();
@@ -125,6 +125,8 @@ private:
     Marsyas::realvec parameters_input_realvec;
     Marsyas::MarSystem *parameters_input;
     Marsyas::MarSystem *harmonics;
+    Marsyas::MarSystem *csvFileSource;
+    void get_info_csv_file();
 
     Marsyas::mrs_natural ticks_count;
     Marsyas::mrs_natural stabilizingDelay;

@@ -31,7 +31,7 @@ class TaskAttack(task_base.TaskBase):
             "attack-%i"%finger_index)
         #self.STEPS = 8
         self.STEPS = 6
-        self.REPS = 3
+        self.REPS = 1
         self.best_attack = 0 # a "null" value
         self.fmi = finger_index
         self.fm = basic_training.FINGER_MIDIS[finger_index]

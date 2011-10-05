@@ -5,9 +5,8 @@
 
 #define REGRESSION
 
-#define INCLUDE_PITCH
-
-//#define FULL_VIOLIN_PARAMS
+#define FULL_VIOLIN_PARAMS // actually does not include string
+#define PER_DYNS_PARAMS
 
 #ifndef LEAN
 #else
@@ -65,20 +64,26 @@ Ears::Ears() {
 
     // needed to avoid a segfault
     net = NULL;
+    csvFileSource = NULL;
     reset();
 
     // ick!
     hopsize_array = new short[EARS_HOPSIZE];
+
+    // temp workaround for single-dyn and marsyas "I get confused
+    // when I have all attributes being the same" bug
 }
 
 Ears::~Ears() {
     if (net != NULL) delete net; // automatically deals with children
     delete [] hopsize_array;
+    if (csvFileSource != NULL) delete csvFileSource;
 }
 
 void Ears::reset()
 {
     if (net != NULL) delete net; // automatically deals with children
+    if (csvFileSource != NULL) delete csvFileSource;
 
     net = NULL;
     learning = NULL;
@@ -86,6 +91,7 @@ void Ears::reset()
     pitchdiff = NULL;
     harmonics = NULL;
     audio_input = NULL;
+    csvFileSource = NULL;
 
     mode = NONE;
     arff_out_filename = "";
@@ -168,13 +174,19 @@ void Ears::predict_wavfile(const char *wav_in_filename,
     // must be done after setting the filename!
     stabilizingDelay = net->getctrl("mrs_natural/onStabilizingDelay")->to<mrs_natural>();
 
-    get_info_file(wav_in_filename);
+    //get_info_file(wav_in_filename);
+    cout<<"aaa " <<wav_in_filename<<endl;
+    string csv_filename = wav_in_filename;
+    csv_filename.replace(csv_filename.length()-4, 4, ".csv");
+    csvFileSource->updControl("mrs_string/filename", csv_filename);
+
     ActionsFile *cats_out = new ActionsFile(cats_out_filename);
     cats_out->comment(wav_in_filename);
 
     ticks_count = 0;
     while (audio_input->getctrl("SoundFileSource/gextract_src/mrs_bool/hasData")->isTrue())
     {
+        get_info_csv_file();
         net->tick();
         cats_out->category(ticks_count*dh, getClass());
         ticks_count++;
@@ -217,20 +229,19 @@ void Ears::prepNet() {
 
 
 void Ears::set_extra_params(int st, double finger_position,
-double bbd, double force, double velocity) {
+                            double bbd, double force, double velocity) {
     mrs_real pitch = string_finger_freq(st, finger_position);
-//cout<<"# st finger pitch:"<<'\t'<<st<<' '<<finger_position<<'\t'<<pitch<<endl;
-    // to avoid training bug in marsyas (bug doesn't exist in weka)
-    double epsilon = 0.0;
+
+    /*
+    cout<<st<<' '<<finger_position<<'\t'<<pitch;
+    cout<<'\t'<<bbd<<'\t'<<force<<'\t'<<velocity;
+    cout<<endl;
+    */
 #ifdef FULL_VIOLIN_PARAMS
-    // workaround for marsyas bug with class with all same value
-    epsilon = rand() * 1e-6;
-    parameters_input_realvec(0,0) = st + epsilon;
-    epsilon = 0.0;
-    parameters_input_realvec(1,0) = finger_position + epsilon;
-    parameters_input_realvec(2,0) = bbd + epsilon;
-    parameters_input_realvec(3,0) = force;
-    parameters_input_realvec(4,0) = velocity + epsilon;
+    parameters_input_realvec(0,0) = finger_position;
+    parameters_input_realvec(1,0) = bbd;
+    //parameters_input_realvec(2,0) = force;
+    parameters_input_realvec(2,0) = velocity;
 #else
     parameters_input_realvec(0,0) = finger_position;
 #endif
@@ -259,6 +270,24 @@ void Ears::get_info_file(string filename) {
     double velocity = boost::lexical_cast<double>(SplitVec[5]);
 
     set_extra_params(st, finger_position, bbd, force, velocity);
+}
+
+void Ears::get_info_csv_file() {
+    csvFileSource->tick();
+    mrs_realvec v = csvFileSource->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
+    double finger_position = v(0);
+    double bbd = v(1);
+    //double force = v(2);
+    double force = 0.0;
+    double velocity = v(2);
+#ifdef PER_DYNS_PARAMS
+    double epsilon;
+    epsilon = rand()*1e-9;
+    bbd += epsilon;
+    epsilon = rand()*1e-9;
+    velocity += epsilon;
+#endif
+    set_extra_params(0, finger_position, bbd, force, velocity);
 }
 
 // ick, this doens't really belong here!
@@ -330,16 +359,21 @@ double Ears::string_finger_freq(double st, double finger_position) {
 
 
 bool Ears::tick_file() {
+    cout<<"tick_file"<<endl;
     if (audio_input->getctrl("SoundFileSource/gextract_src/mrs_bool/hasData")->isTrue())
     {
         string currentlyPlaying =
             audio_input->getControl("SoundFileSource/gextract_src/mrs_string/currentlyPlaying")->to<mrs_string>();
 
         if (currentlyPlaying != oldfile) {
-            get_info_file(currentlyPlaying);
+            //get_info_file(currentlyPlaying);
+            string csv_filename = currentlyPlaying;
+            csv_filename.replace(csv_filename.length()-4, 4, ".csv");
+            csvFileSource->updControl("mrs_string/filename", csv_filename);
             oldfile = currentlyPlaying;
         }
 
+        get_info_csv_file();
         net->tick();
         ticks_count++;
         return true;
@@ -349,6 +383,7 @@ bool Ears::tick_file() {
 }
 
 void Ears::processFile() {
+    cout<<"processFile"<<endl;
     ticks_count = 0;
     while (audio_input->getctrl("SoundFileSource/gextract_src/mrs_bool/hasData")->isTrue())
     {
@@ -356,7 +391,11 @@ void Ears::processFile() {
             audio_input->getControl("SoundFileSource/gextract_src/mrs_string/currentlyPlaying")->to<mrs_string>();
 
         if (currentlyPlaying != oldfile) {
-            get_info_file(currentlyPlaying);
+            //get_info_file(currentlyPlaying);
+            string csv_filename = currentlyPlaying;
+            csv_filename.replace(csv_filename.length()-4, 4, ".csv");
+            //cout<<csv_filename<<endl;
+            csvFileSource->updControl("mrs_string/filename", csv_filename);
             oldfile = currentlyPlaying;
         }
         /*
@@ -369,6 +408,7 @@ void Ears::processFile() {
         }
         */
 
+        get_info_csv_file();
         net->tick();
         ticks_count++;
     }
@@ -483,7 +523,8 @@ Marsyas::MarSystem *Ears::spectralDomain()
     */
     harmonics->updControl("mrs_realvec/harmonics", harmonics_r);
     harmonics->updControl("mrs_natural/harmonicsSize", num_harmonics);
-    harmonics->updControl("mrs_real/harmonicsWidth", 0.10);
+    harmonics->updControl("mrs_real/harmonicsWidth", 0.01);
+    harmonics->updControl("mrs_natural/type", 2);
 
     mrs_real max_S_obs = 20.0 / 24.0;
     MarSystem *scf_trim = mng.create("Series", "scf_trim");
@@ -593,17 +634,13 @@ void Ears::make_learning() {
 
         //learning->updControl("WekaSink/wekasink/mrs_natural/precision",10);
         learning->updControl("WekaSink/wekasink/mrs_natural/precision",20);
-        learning->updControl("WekaSink/wekasink/mrs_natural/nLabels",3);
+        learning->updControl("WekaSink/wekasink/mrs_natural/nLabels",7);
         //bool all = true;
 // try combination
-        learning->updControl("WekaSink/wekasink/mrs_natural/nLabels",5);
 
         // use regression or classification?
 #ifdef REGRESSION
         learning->updControl("WekaSink/wekasink/mrs_bool/regression",true);
-#else
-        learning->updControl("WekaSink/wekasink/mrs_string/labelNames",
-                             "1_more_bow,2_more_bow,3_ok_force,4_less_bow,5_less_bow");
 #endif
         // MUST be done after linking with main network, i.e. not here!
         //learning->updControl("WekaSink/wekasink/mrs_string/filename", m_filename);
@@ -628,11 +665,6 @@ void Ears::make_learning() {
     } else {
     }
     learning->addMarSystem(classifier);
-#ifdef REGRESSION
-#else
-    learning->updControl("SVMClassifier/svm_cl/mrs_natural/nClasses", 6);
-#endif
-
 
     /*
         learning->linkControl(
@@ -664,24 +696,27 @@ void Ears::make_net() {
 
     net->addMarSystem(audio_features);
 
-#ifdef INCLUDE_PITCH
     parameters_input = mng.create("Inject", "parameters_input");
 #ifdef FULL_VIOLIN_PARAMS
-    parameters_input->updControl("mrs_natural/injectSize", 5);
+    parameters_input->updControl("mrs_natural/injectSize", 3);
     parameters_input->updControl("mrs_string/injectNames",
-        "string,finger,bow-bridge-distance,force,velocity");
+                                 "finger,bow-bridge-distance,velocity");
+    //"string,finger,bow-bridge-distance,force,velocity");
 #else
     parameters_input->updControl("mrs_natural/injectSize", 1);
     parameters_input->updControl("mrs_string/injectNames",
-        "finger");
+                                 "finger");
 #endif
-
     // get the onObservations correct!
     parameters_input->updControl("mrs_realvec/inject",
                                  parameters_input_realvec);
     net->addMarSystem(parameters_input);
 
-#endif
+    // FIXME: has nothing to do with the rest of the network;
+    // move somewhere else
+    csvFileSource = mng.create("CsvFileSource", "csv");
+    csvFileSource->updControl("mrs_natural/inSamples", 1);
+
 
     net->addMarSystem(learning);
 
@@ -728,6 +763,13 @@ void Ears::make_net() {
         // this is so that we ignore the last tick.
         net->updControl("mrs_natural/inStabilizingDelay", 1);
     }
+#ifdef REGRESSION
+#else
+    learning->updControl("SVMClassifier/svm_cl/mrs_natural/nClasses",
+        7);
+    learning->updControl("WekaSink/wekasink/mrs_string/labelNames",
+        "97, 98, 99, 100, 101, 102, 103");
+#endif
 
     // make sure everything is hooked up.
     net->update();

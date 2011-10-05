@@ -503,9 +503,9 @@ inline void ViviController::hop(int num_samples) {
     ears[m_st][m_dyn]->set_extra_params(
         m_st,
         actions.finger_position,
-                actions.bow_bridge_distance,
-                actions.bow_force,
-                actions.bow_velocity);
+        actions.bow_bridge_distance,
+        actions.bow_force,
+        actions.bow_velocity);
 
     actions_file->bow(m_total_samples*dt, actions.string_number,
                       actions.bow_bridge_distance, actions.bow_force,

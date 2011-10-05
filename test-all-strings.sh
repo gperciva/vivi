@@ -1,7 +1,8 @@
 #!/bin/sh
+sh make-all-strings.sh
+
 for i in 0 1 2 3
 do
-	cat train/${i}_?.mf > train/${i}.mf
 	build/src/test-gextract train/${i}.mf
 	kea -w train/${i}.arff > ${i}-results.txt
 done
