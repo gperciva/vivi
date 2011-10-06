@@ -5,6 +5,7 @@ import shutil
 import glob
 
 import vivi_types
+import actions2csv
 
 #pylint: disable=C0103
 files = None
@@ -162,6 +163,7 @@ class ViviDirs:
         dest = src.replace(self.works_dir, self.train_dir)
         shutil.move(src+'.wav', dest+'.wav')
         shutil.move(src+'.actions', dest+'.actions')
+        actions2csv.main([None, dest+'.actions'])
         return dest
 
     def get_cats_name(self, filename):

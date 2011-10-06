@@ -175,9 +175,10 @@ void Ears::predict_wavfile(const char *wav_in_filename,
     stabilizingDelay = net->getctrl("mrs_natural/onStabilizingDelay")->to<mrs_natural>();
 
     //get_info_file(wav_in_filename);
-    cout<<"aaa " <<wav_in_filename<<endl;
+    //cout<<"aaa " <<wav_in_filename<<endl;
     string csv_filename = wav_in_filename;
     csv_filename.replace(csv_filename.length()-4, 4, ".csv");
+    //cout<<"reading from: "<<csv_filename<<endl;
     csvFileSource->updControl("mrs_string/filename", csv_filename);
 
     ActionsFile *cats_out = new ActionsFile(cats_out_filename);
@@ -231,8 +232,9 @@ void Ears::prepNet() {
 void Ears::set_extra_params(int st, double finger_position,
                             double bbd, double force, double velocity) {
     mrs_real pitch = string_finger_freq(st, finger_position);
+    //cout<<"expected pitch: "<<pitch<<endl;
 
-    /*
+/*
     cout<<st<<' '<<finger_position<<'\t'<<pitch;
     cout<<'\t'<<bbd<<'\t'<<force<<'\t'<<velocity;
     cout<<endl;
@@ -248,9 +250,13 @@ void Ears::set_extra_params(int st, double finger_position,
 
     if (parameters_input != NULL) {
         parameters_input->updControl("mrs_realvec/inject", parameters_input_realvec);
+    } else {
+        cout<<"we need inject"<<endl;
     }
     if (pitchdiff != NULL) {
         pitchdiff->updControl("mrs_real/expectedPitch", pitch);
+    } else {
+        cout<<"we need pitchdiff"<<endl;
     }
     if (harmonics != NULL) {
         harmonics->updControl("mrs_real/base_frequency", pitch);
@@ -258,6 +264,8 @@ void Ears::set_extra_params(int st, double finger_position,
 }
 
 void Ears::get_info_file(string filename) {
+cout<<"Ears error: get_info_file() NOW UNUSED"<<endl;
+/*
     // assume that we use '_' as the separator
     vector<string> SplitVec;
     boost::split(SplitVec, filename, boost::is_any_of("_"));
@@ -270,24 +278,27 @@ void Ears::get_info_file(string filename) {
     double velocity = boost::lexical_cast<double>(SplitVec[5]);
 
     set_extra_params(st, finger_position, bbd, force, velocity);
+    */
 }
 
 void Ears::get_info_csv_file() {
     csvFileSource->tick();
     mrs_realvec v = csvFileSource->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
-    double finger_position = v(0);
-    double bbd = v(1);
+    double st = v(0);
+    double finger_position = v(1);
+    double bbd = v(2);
     //double force = v(2);
     double force = 0.0;
-    double velocity = v(2);
+    double velocity = v(3);
 #ifdef PER_DYNS_PARAMS
     double epsilon;
-    epsilon = rand()*1e-9;
+    epsilon = (rand()/(RAND_MAX+1.0))*1.0e-6;
     bbd += epsilon;
-    epsilon = rand()*1e-9;
+    epsilon = (rand()/(RAND_MAX+1.0))*1.0e-6;
     velocity += epsilon;
 #endif
-    set_extra_params(0, finger_position, bbd, force, velocity);
+    //cout<<st<<" "<<finger_position<<" "<<bbd<<" "<<velocity<<endl;
+    set_extra_params(st, finger_position, bbd, force, velocity);
 }
 
 // ick, this doens't really belong here!
@@ -359,7 +370,6 @@ double Ears::string_finger_freq(double st, double finger_position) {
 
 
 bool Ears::tick_file() {
-    cout<<"tick_file"<<endl;
     if (audio_input->getctrl("SoundFileSource/gextract_src/mrs_bool/hasData")->isTrue())
     {
         string currentlyPlaying =
@@ -383,7 +393,6 @@ bool Ears::tick_file() {
 }
 
 void Ears::processFile() {
-    cout<<"processFile"<<endl;
     ticks_count = 0;
     while (audio_input->getctrl("SoundFileSource/gextract_src/mrs_bool/hasData")->isTrue())
     {

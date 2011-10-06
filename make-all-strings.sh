@@ -1,7 +1,7 @@
 #!/bin/sh
 for f in train/*.actions
 do
-	./actions2csv.py $f
+	python/actions2csv.py $f
 done
 
 for i in 0 1 2 3
