@@ -345,6 +345,25 @@ class DynTrain(QtGui.QFrame):
     def start(self):
         self.state.start()
 
+    def get_all_cat_forces(self, low_include, high_include, fm):
+        forces = []
+        for x in range(low_include, high_include+1):
+            forces.extend( self.get_forces_finger(x, fm) )
+        return forces
+
+    def get_extreme_forces(self):
+        finger_forces = []
+        for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
+            low_force = scipy.mean(
+                self.get_all_cat_forces(
+                    -vivi_defines.CATEGORIES_EXTREME,-1,fm))
+            middle_force = scipy.mean(self.get_forces_finger(0,fm))
+            high_force = scipy.mean(
+                self.get_all_cat_forces(
+                    1, vivi_defines.CATEGORIES_EXTREME,fm))
+            finger_forces.append( [low_force, middle_force, high_force] )
+        return finger_forces
+
     def next_step(self, job_type, job_index):
         if job_type == state.BASIC_TRAINING:
             self.basic_train()
@@ -354,38 +373,14 @@ class DynTrain(QtGui.QFrame):
         elif job_type == state.ACCURACY:
             self.dyn_backend.check_accuracy()
         elif job_type == state.VERIFY:
-            finger_forces = []
-            for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
-                low_force = scipy.mean(self.get_forces_finger(
-                    -vivi_defines.CATEGORIES_EXTREME, fm))
-                middle_force = scipy.mean(self.get_forces_finger(0,fm))
-                high_force = scipy.mean(self.get_forces_finger(
-                    vivi_defines.CATEGORIES_EXTREME, fm))
-                #middle_force = (high_force+low_force) / 2.0
-                finger_forces.append( [low_force, middle_force, high_force] )
+            finger_forces = self.get_extreme_forces()
             self.dyn_backend.check_verify(finger_forces)
         elif job_type == state.STABLE:
-            finger_forces = []
-            for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
-                low_force = scipy.mean(self.get_forces_finger(
-                    -vivi_defines.CATEGORIES_EXTREME, fm))
-                middle_force = scipy.mean(self.get_forces_finger(0,fm))
-                high_force = scipy.mean(self.get_forces_finger(
-                    vivi_defines.CATEGORIES_EXTREME, fm))
-                #middle_force = (high_force+low_force) / 2.0
-                finger_forces.append( [low_force, middle_force, high_force] )
+            finger_forces = self.get_extreme_forces()
             self.dyn_backend.learn_stable(finger_forces)
         elif job_type == state.ATTACKS:
-            finger_forces = []
+            finger_forces = self.get_extreme_forces()
             for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
-                # yes, reversed
-                low_force = min(self.get_forces_finger(
-                    -vivi_defines.CATEGORIES_EXTREME, fm))
-                middle_force = scipy.mean(self.get_forces_finger(0,fm))
-                high_force = max(self.get_forces_finger(
-                    vivi_defines.CATEGORIES_EXTREME, fm))
-                #middle_force = (high_force+low_force) / 2.0
-                finger_forces.append( [low_force, middle_force, high_force] )
                 self.dyn_backend.task_attacks[fmi].set_K(self.force_factor)
             self.dyn_backend.learn_attacks(finger_forces)
         elif job_type == state.DAMPEN:

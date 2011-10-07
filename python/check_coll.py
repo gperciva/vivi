@@ -24,14 +24,17 @@ class CheckColl:
     def judge_wav_file(self, wavfile, user_cat):
         cats = []
         cat_out = dirs.files.get_cats_name(wavfile[0:-4])
-        cat_lines = open(cat_out+'.cats').readlines()
-        for line in cat_lines:
-            if line[0] == '#':
-                continue
-            splitline = line.split()
-            cat = float( splitline[2].rstrip() )
-            if cat != vivi_defines.CATEGORY_NULL:
-                cats.append(cat)
+        try:
+            cat_lines = open(cat_out+'.cats').readlines()
+            for line in cat_lines:
+                if line[0] == '#':
+                    continue
+                splitline = line.split()
+                cat = float( splitline[2].rstrip() )
+                if cat != vivi_defines.CATEGORY_NULL:
+                    cats.append(cat)
+        except:
+            cats = []
         self.data.append( (wavfile, user_cat, cats) )
 
     def get_filename(self, index):
