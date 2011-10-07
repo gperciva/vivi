@@ -6,9 +6,11 @@ IDLE = 0
 BASIC_TRAINING = 1
 SVM = 2
 ACCURACY = 3
-STABLE = 4
-ATTACKS = 5
-DAMPEN = 6
+VERIFY = 4
+
+STABLE = 5
+ATTACKS = 6
+DAMPEN = 7
 
 class State(QtCore.QObject):
     next_step = QtCore.pyqtSignal(int, int, name='next_step')

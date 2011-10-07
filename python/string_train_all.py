@@ -93,6 +93,14 @@ class StringTrainAll(QtGui.QFrame):
         self.state.start()
         return sum(jobs)
 
+    def verify(self):
+        jobs = []
+        for st in range(NUM_STRINGS):
+            jobs.append(self.string_trains[st].check_verify_steps())
+        self.state.prep(state.VERIFY, jobs, parallel=True)
+        self.state.start()
+        return sum(jobs)
+
     def learn_stable(self):
         jobs = []
         for st in range(NUM_STRINGS):

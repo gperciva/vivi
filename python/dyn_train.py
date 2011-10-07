@@ -80,6 +80,7 @@ class DynTrain(QtGui.QFrame):
         self.force_buttons.buttonClicked.connect(self.click_force)
 
         self.ui.dampen.clicked.connect(self.click_dampen)
+        self.ui.verify.clicked.connect(self.click_verify)
 
         ### setup variables
         self.judged_main_num = 0
@@ -92,6 +93,8 @@ class DynTrain(QtGui.QFrame):
         self.modified_stable = False
         self.modified_attack = False
         self.modified_dampen = False
+        self.modified_verify = False
+        self.verify_good = None
 
         self.coll = collection.Collection()
 
@@ -171,6 +174,7 @@ class DynTrain(QtGui.QFrame):
             for i in range(len(basic_training.FINGER_MIDIS)):
                 self.force_buttons.button(i).setText("")
             self.ui.dampen.setText("")
+            self.ui.verify.setText("")
             return
 
         if self.basic_trained:
@@ -205,7 +209,18 @@ class DynTrain(QtGui.QFrame):
                 str("%.2f")%self.dampen)
         else:
             self.ui.dampen.setText("")
-    
+
+        if self.verify_good is None:
+            self.ui.verify.setText("")
+        elif self.verify_good:
+            self.ui.verify.setStyleSheet(
+                "")
+            self.ui.verify.setText("Y")
+        else:
+            self.ui.verify.setStyleSheet(
+                "color: red;")
+            self.ui.verify.setText("N")
+
         if self.modified_training:
             self.ui.num_trained_label.setBackgroundRole(
                 QtGui.QPalette.Highlight)
@@ -249,6 +264,18 @@ class DynTrain(QtGui.QFrame):
                 "background-color: darkBlue; color: white;")
         else:
             self.ui.dampen.setStyleSheet("")
+        if self.modified_verify:
+            # TODO: really bad way of highlighting!
+            # but QPushButtons don't seem
+            # to have a nice way to highlight!
+            self.ui.verify.setStyleSheet(
+                "background-color: darkBlue; color: white;")
+        else:
+            if self.verify_good is False:
+                self.ui.verify.setStyleSheet(
+                    "background-color: red; color: black;")
+            else:
+                self.ui.verify.setStyleSheet("")
 
     def set_modified(self):
         self.modified_training = True
@@ -256,6 +283,7 @@ class DynTrain(QtGui.QFrame):
         self.modified_stable = True
         self.modified_attack = True
         self.modified_dampen = True
+        self.modified_verify = True
         self.display()
 
     def read(self):
@@ -325,6 +353,8 @@ class DynTrain(QtGui.QFrame):
             self.dyn_backend.compute_training(mf_filename)
         elif job_type == state.ACCURACY:
             self.dyn_backend.check_accuracy()
+        elif job_type == state.VERIFY:
+            self.dyn_backend.check_verify()
         elif job_type == state.STABLE:
             finger_forces = []
             for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
@@ -363,6 +393,9 @@ class DynTrain(QtGui.QFrame):
         elif job_type == state.ACCURACY:
             self.accuracy = self.dyn_backend.accuracy
             self.modified_accuracy = False
+        elif job_type == state.VERIFY:
+            self.verify_good = self.dyn_backend.verify_good
+            self.modified_verify = False
         elif job_type == state.STABLE:
             self.force_factor = self.dyn_backend.most_stable
             self.modified_stable = False
@@ -538,6 +571,15 @@ class DynTrain(QtGui.QFrame):
         self.state.prep(state.ACCURACY, [num_steps])
         return num_steps
 
+    def check_verify_steps(self):
+        if self.judged_main_num == 0:
+            return 0
+        elif not self.modified_verify:
+            return 0
+        num_steps = self.dyn_backend.check_verify_steps(self.coll)
+        self.state.prep(state.VERIFY, [num_steps])
+        return num_steps
+
     def learn_attacks_steps(self):
         if self.judged_main_num == 0:
             return 0
@@ -673,4 +715,8 @@ class DynTrain(QtGui.QFrame):
     def click_dampen(self):
         self.examine.examine("dampen", self.st, self.dyn,
         self.dyn_backend.task_dampen)
+
+    def click_verify(self):
+        print "show verify now"
+
 

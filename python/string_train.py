@@ -180,6 +180,13 @@ class StringTrain(QtGui.QFrame):
         self.state.prep(state.ACCURACY, jobs)
         return sum(jobs)
 
+    def check_verify_steps(self):
+        jobs = []
+        for st in range(NUM_DYNS):
+            jobs.append(self.dyns[st].check_verify_steps())
+        self.state.prep(state.VERIFY, jobs)
+        return sum(jobs)
+
     def learn_stable_steps(self):
         jobs = []
         for st in range(NUM_DYNS):

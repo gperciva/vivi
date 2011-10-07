@@ -81,6 +81,8 @@
     <addaction name="actionBasic_training"/>
     <addaction name="actionCompute"/>
     <addaction name="actionCheck_accuracy"/>
+    <addaction name="actionVerify"/>
+    <addaction name="separator"/>
     <addaction name="actionLearn_stable"/>
     <addaction name="actionLearn_attacks"/>
     <addaction name="actionLearn_dampen"/>
@@ -116,6 +118,7 @@
    <addaction name="separator"/>
    <addaction name="actionCompute"/>
    <addaction name="actionCheck_accuracy"/>
+   <addaction name="actionVerify"/>
    <addaction name="separator"/>
    <addaction name="actionLearn_stable"/>
    <addaction name="actionLearn_attacks"/>
@@ -187,7 +190,7 @@
   </action>
   <action name="actionCheck_accuracy">
    <property name="text">
-    <string>Check accuracy</string>
+    <string>Accuracy</string>
    </property>
    <property name="shortcut">
     <string>A</string>
@@ -263,6 +266,14 @@
    </property>
    <property name="shortcut">
     <string>N</string>
+   </property>
+  </action>
+  <action name="actionVerify">
+   <property name="text">
+    <string>Verify</string>
+   </property>
+   <property name="shortcut">
+    <string>J</string>
    </property>
   </action>
  </widget>

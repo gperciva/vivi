@@ -91,6 +91,7 @@ class ViviMainwindow(QtGui.QMainWindow):
 
         self.ui.actionCompute.triggered.connect(self.compute)
         self.ui.actionCheck_accuracy.triggered.connect(self.train_check)
+        self.ui.actionVerify.triggered.connect(self.verify)
 
         self.ui.actionLearn_attacks.triggered.connect(self.learn_attacks)
         self.ui.actionLearn_stable.triggered.connect(self.learn_stable)
@@ -277,6 +278,13 @@ class ViviMainwindow(QtGui.QMainWindow):
         if steps == 0:
             return
         self.progress_dialog("Checking accuracy", steps)
+
+    def verify(self):
+        self.save_training()
+        steps = self.string_train.verify()
+        if steps == 0:
+            return
+        self.progress_dialog("Verify", steps)
 
     def learn_attacks(self):
         steps = self.string_train.learn_attacks()

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>78</width>
-    <height>121</height>
+    <height>175</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -91,6 +91,19 @@
      </property>
      <property name="text">
       <string>98%</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="verify">
+     <property name="maximumSize">
+      <size>
+       <width>40</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Y</string>
      </property>
     </widget>
    </item>

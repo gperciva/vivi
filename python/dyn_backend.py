@@ -28,9 +28,10 @@ import basic_training
 
 CALCULATE_TRAINING = 1
 CHECK_ACCURACY = 2
-LEARN_ATTACKS = 3
-LEARN_STABLE = 4
-LEARN_DAMPEN = 5
+VERIFY = 3
+LEARN_ATTACKS = 4
+LEARN_STABLE = 5
+LEARN_DAMPEN = 6
 
 ATTACK_FORCE_STEPS = 10
 
@@ -50,7 +51,6 @@ class DynBackend(QtCore.QThread):
         self.controller = controller
         self.dampen = dampen
         self.ears = None
-        #self.ears = self.controller.getEars(self.st, self.dyn)
 
         self.task_stable = task_stable.TaskStable(self.st, self.dyn,
             self.controller, self.process_step)
@@ -67,6 +67,7 @@ class DynBackend(QtCore.QThread):
 
         #self.check_coll = check_coll.CheckColl(ears)
         self.accuracy = -1.0
+        self.verify_good = False
 
         #self.attacks = attacks.Attacks(self.st,
     #        self.dyn, self.level, performer)
@@ -81,8 +82,10 @@ class DynBackend(QtCore.QThread):
         self.start()
 
     def reload_ears(self):
-#        self.ears = shared.listen[self.st][self.dyn]
-        self.ears.reset()
+        if not self.ears:
+            self.ears = self.controller.getEars(self.st, self.dyn)
+        else:
+            self.ears.reset()
 
     def run(self):
         while True:
@@ -93,6 +96,8 @@ class DynBackend(QtCore.QThread):
                 self.compute_thread()
             elif self.state == CHECK_ACCURACY:
                 self.check_accuracy_thread()
+            elif self.state == VERIFY:
+                self.check_verify_thread()
             elif self.state == LEARN_ATTACKS:
                 self.learn_attacks_thread()
             elif self.state == LEARN_STABLE:
@@ -113,7 +118,7 @@ class DynBackend(QtCore.QThread):
         self.condition.wakeOne()
 
     def compute_thread(self):
-        self.ears.reset()
+        self.reload_ears()
         arff_filename = dirs.files.get_arff_filename(
             self.st, self.dyn)
         mpl_filename = dirs.files.get_mpl_filename(
@@ -134,6 +139,13 @@ class DynBackend(QtCore.QThread):
         self.state = CHECK_ACCURACY
         self.condition.wakeOne()
 
+    def check_verify_steps(self, coll):
+        return 1
+
+    def check_verify(self):
+        self.state = VERIFY
+        self.condition.wakeOne()
+
     def check_accuracy_thread(self):
         ### find overall 10-fold cross-validation accuracy
         cmd = "kea -cl SVM -svm_svm NU_SVR -svm_kernel LINEAR -w %s" % (
@@ -152,7 +164,7 @@ class DynBackend(QtCore.QThread):
                 self.accuracy = float(splitline[2])
         ### calculate cats for each file
         mpl_filename = dirs.files.get_mpl_filename(self.st, self.dyn)
-        self.ears.reset()
+        self.reload_ears()
         self.ears.set_predict_wavfile(mpl_filename)
         for pair in self.coll_accuracy.coll:
             filename = pair[0]
@@ -161,6 +173,8 @@ class DynBackend(QtCore.QThread):
             self.ears.predict_wavfile(filename, cat_out)
             self.process_step.emit()
 
+    def check_verify_thread(self):
+        print "foo"
 
     def learn_attacks_steps(self):
         steps = 0
