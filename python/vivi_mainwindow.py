@@ -335,8 +335,8 @@ class ViviMainwindow(QtGui.QMainWindow):
     def close(self):
         self.save_training()
         # TODO: workaround for some weird python invisible bug
-        import os
-        os.system("reset")
+        #import os
+        #os.system("reset")
         self.app.quit()
 
     def keyPressEvent(self, event):

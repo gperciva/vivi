@@ -5,6 +5,8 @@ import dirs
 import dynamics
 import utils
 
+import vivi_defines
+
 #FINGER_MIDIS = [0.0, 4.0, 6.0]
 FINGER_MIDIS = [0.0, 6.0]
 
@@ -69,17 +71,14 @@ def _get_missing_force(forces, cats, unknowns):
     if not forces:
         force = 1.0
     ### get extremes
-    elif not 2 in cats:
+    elif not vivi_defines.CATEGORIES_EXTREME in cats:
         force = 2.0 * max(forces+unknowns)
-    elif not -2 in cats:
+    elif not -vivi_defines.CATEGORIES_EXTREME in cats:
         force = 0.5 * min(forces+unknowns)
-    ### fill in missing
+    ### find center
     elif not 0 in cats:
         force = _get_between(forces, cats, 0, unknowns)
-    elif not 1 in cats:
-        force = _get_between(forces, cats, 1, unknowns)
-    elif not -1 in cats:
-        force = _get_between(forces, cats, -1, unknowns)
+    ### no forces needed
     else:
         force = None
     return force

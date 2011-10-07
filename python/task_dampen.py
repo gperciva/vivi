@@ -54,7 +54,6 @@ class TaskDampen(task_base.TaskBase):
         self.notes = None
         self.initial_force = None
 
-        self.ears = self.controller.getEars(self.st, self.dyn)
         self.hops = HOPS_SETTLE + HOPS_DAMPEN + HOPS_WAIT
 
     def steps_full(self):
@@ -133,7 +132,8 @@ class TaskDampen(task_base.TaskBase):
             costs = []
             for row, count in enumerate(self.counts[0]):
                 filename = self.notes[row][col][2]
-                self.ears.get_rms_from_file(self.hops,
+                ears = self.controller.getEars(self.st, self.dyn)
+                ears.get_rms_from_file(self.hops,
                     filename, rmss)
                 cost = self.get_dampen_cost(rmss, dampen, count)
                 self.notes[row][col] = (self.notes[row][col][0], cost, filename)

@@ -49,7 +49,8 @@ class DynBackend(QtCore.QThread):
         #self.ears = shared.listen[self.st][self.dyn]
         self.controller = controller
         self.dampen = dampen
-        self.ears = self.controller.getEars(self.st, self.dyn)
+        self.ears = None
+        #self.ears = self.controller.getEars(self.st, self.dyn)
 
         self.task_stable = task_stable.TaskStable(self.st, self.dyn,
             self.controller, self.process_step)
