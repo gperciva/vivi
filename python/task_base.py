@@ -19,6 +19,7 @@ class TaskBase():
         self.STEPS = 10 # even number to avoid picking the
                 # same value on second pass
         self.REPS = 2
+        self.second_pass = True
 
         self.LOW_INIT = 0.0 # blah numbers to start with
         self.HIGH_INIT = 1.0
@@ -42,11 +43,12 @@ class TaskBase():
         self._remove_previous_files()
         self._make_files()
         first_answer_index, first_answer = self._examine_files()
+        if not self.second_pass:
+            return first_answer
         self._zoom_range(first_answer_index)
         self._make_files()
         # TODO: second_answer_index is not trustworthy!
         second_answer_index, second_answer = self._examine_files()
-        #second_answer = first_answer
         return second_answer
 
     def _init_range(self):

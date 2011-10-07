@@ -78,6 +78,13 @@ class ViviDirs:
         #basename += ".wav"
         return basename
 
+    def make_verify_filename(self, params, stable_K, count):
+        """ .wav file for automatic training of stable K."""
+        basename = self.basename_params("verify", params)
+        basename += "_%.3f" % stable_K
+        basename += "_%i" % count
+        return os.path.join(self.works_dir, basename)
+
     def make_stable_filename(self, params, stable_K, count):
         """ .wav file for automatic training of stable K."""
         basename = self.basename_params("stable", params)
@@ -163,7 +170,7 @@ class ViviDirs:
         dest = src.replace(self.works_dir, self.train_dir)
         shutil.move(src+'.wav', dest+'.wav')
         shutil.move(src+'.actions', dest+'.actions')
-        actions2csv.main([None, dest+'.actions'])
+        actions2csv.main(dest+'.actions')
         return dest
 
     def get_cats_name(self, filename):

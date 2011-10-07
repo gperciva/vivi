@@ -8,6 +8,10 @@ gextract = env.Program (target='test-gextract',
 	source = [gextract_files] + env['ears_files'] + ['actions_file.cpp', 'midi_pos.cpp'],
 	LIBS=["marsyas"],
 )
+gextract = env.Program (target='test-predict-wavfile',
+	source = ['test-predict-wavfile.cpp'] + ['ears.o'] + ['actions_file.o', 'midi_pos.o'],
+	LIBS=["marsyas"],
+)
 
 basic = env.Program (target='test-basic',
 	source = (env['vivi_controller_files'] + ['test-basic.cpp']

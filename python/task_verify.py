@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# TODO: minimal changes from task_stable; more work needed here
+
 import math
 import scipy.stats
 
@@ -19,29 +21,26 @@ import collection
 
 STABLE_LENGTH = 1.0
 
-class TaskStable(task_base.TaskBase):
+IGNORE_INITIAL_PERCENT = 0.25
+
+class TaskVerify(task_base.TaskBase):
 
     def __init__(self, st, dyn, controller, emit):
         task_base.TaskBase.__init__(self, st, dyn, controller, emit,
-            "stable")
-        self.STEPS = 6
+            "verify")
+        self.STEPS = 2
         self.REPS = 1
+        self.LOW_INIT = 1.0
+        self.HIGH_INIT = 1.01
 
-        self.LOW_INIT = 1.0 # blah numbers to start with
-        self.HIGH_INIT = 1.1
-
-        self.stable_forces = None
-
-        # TODO: eliminate this
-        self.most_stable = 1.0
+        self.second_pass = False
         self.notes = None
-
 
     def set_forces(self, forces):
         self.stable_forces = forces
 
     def steps_full(self):
-        return 2 * (self.STEPS * self.REPS)
+        return 1 * (self.STEPS * self.REPS)
 
     def _make_files(self):
         self._setup_controller()
@@ -58,12 +57,12 @@ class TaskStable(task_base.TaskBase):
                                 dynamics.get_distance(self.dyn),
                                 bow_force,
                                 dynamics.get_velocity(self.dyn))
-                        stable_filename = dirs.files.make_stable_filename(
+                        verify_filename = dirs.files.make_verify_filename(
                             audio_params,
                             K, count+1)
-                        self.controller.filesNew(stable_filename)
+                        self.controller.filesNew(verify_filename)
                         self.controller.comment(
-                            "stable st %i dyn %i finger_midi %.3f"
+                            "verify st %i dyn %i finger_midi %.3f"
                             % (self.st, self.dyn, finger_midi))
                         begin = vivi_controller.NoteBeginning()
                         vivi_types.audio_params_to_physical(
@@ -110,12 +109,16 @@ class TaskStable(task_base.TaskBase):
             #to_find = "finger_midi %i" % fm
             to_find = "finger_midi"
             nac.load_note(to_find)
-            stability = self.get_stability(nac.note_cats_means)
+            examine_cats = nac.note_cats_means[int(
+                len(nac.note_cats_means) * IGNORE_INITIAL_PERCENT) :]
+            stability = self.get_stability(examine_cats)
             self.notes[row][col] = (nac, stability)
 
     def _examine_files(self):
         self.get_stable_files_info()
 
+        end = []
+        middle = []
         num_rows = len(self.notes)
         # find "most stable" rows
         candidates = []
@@ -132,9 +135,13 @@ class TaskStable(task_base.TaskBase):
                         cv = self.notes[row][col][1]
                         if cv > 0:
                             cvs.append(cv)
+                    #print cvs
                     vals.append( scipy.stats.gmean(cvs) )
-            #    row_stable = self.examines[row][0].plot_actions.stability
-                #print vals
+                # only take the constant-force examples
+                if block == 0:
+                    end.append(vals[0])
+                    end.append(vals[2])
+                middle.append(vals[1])
                 row_stable = scipy.stats.gmean(vals)
                 block_vals.append(row_stable)
             #print "%.2f\t%.3f" % (self.extras[block], scipy.stats.gmean(block_vals)),
@@ -142,11 +149,22 @@ class TaskStable(task_base.TaskBase):
             #print "\t%.3f" % (scipy.std(block_vals))
             candidates.append( 
                 (scipy.stats.gmean(block_vals), self.extras[0][block], block) )
-        candidates.sort()
         #print candidates
+        candidates.sort()
         most_stable = candidates[0][1]
         index = candidates[0][2]
-        return index, most_stable
+        # these should be stable
+        for m in middle:
+            if m > 1.0:
+                #print "a middle is:", m
+                return None, False
+        # these should be unstable
+        for e in end:
+            if e < 1.0:
+                #print "an end is:", e
+                return None, False
+        return None, True
+        #return index, most_stable
 
     def get_stability(self,cats):
         direction = 1

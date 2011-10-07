@@ -20,6 +20,7 @@ import scipy
 
 import os
 
+import task_verify
 import task_stable
 import task_attack
 import task_dampen
@@ -52,6 +53,8 @@ class DynBackend(QtCore.QThread):
         self.dampen = dampen
         self.ears = None
 
+        self.task_verify = task_verify.TaskVerify(self.st, self.dyn,
+            self.controller, self.process_step)
         self.task_stable = task_stable.TaskStable(self.st, self.dyn,
             self.controller, self.process_step)
         self.task_attacks = map(
@@ -139,13 +142,6 @@ class DynBackend(QtCore.QThread):
         self.state = CHECK_ACCURACY
         self.condition.wakeOne()
 
-    def check_verify_steps(self, coll):
-        return 1
-
-    def check_verify(self):
-        self.state = VERIFY
-        self.condition.wakeOne()
-
     def check_accuracy_thread(self):
         ### find overall 10-fold cross-validation accuracy
         cmd = "kea -cl SVM -svm_svm NU_SVR -svm_kernel LINEAR -w %s" % (
@@ -173,8 +169,16 @@ class DynBackend(QtCore.QThread):
             self.ears.predict_wavfile(filename, cat_out)
             self.process_step.emit()
 
+    def check_verify_steps(self, coll):
+        return self.task_verify.steps_full() + 1
+
+    def check_verify(self, stable_forces):
+        self.state = VERIFY
+        self.task_verify.set_forces(stable_forces)
+        self.condition.wakeOne()
+
     def check_verify_thread(self):
-        print "foo"
+        self.verify_good = self.task_verify.calculate_full()
 
     def learn_attacks_steps(self):
         steps = 0

@@ -8,6 +8,8 @@
 #define FULL_VIOLIN_PARAMS // actually does not include string
 #define PER_DYNS_PARAMS
 
+//#define PRINT_DEBUG
+
 #ifndef LEAN
 #else
 #include "marsyas/Series.h"
@@ -178,7 +180,9 @@ void Ears::predict_wavfile(const char *wav_in_filename,
     //cout<<"aaa " <<wav_in_filename<<endl;
     string csv_filename = wav_in_filename;
     csv_filename.replace(csv_filename.length()-4, 4, ".csv");
-    //cout<<"reading from: "<<csv_filename<<endl;
+#ifdef PRINT_DEBUG
+    cout<<"reading from: "<<csv_filename<<endl;
+#endif
     csvFileSource->updControl("mrs_string/filename", csv_filename);
 
     ActionsFile *cats_out = new ActionsFile(cats_out_filename);
@@ -232,13 +236,13 @@ void Ears::prepNet() {
 void Ears::set_extra_params(int st, double finger_position,
                             double bbd, double force, double velocity) {
     mrs_real pitch = string_finger_freq(st, finger_position);
-    //cout<<"expected pitch: "<<pitch<<endl;
-
-/*
+#ifdef PRINT_DEBUG
+    cout<<"expected pitch: "<<pitch<<endl;
     cout<<st<<' '<<finger_position<<'\t'<<pitch;
     cout<<'\t'<<bbd<<'\t'<<force<<'\t'<<velocity;
     cout<<endl;
-    */
+#endif
+
 #ifdef FULL_VIOLIN_PARAMS
     parameters_input_realvec(0,0) = finger_position;
     parameters_input_realvec(1,0) = bbd;
@@ -282,6 +286,16 @@ cout<<"Ears error: get_info_file() NOW UNUSED"<<endl;
 }
 
 void Ears::get_info_csv_file() {
+    if (! csvFileSource->getctrl("mrs_bool/hasData")->isTrue()) {
+        // don't change the parameters
+        return;
+        // FIXME: do something more sophisticated
+        cout<<"Panic!  no data to read: ";
+        cout<<csvFileSource->getctrl("mrs_string/filename")->to<mrs_string>();
+        cout<<endl;
+    } else {
+        //cout<<"ok"<<endl;
+    }
     csvFileSource->tick();
     mrs_realvec v = csvFileSource->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
     double st = v(0);
@@ -403,7 +417,9 @@ void Ears::processFile() {
             //get_info_file(currentlyPlaying);
             string csv_filename = currentlyPlaying;
             csv_filename.replace(csv_filename.length()-4, 4, ".csv");
-            //cout<<csv_filename<<endl;
+#ifdef PRINT_DEBUG
+            cout<<"---- ProcessFile new csv: "<<csv_filename<<endl;
+#endif
             csvFileSource->updControl("mrs_string/filename", csv_filename);
             oldfile = currentlyPlaying;
         }
