@@ -32,10 +32,10 @@ const double MIN_VELOCITY_FACTOR = 0.80;
 const double LET_VIBRATE = 0.5;
 const int DAMPEN_HOPS = 8; // FIXME: fix magic number for dampen
 
-ViviController::ViviController() {
+ViviController::ViviController(int instrument_number) {
 
     // always used classes
-    violin = new ViolinInstrument();
+    violin = new ViolinInstrument(instrument_number);
     // setup random generator
     const gsl_rng_type * T = gsl_rng_default;
     random = gsl_rng_alloc (T);

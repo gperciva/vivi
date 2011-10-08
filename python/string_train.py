@@ -51,7 +51,7 @@ class StringTrain(QtGui.QFrame):
         self.ui.string_label.setText(text)
 
         ### setup per-string control loop for training
-        self.controller = vivi_controller.ViviController()
+        self.controller = vivi_controller.ViviController(shared.instrument_number)
 
         self.dyns = []
         for di in range(NUM_DYNS):

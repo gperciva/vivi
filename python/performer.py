@@ -18,6 +18,7 @@ import dirs
 import utils
 
 import style_simple
+import shared
 
 EXTRA_FINAL_REST = 0.5
 
@@ -30,7 +31,7 @@ class Performer(QtCore.QObject):
         QtCore.QObject.__init__(self)
         self.notation = music_events.MusicEvents()
         self.style = style_simple.StyleSimple()
-        self.controller = vivi_controller.ViviController()
+        self.controller = vivi_controller.ViviController(shared.instrument_number)
         if not dirs.files:
             dirs.files = dirs.ViviDirs(
                 "train/", "/tmp/vivi-cache/", "final/")

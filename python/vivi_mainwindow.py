@@ -32,10 +32,11 @@ class ViviMainwindow(QtGui.QMainWindow):
     """ Main window of Vivi, the Virtual Violinist. """
     def __init__(self,
             training_dirname, cache_dirname, final_dirname,
-            ly_filename, skill, always_lilypond):
+            ly_filename, skill, always_lilypond,
+            instrument_number):
         self.app = QtGui.QApplication([])
         QtGui.QMainWindow.__init__(self)
-
+        shared.instrument_number = instrument_number
 
         ## setup main gui
         self.ui = vivi_mainwindow_gui.Ui_MainWindow()

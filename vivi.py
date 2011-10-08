@@ -23,6 +23,9 @@ def get_options():
     parser.add_option("-d", "--dir", dest="train_dir",
         default="train/",
         help="Directory for training files", metavar="DIR")
+    parser.add_option("-i", "--instrument_number", dest="instrument_number",
+        default=0,
+        help="Instrument number", metavar="NUMBER")
     parser.add_option("-l", "--lily", dest="lily_file",
         help="LilyPond file to practice", metavar="FILE")
     parser.add_option("-s", "--skill", dest="skill",
@@ -45,12 +48,14 @@ def main():
         import vivi_console
         vivi_main = vivi_console.ViviConsole(
             opts.train_dir, opts.cache_dir, opts.final_dir,
-            opts.lily_file, int(opts.skill), opts.always_lilypond)
+            opts.lily_file, int(opts.skill), opts.always_lilypond,
+            int(opts.instrument_number))
     else:
         import vivi_mainwindow
         vivi_main = vivi_mainwindow.ViviMainwindow(
             opts.train_dir, opts.cache_dir, opts.final_dir,
-            opts.lily_file, int(opts.skill), opts.always_lilypond)
+            opts.lily_file, int(opts.skill), opts.always_lilypond,
+            opts.instrument_number)
     sys.exit(vivi_main.app.exec_())
 
 if __name__ == "__main__":

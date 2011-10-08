@@ -18,6 +18,8 @@ lily = None
 import music_events
 music = None
 
+instrument_number = None
+
 #import vivi_controller
 #AudioParams = vivi_controller.PhysicalActions
 

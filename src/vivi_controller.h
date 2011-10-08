@@ -26,7 +26,7 @@ const int CATS_MEAN_LENGTH = 2;
 class ViviController {
 
 public:
-    ViviController();
+    ViviController(int instrument_number=0);
     ~ViviController();
     void reset();
 
