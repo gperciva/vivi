@@ -554,6 +554,14 @@ inline void ViviController::hop(int num_samples) {
         //cout<<0<<'\t'<<0<<'\t'<<actions.bow_force;
         return;
     }
+    // limit extreme cat
+    if (cat > 2*CATEGORIES_EXTREME) {
+        cat = 2*CATEGORIES_EXTREME;
+    }
+    if (cat < -2*CATEGORIES_EXTREME) {
+        cat = -2*CATEGORIES_EXTREME;
+    }
+
     // record cat, calculate cat_avg
     cats[cats_index] = cat;
     cats_index++;

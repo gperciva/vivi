@@ -247,7 +247,7 @@ void Ears::set_extra_params(int st, double finger_position,
     parameters_input_realvec(0,0) = finger_position;
     parameters_input_realvec(1,0) = bbd;
     //parameters_input_realvec(2,0) = force;
-    parameters_input_realvec(2,0) = velocity;
+    parameters_input_realvec(2,0) = fabs(velocity);
 #else
     parameters_input_realvec(0,0) = finger_position;
 #endif
