@@ -131,6 +131,12 @@ class ExamineAutoWidget(QtGui.QFrame):
         col_names.extend(map(lambda x: "Low %i" % x, self.task_stable.finger_midis))
         col_names.extend(map(lambda x: "Middle %i" % x, self.task_stable.finger_midis))
         col_names.extend(map(lambda x: "High %i" % x, self.task_stable.finger_midis))
+        for i, c in enumerate(col_names):
+            fmi = i % len(self.task_stable.forces_initial)
+            fm = self.task_stable.finger_midis[fmi]
+            j = i / len(self.task_stable.forces_initial)
+            force = self.task_stable.forces_initial[fm][j]
+            col_names[i] += ": %.2f" % force
         self.table.set_column_names(col_names)
         self.ui.verticalLayout.addWidget(self.table)
 
