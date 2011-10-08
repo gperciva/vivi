@@ -48,6 +48,8 @@ NUM_AUDIO_BUFFERS = 4
 # for pitch and buffers
 PRINT_EXTRA_DISPLAY = 1
 
+TRAIN_DIR = "train/"
+
 class Parameters():
     def __init__(self, st=0, fp=0, bp=.08, f=1.0, v=0.4, T=1.0):
         self.violin_string = st
@@ -222,8 +224,10 @@ class InteractiveViolin():
             self.snapshot(int(c) - vivi_defines.CATEGORIES_CENTER_OFFSET)
             self.stdscr.addstr(self.row, 0, str("file written"))
 
-        if c == ord('b'):
-            self.params.force /= 1.1
+        if c == 'm':
+            midi = midi_pos.pos2midi(self.params.finger_position)
+            midi = round(midi)
+            self.params.finger_position = midi_pos.midi2pos(midi)
 
         self.params_queue.put(self.params)
         if not skip_violin_print:
@@ -245,7 +249,7 @@ class InteractiveViolin():
     def snapshot(self, cat):
         finger_midi = 12.0*math.log(1.0 /
             (1.0 - self.params.finger_position)) / math.log(2.0)
-        filename = "audio_%i_%.3f_%.3f_%.3f_%.3f_%i.wav" % (
+        filename = TRAIN_DIR+"audio_%i_%.3f_%.3f_%.3f_%.3f_%i.wav" % (
             self.params.violin_string,
             finger_midi,
             self.params.bow_position,
@@ -277,10 +281,14 @@ class InteractiveViolin():
             bow_pos_along += self.params.velocity/44100.0
 
         scipy.io.wavfile.write(filename, 44100, complete)
-        mf_file = open('collection.mf', 'a')
-        mf_file.write(str("train/%s\t%i\n" % (filename,
+        mf_filename = "train/%i_%i.mf" % (
+            self.params.violin_string, self.dyn)
+        mf_file = open(mf_filename, 'a')
+        mf_file.write(str("%s\t%i\n" % (filename,
             cat + vivi_defines.CATEGORY_POSITIVE_OFFSET)) )
         mf_file.close()
+        self.stdscr.addstr(22, 10, str("wrote to %s" %
+                    mf_filename))
 
     def main_loop(self):
         windowsize = 2048
@@ -374,6 +382,8 @@ def main(stdscr):
     vln.params.bow_position = dynamics.get_distance(dyn)
     vln.params.velocity = dynamics.get_velocity(dyn)
     vln.params_queue.put(vln.params)
+
+    vln.dyn = dyn
 
     vln.main_loop()
 
