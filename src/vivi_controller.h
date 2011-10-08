@@ -69,7 +69,8 @@ private:
     MonoWav *wavfile;
     ActionsFile *actions_file;
     ActionsFile *cats_file;
-    Ears *ears[NUM_STRINGS][NUM_DYNAMICS];
+    //Ears *ears[NUM_STRINGS][NUM_DYNAMICS];
+    Ears *ears[NUM_STRINGS];
     double m_K[NUM_STRINGS][NUM_DYNAMICS];
     double m_dampen[NUM_STRINGS][NUM_DYNAMICS];
 

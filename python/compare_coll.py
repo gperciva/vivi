@@ -24,9 +24,10 @@ class CompareColl(QtGui.QFrame):
         self.check_coll = check_coll.CheckColl()
 
         self.table = table_play_widget.TablePlayWidget(self)
-        self.table.set_column_names(["cat", "stars"])
+        self.table.set_column_names(["cat", "stars", "dynamic"])
         self.table.setColumnWidth(0, 50)
         self.table.setColumnWidth(1, 500)
+        self.table.setColumnWidth(2, 70)
 
         self.ui.verticalLayout.addWidget(self.table)
 
@@ -57,6 +58,25 @@ class CompareColl(QtGui.QFrame):
 
         self.ui.examine_type_label.setText("collection")
 
+    def get_dynamic_hack(self, filename):
+        bbd = float(filename.split("_")[3])
+        if bbd <= 0.08:
+            return "f"
+        elif bbd > 0.08 and bbd < 0.10:
+            return "mf - f"
+        elif bbd == 0.10:
+            return "mf"
+        elif bbd > 0.10 and bbd < 0.12:
+            return "mp - mf"
+        elif bbd == 0.12:
+            return "mp"
+        elif bbd > 0.12 and bbd < 0.14:
+            return "mp - p"
+        elif bbd >= 0.14:
+            return "p"
+        else:
+            return "eh?"
+
     def compare(self, st, dyn, accuracy, coll):
         self.st = st
         self.dyn = dyn
@@ -75,9 +95,14 @@ class CompareColl(QtGui.QFrame):
             vc = visualize_cats.VisualizeCats()
             vc.set_data(datum[1], datum[2])
             self.table.setCellWidget(i, 1, vc)
-            #table_item = QtGui.QTableWidgetItem(datum[1])
-            #table_item.setFont(QtGui.QFont("Andale Mono", 7))
-            #self.table.setItem(i, 1, table_item)
+
+            table_item = QtGui.QTableWidgetItem(
+                str(self.get_dynamic_hack(datum[0])))
+            font = table_item.font()
+            font.setWeight(75)
+            font.setItalic(True)
+            table_item.setFont(font)
+            self.table.setItem(i, 2, table_item)
         self.table_focus()
 
     def table_focus(self):

@@ -85,6 +85,8 @@ class DynBackend(QtCore.QThread):
         self.start()
 
     def reload_ears(self):
+        if self.dyn > 0:
+            return
         if not self.ears:
             self.ears = self.controller.getEars(self.st, self.dyn)
         else:
@@ -121,6 +123,8 @@ class DynBackend(QtCore.QThread):
         self.condition.wakeOne()
 
     def compute_thread(self):
+        if self.dyn > 0:
+            return
         self.reload_ears()
         arff_filename = dirs.files.get_arff_filename(
             self.st, self.dyn)
@@ -143,6 +147,11 @@ class DynBackend(QtCore.QThread):
         self.condition.wakeOne()
 
     def check_accuracy_thread(self):
+        if self.dyn > 0:
+            self.process_step.emit()
+            for pair in self.coll_accuracy.coll:
+                self.process_step.emit()
+            return
         ### find overall 10-fold cross-validation accuracy
         cmd = "kea -cl SVM -svm_svm NU_SVR -svm_kernel LINEAR -w %s" % (
             dirs.files.get_arff_filename(self.st, self.dyn))

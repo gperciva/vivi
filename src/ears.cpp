@@ -6,7 +6,7 @@
 #define REGRESSION
 
 #define FULL_VIOLIN_PARAMS // actually does not include string
-#define PER_DYNS_PARAMS
+//#define PER_DYNS_PARAMS
 
 //#define PRINT_DEBUG
 

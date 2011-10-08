@@ -6,6 +6,7 @@ import dyn_train_gui
 import collection
 import vivi_defines
 
+import math
 import scipy
 
 import basic_training
@@ -52,7 +53,7 @@ NEEDS_BASIC_COLOR = "red"
 class DynTrain(QtGui.QFrame):
     process_step = QtCore.pyqtSignal()
 
-    def __init__(self, parent, st, dyn, controller, practice):
+    def __init__(self, parent, st, dyn, controller, practice, coll):
         QtGui.QFrame.__init__(self)
         self.st = st
         self.dyn = dyn
@@ -96,7 +97,7 @@ class DynTrain(QtGui.QFrame):
         self.modified_verify = False
         self.verify_good = None
 
-        self.coll = collection.Collection()
+        self.coll = coll
 
         self.basic_trained = False
 
@@ -318,8 +319,9 @@ class DynTrain(QtGui.QFrame):
 
     def write(self):
         ### write collection
-        filename = dirs.files.get_mf_filename(self.st, self.dyn)
-        self.coll.write_mf_file(filename)
+        if self.dyn == 0:
+            filename = dirs.files.get_mf_filename(self.st, self.dyn)
+            self.coll.write_mf_file(filename)
         #self.modified = False
         ### write forces
         for i in range(len(basic_training.FINGER_MIDIS)):
@@ -354,13 +356,23 @@ class DynTrain(QtGui.QFrame):
     def get_extreme_forces(self):
         finger_forces = []
         for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
-            low_force = scipy.mean(
-                self.get_all_cat_forces(
-                    -vivi_defines.CATEGORIES_EXTREME,-1,fm))
+            # low
+            forces = self.get_all_cat_forces(
+                    -vivi_defines.CATEGORIES_EXTREME,-2,fm)
+            if not forces:
+                forces = self.get_all_cat_forces(
+                    -vivi_defines.CATEGORIES_EXTREME,-2,0)
+            low_force = min(forces)
+            # middle
             middle_force = scipy.mean(self.get_forces_finger(0,fm))
-            high_force = scipy.mean(
-                self.get_all_cat_forces(
-                    1, vivi_defines.CATEGORIES_EXTREME,fm))
+            # high
+            forces = self.get_all_cat_forces(
+                    2, vivi_defines.CATEGORIES_EXTREME,fm)
+            if not forces:
+                forces = self.get_all_cat_forces(
+                    2, vivi_defines.CATEGORIES_EXTREME,0)
+            high_force = max(forces)
+            # all
             finger_forces.append( [low_force, middle_force, high_force] )
         return finger_forces
 

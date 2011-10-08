@@ -33,7 +33,8 @@ class ViviDirs:
     @staticmethod
     def _get_basename(st, dyn):
         """ used internally to construct 0_0. or wierd_0_0. """
-        basename = '%i_%i.' % (st, dyn)
+        #basename = '%i_%i.' % (st, dyn)
+        basename = '%i.' % (st)
         return basename
 
     def get_mf_filename(self, st, dyn):
@@ -60,7 +61,8 @@ class ViviDirs:
     def get_dyn_vivi_filename(self, st, dyn):
         """ trained dynamic .vivi file. """
         filename = os.path.join(self.final_dir,
-            self._get_basename(st, dyn)
+            #self._get_basename(st, dyn)
+            "%i_%i." % (st, dyn)
             + 'vivi')
         return filename
 

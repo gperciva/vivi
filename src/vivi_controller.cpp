@@ -47,9 +47,7 @@ ViviController::ViviController(int instrument_number) {
     actions_file = NULL;
     cats_file = NULL;
     for (int i=0; i<NUM_STRINGS; i++) {
-        for (int j=0; j<NUM_DYNAMICS; j++) {
-            ears[i][j] = NULL;
-        }
+        ears[i] = NULL;
     }
     reset();
 }
@@ -60,10 +58,8 @@ ViviController::~ViviController() {
     filesClose();
     delete violin;
     for (int i=0; i<NUM_STRINGS; i++) {
-        for (int j=0; j<NUM_DYNAMICS; j++) {
-            if (ears[i][j] != NULL) {
-                delete ears[i][j];
-            }
+        if (ears[i] != NULL) {
+            delete ears[i];
         }
     }
 }
@@ -84,21 +80,21 @@ void ViviController::reset() {
 }
 
 Ears* ViviController::getEars(int st, int dyn) {
-    if (ears[st][dyn] == NULL) {
-        ears[st][dyn] = new Ears();
+    if (ears[st] == NULL) {
+        ears[st] = new Ears();
     }
-    return ears[st][dyn];
+    return ears[st];
 }
 
 bool ViviController::load_ears_training(int st, int dyn,
                                         const char *training_file)
 {
-    if (ears[st][dyn] == NULL) {
-        ears[st][dyn] = new Ears();
+    if (ears[st] == NULL) {
+        ears[st] = new Ears();
     }
     if (training_file != NULL) {
         // TODO: replace with const char *
-        ears[st][dyn]->set_predict_buffer(training_file);
+        ears[st]->set_predict_buffer(training_file);
     }
     return true;
 }
@@ -500,7 +496,7 @@ inline void ViviController::hop(int num_samples) {
                 actions.bow_bridge_distance,
                 actions.bow_force,
                 actions.bow_velocity);
-    ears[m_st][m_dyn]->set_extra_params(
+    ears[m_st]->set_extra_params(
         m_st,
         actions.finger_position,
         actions.bow_bridge_distance,
@@ -525,8 +521,8 @@ inline void ViviController::hop(int num_samples) {
         cats_file->category(m_total_samples*dt, CATEGORY_NULL);
         return;
     }
-    ears[m_st][m_dyn]->listenShort(buf);
-    double cat = ears[m_st][m_dyn]->getClass();
+    ears[m_st]->listenShort(buf);
+    double cat = ears[m_st]->getClass();
     /*
     // write cat to file if speed is enough
     // don't write if note hasn't settled yet

@@ -9,6 +9,7 @@ import dyn_train
 import vivi_controller
 import utils
 
+import collection
 import state
 
 #import performer
@@ -52,12 +53,13 @@ class StringTrain(QtGui.QFrame):
 
         ### setup per-string control loop for training
         self.controller = vivi_controller.ViviController(shared.instrument_number)
+        self.coll = collection.Collection()
 
         self.dyns = []
         for di in range(NUM_DYNS):
             dyn = dyn_train.DynTrain(
                 self.ui.horizontalLayout,
-                self.st, di, self.controller, None)
+                self.st, di, self.controller, None, self.coll)
             dyn.process_step.connect(self.process_step_emit)
             self.dyns.append(dyn)
 
