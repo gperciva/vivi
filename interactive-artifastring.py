@@ -19,6 +19,7 @@
 # <http://www.gnu.org/licenses/>.
 ##
 
+import os
 import sys
 import violin_instrument
 import monowav
@@ -256,8 +257,8 @@ class InteractiveViolin():
             self.params.force,
             self.params.velocity,
             1)
-        actions_out = actions_file.ActionsFile(
-            filename.replace(".wav", ".actions"));
+        actions_filename = filename.replace(".wav", ".actions")
+        actions_out = actions_file.ActionsFile(actions_filename)
         actions_out.comment("basic\tst %i\tdyn %i\tfinger_midi %.3f" % (
                     self.params.violin_string, 0,
                     finger_midi))
@@ -281,12 +282,16 @@ class InteractiveViolin():
             bow_pos_along += self.params.velocity/44100.0
 
         scipy.io.wavfile.write(filename, 44100, complete)
+        actions_out.close()
+
         mf_filename = "train/%i_%i.mf" % (
             self.params.violin_string, self.dyn)
         mf_file = open(mf_filename, 'a')
         mf_file.write(str("%s\t%i\n" % (filename,
             cat + vivi_defines.CATEGORY_POSITIVE_OFFSET)) )
         mf_file.close()
+        cmd = "python/actions2csv.py %s" % actions_filename
+        os.system(cmd)
         self.stdscr.addstr(22, 10, str("wrote to %s" %
                     mf_filename))
 

@@ -55,7 +55,7 @@ def main():
         vivi_main = vivi_mainwindow.ViviMainwindow(
             opts.train_dir, opts.cache_dir, opts.final_dir,
             opts.lily_file, int(opts.skill), opts.always_lilypond,
-            opts.instrument_number)
+            int(opts.instrument_number))
     sys.exit(vivi_main.app.exec_())
 
 if __name__ == "__main__":

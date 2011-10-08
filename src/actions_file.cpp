@@ -11,9 +11,17 @@ ActionsFile::ActionsFile(const char *filename, int buffer_size)
 
 ActionsFile::~ActionsFile()
 {
-    writeBuffer();
-    fclose(outfile);
-    delete [] data;
+    close();
+}
+
+void ActionsFile::close()
+{
+    if (outfile != NULL) {
+        writeBuffer();
+        fclose(outfile);
+        delete [] data;
+        outfile = NULL;
+    }
 }
 
 void ActionsFile::wait(double seconds) {

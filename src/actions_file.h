@@ -21,6 +21,8 @@ public:
     /// @brief writes data to disk before quitting
     ~ActionsFile();
 
+    void close();
+
     void wait(double seconds);
     void skipStart(double seconds);
     void skipStop(double seconds);

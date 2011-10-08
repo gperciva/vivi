@@ -3,7 +3,7 @@
 \include "vivi.ly"
 
 \relative c' {
-  %\tempo 4 = 120
+  \tempo 4 = 120
   g4 a b c
   d e fis g
 %  c2..\p\< d8\f
