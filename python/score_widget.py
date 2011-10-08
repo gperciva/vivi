@@ -14,6 +14,7 @@ class ScoreWidget(QtGui.QLabel):
         self.image_width = 1 # actual value will be set later.
         self.image_height = 1
         self.pdf_links = None
+        self.selected = None
 
     def load_file(self, pdf_file):
         self.pdf = popplerqt4.Poppler.Document.load(pdf_file)
@@ -48,6 +49,23 @@ class ScoreWidget(QtGui.QLabel):
                 lily_line = int(url[2])
                 lily_col = int(url[3])
                 self.note_click.emit(lily_line, lily_col)
+                self.selected = area
+                self.update()
                 break
+
+    def paintEvent(self, event):
+        QtGui.QLabel.paintEvent(self, event)
+        if self.selected is not None:
+            painter = QtGui.QPainter(self)
+            # TODO: I'm sure this can be done with a single function
+            x_offset = 5
+            y_offset = 12
+            x = self.image_width * self.selected.x() - x_offset
+            width = self.image_width * self.selected.width() + 2.5*x_offset
+            y = self.image_height * self.selected.y() - y_offset
+            height = self.image_height * self.selected.height() + 2*y_offset
+            color = QtGui.QColor("yellow")
+            color.setAlpha(200)
+            painter.fillRect( x, y, width, height, color)
 
 
