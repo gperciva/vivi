@@ -10,6 +10,8 @@
 
 //#define PRINT_DEBUG
 
+#define DOWNSAMPLE_FACTOR 4
+
 #ifndef LEAN
 #else
 #include "marsyas/Series.h"
@@ -657,8 +659,7 @@ void Ears::make_learning() {
 
         learning->updControl("WekaSink/wekasink/mrs_bool/onlyStable",true);
 
-        //learning->updControl("WekaSink/wekasink/mrs_natural/precision",10);
-        learning->updControl("WekaSink/wekasink/mrs_natural/precision",20);
+        learning->updControl("WekaSink/wekasink/mrs_natural/precision",10);
         learning->updControl("WekaSink/wekasink/mrs_natural/nLabels",7);
         //bool all = true;
 // try combination
@@ -779,6 +780,11 @@ void Ears::make_net() {
             "Series/audio_input/SoundFileSource/gextract_src/mrs_string/currentlyPlaying"
         );
 
+// must be done before the filename?
+#ifdef DOWNSAMPLE_FACTOR
+        learning->updControl("WekaSink/wekasink/mrs_natural/downsample",
+            DOWNSAMPLE_FACTOR);
+#endif
         // MUST be done after linking this with the main network!
         learning->updControl("WekaSink/wekasink/mrs_string/filename",
                              arff_out_filename);
