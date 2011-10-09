@@ -158,7 +158,7 @@ class StyleSimple(style_base.StyleBase):
                 stop_bow = True
             if slur_on and not stop_bow:
                 note.end.keep_bow_velocity = True
-            if not slur_on:
+            if not slur_on and not note.end.keep_bow_velocity:
                 bow_dir *= -1
 
     def do_lighten(self):
