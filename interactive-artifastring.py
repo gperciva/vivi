@@ -229,6 +229,21 @@ class InteractiveViolin():
             midi = midi_pos.pos2midi(self.params.finger_position)
             midi = round(midi)
             self.params.finger_position = midi_pos.midi2pos(midi)
+            self.stdscr.addstr(23, 20, str("midi: %i" % midi))
+        if c == 'b':
+            self.dyn += 1
+            if self.dyn >= 4:
+                self.dyn = 0
+            self.params.bow_position = dynamics.get_distance(self.dyn)
+            self.params.velocity = dynamics.get_velocity(self.dyn)
+            self.stdscr.addstr(23, 20, str("dyn: %i  " % self.dyn))
+        if c == 'n':
+            midi = midi_pos.pos2midi(self.params.finger_position)
+            midi = round(midi) + 1
+            if midi > 7:
+                midi = 0
+            self.params.finger_position = midi_pos.midi2pos(midi)
+            self.stdscr.addstr(23, 20, str("midi: %i  " % midi))
 
         self.params_queue.put(self.params)
         if not skip_violin_print:
@@ -284,8 +299,9 @@ class InteractiveViolin():
         scipy.io.wavfile.write(filename, 44100, complete)
         actions_out.close()
 
-        mf_filename = "train/%i_%i.mf" % (
-            self.params.violin_string, self.dyn)
+        #mf_filename = "train/%i_%i.mf" % (
+        #    self.params.violin_string, self.dyn)
+        mf_filename = "train/%i.mf" % (self.params.violin_string)
         mf_file = open(mf_filename, 'a')
         mf_file.write(str("%s\t%i\n" % (filename,
             cat + vivi_defines.CATEGORY_POSITIVE_OFFSET)) )
