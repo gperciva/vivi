@@ -357,20 +357,15 @@ class DynTrain(QtGui.QFrame):
         finger_forces = []
         for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
             # low
-            forces = self.get_all_cat_forces(
-                    -vivi_defines.CATEGORIES_EXTREME,-2,fm)
-            if not forces:
-                forces = self.get_all_cat_forces(
-                    -vivi_defines.CATEGORIES_EXTREME,-2,0)
+            forces = self.get_forces(-vivi_defines.CATEGORIES_EXTREME)
+            #if not forces:
+            #    forces = self.get_all_cat_forces(
+            #        -vivi_defines.CATEGORIES_EXTREME,-2,0)
             low_force = min(forces)
             # middle
             middle_force = scipy.mean(self.get_forces_finger(0,fm))
             # high
-            forces = self.get_all_cat_forces(
-                    2, vivi_defines.CATEGORIES_EXTREME,fm)
-            if not forces:
-                forces = self.get_all_cat_forces(
-                    2, vivi_defines.CATEGORIES_EXTREME,0)
+            forces = self.get_forces(vivi_defines.CATEGORIES_EXTREME)
             high_force = max(forces)
             # all
             finger_forces.append( [low_force, middle_force, high_force] )
