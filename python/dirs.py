@@ -225,12 +225,23 @@ class ViviDirs:
                 self.ly_basename + "*.notes")
         filenames = glob.glob(search)
         filenames.sort()
-        self.notes = filenames[0].replace(".notes", "").replace(self.music_dir, "")
-        if self.notes[0] == '/':
-            self.notes = self.notes[1:]
+        # TODO: function-ify
+        self.notes_all = []
+        for filename in filenames:
+            filename = filename.replace(".notes", "")
+            filename = filename.replace(self.music_dir, "")
+            if filename[0] == '/':
+                filename = filename[1:]
+            self.notes_all.append(filename)
+
+    def set_notes_index(self, index):
+        self.notes = self.notes_all[index]
 
     def get_notes(self):
         return os.path.join(self.music_dir, self.notes + ".notes")
+
+    def get_notes_ext(self, extension=""):
+        return os.path.join(self.music_dir, self.notes + extension)
 
     def make_notes_next(self, extension=""):
         latest = self.get_notes_last(extension)

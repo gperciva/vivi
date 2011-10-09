@@ -2,10 +2,14 @@
 
 \include "vivi.ly"
 
-\relative c' {
+one = \relative c' {
+  \set Staff.instrumentName = "violin-1"
   \tempo 4 = 120
-  g4 a b c
-  d e fis g
+%  r4 a8
+%  g4 a b c
+%  d e fis g
+  e'4 d c8 b a4
+
 %  c2..\p\< d8\f
 %  d4\f\> e fis g\p
 %  c4\p\< d e fis\f
@@ -17,3 +21,15 @@
 %  g'4^"pizz" f e^"arco" d
 }
 
+two = \relative c' {
+  \set Staff.instrumentName = "violin-2"
+  \tempo 4 = 120
+  g4( b) c d
+}
+
+\score {
+  <<
+    \new Staff \one
+    \new Staff \two
+  >>
+}

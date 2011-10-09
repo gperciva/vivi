@@ -28,6 +28,11 @@ import performer_feeder
 
 import movie
 
+
+import os
+import time
+
+
 class ViviMainwindow(QtGui.QMainWindow):
     """ Main window of Vivi, the Virtual Violinist. """
     def __init__(self,
@@ -168,9 +173,6 @@ class ViviMainwindow(QtGui.QMainWindow):
     def finished_ly_compile(self):
         self.score.load_file(dirs.files.get_ly_extra(".pdf"))
         dirs.files.set_notes_from_ly()
-        # FIXME: remove list
-        self.performer_feeder.load_file(
-            [dirs.files.get_notes()] )
 
     def save_training(self):
         self.string_train.save()
@@ -212,8 +214,37 @@ class ViviMainwindow(QtGui.QMainWindow):
 
     def rehearse(self):
         self.save_training()
-        steps = self.performer_feeder.play_music()
-        self.progress_dialog("Rehearsing music", steps)
+        wavfiles = []
+        for i in range(len(dirs.files.notes_all)):
+            dirs.files.set_notes_index(i)
+            self.performer_feeder.set_instrument(shared.instrument_number+i)
+            self.performer_feeder.load_file(
+                dirs.files.get_notes() )
+            steps = self.performer_feeder.play_music()
+            self.progress_dialog("Rehearsing music", steps)
+            # FIXME: oh god ick, total hack
+            while self.performer_feeder.state != performer_feeder.STATE_NULL:
+                time.sleep(0.1)
+        num_parts = len(dirs.files.notes_all)
+        if num_parts > 1:
+            # mixing
+            cmd = "ecasound "
+            for i in range(num_parts):
+                dirs.files.set_notes_index(i)
+                wav_filename = dirs.files.get_notes_ext(".wav")
+
+                #pan = int(100*i / (num_parts-1))
+                pan = int(100*(i+1) / (num_parts+1))
+                print pan
+                cmd += "-a:%i %s -erc:1,2 -epp:%i " % (
+                    i, wav_filename, pan)
+            mixed_filename = dirs.files.get_notes_ext(".wav")
+            mixed_filename = mixed_filename.replace(".wav", "-mixed.wav")
+            cmd += "-a:all -o %s" % (mixed_filename)
+            os.system(cmd)
+            self.performer_feeder.load_wav(mixed_filename[:-4])
+            self.mixed_filename = mixed_filename
+
 
     def rehearse_done(self):
         pass
@@ -320,8 +351,16 @@ class ViviMainwindow(QtGui.QMainWindow):
     def quick_preview(self):
         #print "generate low-quality preview video"
         self.movie.end_time = self.performer_feeder.get_duration()
-        steps = self.movie.generate_preview()
-        self.progress_dialog("Generating movie", steps)
+        for i in range(len(dirs.files.notes_all)):
+            dirs.files.set_notes_index(i)
+            steps = self.movie.generate_preview()
+            self.progress_dialog("Generating movie", steps)
+            # FIXME: oh god ick, total hack
+            while self.movie.state != 0:
+                time.sleep(0.1)
+        num_parts = len(dirs.files.notes_all)
+        if num_parts > 1:
+            self.movie.mix(self.mixed_filename)
 
     def generate_video(self):
         #print "generate high-quality video"

@@ -67,7 +67,11 @@ ViviController::~ViviController() {
 void ViviController::reset() {
     filesClose();
     violin->reset();
-    // only action that matters; others are overwritten anyway
+
+    actions.string_number = 0;
+    actions.finger_position = 0;
+    actions.bow_bridge_distance = 0;
+    actions.bow_force = 0;
     actions.bow_velocity = 0;
 
     for (int i=0; i<CATS_MEAN_LENGTH; i++) {

@@ -31,14 +31,19 @@ class Performer(QtCore.QObject):
         QtCore.QObject.__init__(self)
         self.notation = music_events.MusicEvents()
         self.style = style_simple.StyleSimple()
-        self.controller = vivi_controller.ViviController(shared.instrument_number)
+        self.controller = None
         if not dirs.files:
             dirs.files = dirs.ViviDirs(
                 "train/", "/tmp/vivi-cache/", "final/")
         self.current_st = None
         self.arco = False
 
+    def set_instrument(self, instrument_number=0):
+        self.controller = vivi_controller.ViviController(instrument_number)
+
     def _setup_controller(self):
+        if not self.controller:
+            self.set_instrument()
         for st in range(4):
             for dyn in range(4):
                 mpl_filename = dirs.files.get_mpl_filename(st, dyn)
@@ -58,6 +63,9 @@ class Performer(QtCore.QObject):
         self.notation.load_file(filename)
         self.style.plan_perform(self.notation.events)
         self.audio_filename = filename.replace(".notes", "")
+
+    def load_wav(self, filename):
+        self.audio_filename = filename
 
     def steps(self):
         return len(self.style.notes)

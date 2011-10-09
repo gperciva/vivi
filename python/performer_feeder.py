@@ -14,7 +14,6 @@ class PerformerFeeder(QtCore.QThread):
     def __init__(self):
         QtCore.QThread.__init__(self)
         self.performer = performer.Performer()
-        self.audio_filename = None
         self.performer.process_step.connect(self.process_step)
 
         self.mutex = QtCore.QMutex()
@@ -34,9 +33,10 @@ class PerformerFeeder(QtCore.QThread):
             self.done.emit()
             self.mutex.unlock()
 
-    def load_file(self, filenames):
-        # FIXME: only one staff per performer; do polyphony how?
-        filename = filenames[0]
+    def set_instrument(self, instrument_number):
+        self.performer.set_instrument(instrument_number)
+
+    def load_file(self, filename):
         self.performer.load_file(filename)
 
     def play(self):
@@ -49,6 +49,9 @@ class PerformerFeeder(QtCore.QThread):
         self.condition.wakeOne()
         # TODO: is this the number of steps to expect?
         return self.performer.steps()
+
+    def load_wav(self, wav_filename):
+        self.performer.load_wav(wav_filename)
 
     def perform_thread(self):
         self.performer.play_music()

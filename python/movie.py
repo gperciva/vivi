@@ -12,8 +12,10 @@ WATCH_MOVIE = 2
 IMAGE_THREAD_STEPS = 4
 FPS = 25
 
-DELAY_MOVIE_START_SECONDS = 0.5
-DELAY_MOVIE_END_SECONDS = 0.5
+# one buffer of impulse reponse?
+EXTRA_DELAY_BODY_RESPONSE = 2048.0 / 44100.0
+DELAY_MOVIE_START_SECONDS = 0.5 + EXTRA_DELAY_BODY_RESPONSE
+DELAY_MOVIE_END_SECONDS = 0.5 + EXTRA_DELAY_BODY_RESPONSE
 
 TMP_MOVIE_DIR = '/tmp/vivi-cache/movie/'
 
@@ -27,6 +29,14 @@ class BlenderImages(QtCore.QThread):
         self.logfile_num = logfile_num
         self.quality = quality
         self.actions_filename = actions_filename
+        if "1" in actions_filename:
+            self.movie_dir = TMP_MOVIE_DIR+"1/"
+        elif "2" in actions_filename:
+            self.movie_dir = TMP_MOVIE_DIR+"2/"
+        else:
+            self.movie_dir = TMP_MOVIE_DIR+"3/"
+        if not os.path.exists(self.movie_dir):
+            os.makedirs(self.movie_dir)
 
     def run(self):
         step = int((self.end_frame-self.start_frame)
@@ -39,7 +49,7 @@ class BlenderImages(QtCore.QThread):
                 my_end = self.end_frame
             log_filename = "render-%i-%i.log" % (self.logfile_num, i)
             cmd = """actions2images.py -o %s \
--s %i -e %i --fps %i -q %i -l %s %s""" % (TMP_MOVIE_DIR,
+-s %i -e %i --fps %i -q %i -l %s %s""" % (self.movie_dir,
 my_start, my_end, FPS, self.quality, log_filename, self.actions_filename)
             os.system(cmd)
             self.process_step.emit()
@@ -91,9 +101,12 @@ class ViviMovie(QtCore.QThread):
 
     def make_movie_audio_file(self, audio_filename):
         movie_audio_filename = audio_filename.replace(".wav", ".movie.wav")
-        os.system("sox %s %s delay %f pad 0 %f" %
-            (self.audio_filename, movie_audio_filename,
-            DELAY_MOVIE_START_SECONDS, DELAY_MOVIE_END_SECONDS))
+        cmd = "sox %s %s delay %f %f pad 0 %f" % (
+            audio_filename, movie_audio_filename,
+            DELAY_MOVIE_START_SECONDS,
+            DELAY_MOVIE_START_SECONDS,
+            DELAY_MOVIE_END_SECONDS)
+        os.system(cmd)
         return movie_audio_filename
 
 
@@ -140,8 +153,9 @@ class ViviMovie(QtCore.QThread):
 #        os.chdir("blender")
         self.process_step.emit()
 
-        self.end_time += DELAY_MOVIE_START_SECONDS + DELAY_MOVIE_END_SECONDS
-        end_frame = int(self.end_time * FPS) + 1
+        end_time_delayed = (self.end_time
+            + DELAY_MOVIE_START_SECONDS + DELAY_MOVIE_END_SECONDS)
+        end_frame = int(end_time_delayed * FPS) + 1
         blender_images = []
         step = end_frame/4
         for i in range(4):
@@ -178,11 +192,30 @@ class ViviMovie(QtCore.QThread):
         os.system(cmd)
         self.process_step.emit()
 
-#        os.chdir('..')
-#        shutil.copyfile(
-#            "blender/violin-1.mpeg",
-#            self.ly_filename.replace('.ly', '.mpeg'))
         self.done.emit()
+
+    def mix(self, audio_filename):
+        movie_audio_filename = self.make_movie_audio_file(
+            audio_filename)
+        # make combo images
+        DIR = "/tmp/vivi-cache/movie/"
+        filenames = glob.glob(DIR+"1/*.tga")
+        for filename in filenames:
+                other = filename.replace("/1/", "/2/")
+                cmd = "convert %s %s +append %s" % (
+                    filename, other,
+                    DIR+os.path.basename(filename))
+                os.system(cmd)
+        # actual mix
+        movie_filename = "vivi-mix-preview.avi"
+        logfile = TMP_MOVIE_DIR+"mix-mencoder.log"
+        cmd = """artifastring-movie.py \
+-o %s -i %s --fps %i -l %s %s""" % (TMP_MOVIE_DIR+movie_filename,
+            TMP_MOVIE_DIR, FPS,
+            logfile,
+            movie_audio_filename)
+        print cmd
+        os.system(cmd)
 
     def watch_movie(self):
         self.state = WATCH_MOVIE
