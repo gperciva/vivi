@@ -10,7 +10,7 @@ TRAIN_DIRNAME = "train"
 BASIC_FINGERS = [0, 6]
 
 def run(instrument_number, st, dyn, finger):
-    script = "python interactive-artifastring.py "
+    script = "python train_vivi_interactive.py "
     options = "%(instrument_number)s %(st)s %(dyn)s %(finger)s" % locals()
     cmd = script + options
     os.system(cmd)

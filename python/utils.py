@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """ various convenience utilities """
 
+SOUND = True
+#SOUND = False
+
 import os
 import math
 import random
@@ -16,11 +19,14 @@ def play(filename, start=None, length=None):
     if start >= 0:
         cmd += " trim %f %f" % (start, length)
 #        cmd += " -ss %f -endpos %f " %(start, length)
-#    print cmd
-    cmd = cmd.split()
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (stdout, sterr) = p.communicate()
-    retcode = p.returncode
+#    print "utils:", cmd
+    if SOUND:
+        os.system(cmd)
+    retcode = 0
+    #cmd = cmd.split()
+    #p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #(stdout, sterr) = p.communicate()
+    #retcode = p.returncode
     if retcode > 0:
         print "FAILURE!  play returned:", retcode
     #print "play end:", p.returncode

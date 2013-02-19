@@ -1,4 +1,4 @@
-\version "2.14.0"
+\version "2.16.0"
 
 \include "vivi.ly"
 \include "reduce-whitespace.ly"
@@ -15,7 +15,7 @@ violinone = \relative c' {
   b4\p\<( d8 cis) d4(-. fis8-.^"II" e-.^"II")
   fis16(\mf\downbow g a b c\> b a g) fis(\upbow e d c) b(\downbow a g fis)
   e8-.\mp\upbow r e'-.\upbow^"tip" r e,4->^"mb" r4
-%{
+
   \key d \minor
   \time 3/4
   \tempo 4 = 120
@@ -29,7 +29,8 @@ violinone = \relative c' {
   fis16\p\startTextSpan a_"II" g a_"II" a a_"II" bes a_"II"
     c a_"II" bes a_"II"\stopTextSpan
   a4\breathe a,\breathe r4
-%}
+
+  \bar "|."
 }
 
 \score {

@@ -2,12 +2,13 @@
 from PyQt4 import QtGui, QtCore
 import popplerqt4
 
+PAGE_TURN_MARGIN_PIXELS = 20
+
 class ScoreWidget(QtGui.QLabel):
     note_click = QtCore.pyqtSignal(int, int, name='noteClick')
 
-    def __init__(self, parent):
+    def __init__(self):
         QtGui.QLabel.__init__(self)
-        parent.setWidget(self)
         self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         self.resolution = 108
 
@@ -15,18 +16,23 @@ class ScoreWidget(QtGui.QLabel):
         self.image_height = 1
         self.pdf_links = None
         self.selected = None
+        self.pdf = None
 
     def load_file(self, pdf_file):
         self.pdf = popplerqt4.Poppler.Document.load(pdf_file)
         self.pdf.RenderHint(1)
         self.pdf.RenderHint(2)
         self.pdf.RenderHint(3)
-        self.load_page(0)
 
-    def load_page(self, page_num=0):
-        self.page_num = page_num
+        self.selected = None
+        self.current_page = 0
+        self.load_page()
 
-        self.pdf_page = self.pdf.page(0)
+    def load_page(self, page_num=None):
+        if page_num is not None:
+            self.current_page = page_num
+
+        self.pdf_page = self.pdf.page(self.current_page)
         self.pdf_links = self.pdf_page.links()
 
         pdf_image = self.pdf_page.renderToImage(
@@ -36,10 +42,34 @@ class ScoreWidget(QtGui.QLabel):
         self.image_width = pdf_pixmap.width()
         self.image_height = pdf_pixmap.height()
 
+    def can_back_page(self):
+        return self.current_page > 0
+
+    def can_next_page(self):
+        return self.current_page < (self.pdf.numPages() - 1)
+
+    def back_page(self):
+        if self.can_back_page():
+            self.load_page(self.current_page - 1)
+            # TODO: ick, bad abstraction
+            self.parent().parent().ensureVisible(0,0);
+
+    def next_page(self):
+        if self.can_next_page():
+            self.load_page(self.current_page + 1)
+            # TODO: ick, bad abstraction
+            self.parent().parent().ensureVisible(0,0);
+
     def mousePressEvent(self, event):
         if not self.pdf_links:
             return
         click_point = event.posF()
+        if click_point.x() < PAGE_TURN_MARGIN_PIXELS:
+            self.back_page()
+            return
+        if click_point.x() > self.width() - PAGE_TURN_MARGIN_PIXELS:
+            self.next_page()
+            return
         click_point.setX( click_point.x() / self.image_width )
         click_point.setY( click_point.y() / self.image_height )
         for link in self.pdf_links:
@@ -53,10 +83,32 @@ class ScoreWidget(QtGui.QLabel):
                 self.update()
                 break
 
+    def draw_page_arrow(self, painter, x, direction):
+        painter.fillRect( x, 0,
+            PAGE_TURN_MARGIN_PIXELS, self.height()-1,
+            QtGui.QColor("lightBlue"))
+        for i in range(int(self.height() / 200)):
+            y = i*200+100
+            painter.fillRect(
+                x + 5, y, PAGE_TURN_MARGIN_PIXELS-10, 3,
+                QtGui.QColor("Blue"))
+            ax = x + (PAGE_TURN_MARGIN_PIXELS/2 -
+                direction*(PAGE_TURN_MARGIN_PIXELS/2))
+            painter.fillRect(
+                ax + 5*direction, y-5, 2, 13,
+                QtGui.QColor("Blue"))
+
     def paintEvent(self, event):
         QtGui.QLabel.paintEvent(self, event)
+        if not self.pdf:
+            return
+        painter = QtGui.QPainter(self)
+        if self.can_back_page():
+            self.draw_page_arrow(painter, 0, -1)
+        if self.can_next_page():
+            self.draw_page_arrow(painter, self.width()-PAGE_TURN_MARGIN_PIXELS, 1)
+
         if self.selected is not None:
-            painter = QtGui.QPainter(self)
             # TODO: I'm sure this can be done with a single function
             x_offset = 5
             y_offset = 12

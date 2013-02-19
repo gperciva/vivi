@@ -9,6 +9,10 @@ class Collection:
     """ a .mf collection of string-dynamic .wav files with judgements """
     def __init__(self):
         self.coll = []
+        self.modified = False
+
+    def __len__(self):
+        return self.num_main()
 
     def _sort(self):
         """ sorts by category """
@@ -26,6 +30,8 @@ class Collection:
                 int(splitline[1]) - vivi_defines.CATEGORY_POSITIVE_OFFSET,
                 False, False)
         self._sort()
+        # ASSUME: only reading from a single file
+        self.modified = False
 
     def write_mf_file(self, filename):
         """ writes a mf file with all items with the appropriate inout categories """
@@ -35,10 +41,11 @@ class Collection:
             wavfile = pair[0]
             judgement = pair[1] + vivi_defines.CATEGORY_POSITIVE_OFFSET
             if self.is_cat_valid(judgement):
-                outfile.write(wavfile+'\t'+str(judgement)+'\n')
+                outfile.write(wavfile+'\t'+str("%03i" % judgement)+'\n')
             else:
-                outfile.write('#'+wavfile+'\t'+str(judgement)+'\n')
+                outfile.write('#'+wavfile+'\t'+str("%03i" % judgement)+'\n')
         outfile.close()
+        self.modified = False
 
     @staticmethod
     def is_cat_valid(judgement):
@@ -50,9 +57,27 @@ class Collection:
         else:
             return True
 
-    def get_items(self, cat):
+    def get_items_cat(self, cat):
         """ returns all pairs matching the category """
         return filter(lambda x: x[1] == cat, self.coll)
+
+    def get_items_cat_finger(self, cat, finger):
+        """ returns all pairs matching the category """
+        return filter(
+            lambda x: int(float(x[0].split('_')[2])) == finger,
+                self.get_items_cat(cat))
+
+    def get_items_cat_bp(self, cat, bp):
+        """ returns all pairs matching the category """
+        return filter(
+            lambda x: float(x[0].split('_')[3]) - bp < 1e-2,
+                self.get_items_cat(cat))
+
+    def get_items_cat_finger_bp(self, cat, finger, bp):
+        """ returns all pairs matching the category """
+        return filter(
+            lambda x: float(x[0].split('_')[3]) - bp < 1e-2,
+                self.get_items_cat_finger(cat, finger))
 
     def add_item(self, filename, judgement, replace=False, warning=True):
         """ adds a (filename, judgement) pair """
@@ -64,10 +89,12 @@ class Collection:
                 if (not replace) and warning:
                     print "Warning: Collection: replacing a previous item"
                 self.coll[i] = new_pair
+                self.modified = True
                 return
         if replace and warning:
             print "Warning: Collection: original item not found"
         self.coll.append(new_pair)
+        self.modified = True
 
     def replace(self, filename, judgement):
         """ replaces a (filename, judgement) pair with a new judgement """
@@ -78,6 +105,7 @@ class Collection:
         for i, pair in enumerate(self.coll):
             if pair[0] == filename:
                 self.coll.pop(i)
+                self.modified = True
                 return
         print "Warning: Collection: failed to delete %s" % filename
 
@@ -88,6 +116,12 @@ class Collection:
             if pair[1] is not vivi_defines.CATEGORY_NULL:
                 number += 1
         return number
+
+    def need_save(self):
+        return self.modified
+
+    def set_modified(self):
+        self.modified = True
 
 def self_test(filename):
     """ basic test of collection, not very good """

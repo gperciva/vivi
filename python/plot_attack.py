@@ -40,6 +40,8 @@ class PlotAttack(plot_actions.PlotActions):
         self.draw_force_line(painter, xoffset, xscale, yoffset, yscale)
 
         for i, cat in enumerate(self.cats_means):
+            if cat is None:
+                continue
             x = i*xscale + left_margin
             y = self.forces[i]*yscale + yoffset
             self.arrow(painter, x, y, cat)

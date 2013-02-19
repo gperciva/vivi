@@ -2,58 +2,65 @@
 
 from PyQt4 import QtCore
 
-IDLE = 0
-BASIC_TRAINING = 1
-SVM = 2
-ACCURACY = 3
-VERIFY = 4
+import vivi_defines
 
-STABLE = 5
-ATTACKS = 6
-DAMPEN = 7
+STRING_JOBS = [
+    vivi_defines.TASK_TRAINING, vivi_defines.TASK_ACCURACY,
+    ]
+DYN_JOBS = [
+    vivi_defines.TASK_VERIFY, vivi_defines.TASK_STABLE,
+    vivi_defines.TASK_ATTACK, vivi_defines.TASK_DAMPEN,
+    ]
+JOBS_WITH_CONTROLLER = [
+    vivi_defines.TASK_TRAINING, vivi_defines.TASK_ACCURACY, # for ears
+    vivi_defines.TASK_VERIFY, vivi_defines.TASK_STABLE,
+    vivi_defines.TASK_ATTACK, vivi_defines.TASK_DAMPEN,
+    vivi_defines.TASK_RENDER_AUDIO,
+    vivi_defines.TASK_HILL_CLIMBING,
+]
+
+class Job():
+    def __init__(self, job_type):
+        self.job_type = job_type
+
 
 class State(QtCore.QObject):
+    # job_type, job_index or -1 (for parallel)
     next_step = QtCore.pyqtSignal(int, int, name='next_step')
     finished_step = QtCore.pyqtSignal(int, int, name='finished_step')
 
     def __init__(self):
         QtCore.QObject.__init__(self)
-        self.job_type = IDLE
+        self.job_type = 0
         self.jobs = []
-        self.job_index = 0
+        self.job_index = None
         self.parallel = False
-        self.done_steps = 0
-
-    def idle(self):
-        self.job_type = IDLE
-        self.jobs = []
-        self.job_index = 0
-        self.done_steps = 0
+        self.parallel_steps = None
 
     def step(self):
-        self.done_steps += 1
         if self.parallel:
-            if self.done_steps == sum(self.jobs):
-                self.finished_step.emit(self.job_type, self.job_index)
+            self.parallel_steps += 1
+            if self.parallel_steps == sum(self.jobs):
+                self.finished_step.emit(self.job_type, -1)
         else:
-            if self.done_steps == self.jobs[self.job_index]:
+            self.jobs[self.job_index] -= 1
+            if self.jobs[self.job_index] == 0:
                 self.finished_step.emit(self.job_type, self.job_index)
-                self.jobs[self.job_index] = 0
-                self.done_steps = 0
-                self.job_index += 1
                 self.start()
 
     def prep(self, job_type, jobs, parallel=False):
         self.job_type = job_type
         self.jobs = jobs
         self.parallel = parallel
-        self.done_steps = 0
 
     def start(self):
-        for i in range(len(self.jobs)):
-            if self.jobs[i] > 0:
-                self.job_index = i
-                self.next_step.emit(self.job_type, self.job_index)
+        if self.parallel:
+            self.job_index = None
+            self.parallel_steps = 0
+        for i, job in enumerate(self.jobs):
+            if job > 0:
+                self.next_step.emit(self.job_type, i)
                 if not self.parallel:
+                    self.job_index = i
                     return
 

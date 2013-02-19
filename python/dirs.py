@@ -7,21 +7,25 @@ import glob
 import vivi_types
 import actions2csv
 
-#pylint: disable=C0103
-files = None
-
 class ViviDirs:
     """ Convenience class for directories and files. """
-    def __init__(self, training_dirname, cache_dirname, final_dirname):
+    def __init__(self, training_dirname, cache_dirname,
+            final_dirname, instrument_name=""):
         """ constructor """
         self.ly_original = None
         self.ly_basename = None
-        self.train_dir = os.path.normpath(training_dirname)
-        self.final_dir = os.path.normpath(final_dirname)
-        self.inter_dir = os.path.join(cache_dirname, "inter")
-        self.works_dir = os.path.join(cache_dirname, "works")
+        self.instrument_name = instrument_name
+        self.train_dir = os.path.join(
+            os.path.normpath(training_dirname), instrument_name)
+        self.final_dir = os.path.join(
+            os.path.normpath(final_dirname), instrument_name)
+        self.inter_dir = os.path.join(cache_dirname, "inter",
+            instrument_name)
+        self.works_dir = os.path.join(cache_dirname, "works",
+            instrument_name)
         self.music_dir = os.path.join(cache_dirname, "music")
         self.hills_dir = os.path.join(cache_dirname, "hills")
+        self.movie_dir = os.path.join(cache_dirname, "movie")
         def _ensure_dir_exists(dirname):
             """ create the dirname if it does not exist """
             if not os.path.isdir(dirname):
@@ -37,32 +41,35 @@ class ViviDirs:
         basename = '%i.' % (st)
         return basename
 
-    def get_mf_filename(self, st, dyn):
+    def get_string_filename(self, st):
+        """ marsyas collection .vivi file. """
+        filename = os.path.join(self.final_dir,
+            '%i.vivi' % (st))
+        return filename
+
+    def get_mf_filename(self, st):
         """ marsyas collection .mf file. """
         filename = os.path.join(self.train_dir,
-            self._get_basename(st, dyn)
-            + 'mf')
+            '%i.mf' % (st))
         return filename
 
-    def get_arff_filename(self, st, dyn):
+    def get_arff_filename(self, st):
         """ weka training .arff file. """
         filename = os.path.join(self.inter_dir,
-            self._get_basename(st, dyn)
-            + 'arff')
+            '%i.arff' % (st))
         return filename
 
-    def get_mpl_filename(self, st, dyn):
+    def get_mpl_filename(self, st):
         """ saved MarSystems (for training) .mpl file. """
         filename = os.path.join(self.final_dir,
-            self._get_basename(st, dyn)
-            + 'mpl')
+            '%i.mpl' % (st))
         return filename
 
-    def get_dyn_vivi_filename(self, st, dyn):
+    def get_dyn_vivi_filename(self, st, dyn, inst_num):
         """ trained dynamic .vivi file. """
         filename = os.path.join(self.final_dir,
             #self._get_basename(st, dyn)
-            "%i_%i." % (st, dyn)
+            "%i_%i_%i." % (inst_num, st, dyn)
             + 'vivi')
         return filename
 
@@ -80,10 +87,9 @@ class ViviDirs:
         #basename += ".wav"
         return basename
 
-    def make_verify_filename(self, params, stable_K, count):
-        """ .wav file for automatic training of stable K."""
-        basename = self.basename_params("verify", params)
-        basename += "_%.3f" % stable_K
+    def make_verify_filename(self, taskname, params, count):
+        """ .wav file for verify training."""
+        basename = self.basename_params(taskname, params)
         basename += "_%i" % count
         return os.path.join(self.works_dir, basename)
 
@@ -116,7 +122,12 @@ class ViviDirs:
     @staticmethod
     def get_audio_params(filename):
         """ parameters extracted from a .wav filename. """
-        basename = os.path.splitext(os.path.basename(filename))[0]
+        basepath = os.path.basename(filename)
+        try:
+            float( os.path.splitext(basepath)[1] )
+            basename = os.path.splitext(basepath)[0]
+        except:
+            basename = basepath
         params = basename.split('_')[1:]
         audio_params = vivi_types.AudioParams(
             int(params[0]), float(params[1]),
@@ -126,8 +137,15 @@ class ViviDirs:
     def get_audio_params_extra(self, filename):
         """ parameters extracted from a .wav filename, including
             extra and count. """
+        if filename[-4:] == '.wav':
+            filename = filename[:-4]
         audio_params = self.get_audio_params(filename)
-        basename = os.path.splitext(os.path.basename(filename))[0]
+        basepath = os.path.basename(filename)
+        try:
+            float( os.path.splitext(basepath)[1] )
+            basename = os.path.splitext(basepath)[0]
+        except:
+            basename = basepath
         params = basename.split('_')[1:]
         if len(params) == 7:
             extra = float(params[5])
@@ -148,7 +166,7 @@ class ViviDirs:
 
     def make_zoom_filename(self, params):
         """ save "zoomed" audio to a .wav file. """
-        base_basename = "audio_%i_%.3f_%.3f_%.3f_%.3f_z_" % (
+        base_basename = "audio-9_%i_%.3f_%.3f_%.3f_%.3f_z_" % (
             params.string_number,
             float(params.finger_midi),
             params.bow_bridge_distance,
@@ -158,22 +176,37 @@ class ViviDirs:
         potential_filename = os.path.join(self.works_dir, base_basename)
         train_dir_filename = os.path.join(self.train_dir, base_basename)
         # resolve any "hash" collisions
+        # really ugly hack!
+        #print potential_filename
         while ( os.path.exists(potential_filename+'%04i'%count+'.wav') or
-                os.path.exists(train_dir_filename+'%04i'%count+'.wav')):
+                os.path.exists(train_dir_filename+'%04i'%count+'.wav') or 
+                os.path.exists(os.path.join(self.train_dir,'violin',
+                    base_basename+'%04i'%count+'.wav')) or
+                os.path.exists(os.path.join(self.train_dir,'viola',
+                    base_basename+'%04i'%count+'.wav')) or
+                os.path.exists(os.path.join(self.train_dir,'cello',
+                    base_basename+'%04i'%count+'.wav'))
+                ):
             count += 1
             if count >= 1000:
                 print "Vivi error: training_dir: 999 files with same params!"
                 break
         filename = potential_filename + ('%04i' % count)
+        #print filename
         return filename
 
     def move_works_to_train(self, src):
         """ moves a file from works dir to train dir. """
-        dest = src.replace(self.works_dir, self.train_dir)
+        dest = os.path.join(self.train_dir,
+            os.path.basename(src))
         shutil.move(src+'.wav', dest+'.wav')
         shutil.move(src+'.actions', dest+'.actions')
+        shutil.move(src+'.forces.wav', dest+'.forces.wav')
         actions2csv.main(dest+'.actions')
         return dest
+
+    def get_cats_dir(self):
+        return self.works_dir
 
     def get_cats_name(self, filename):
         """ Gets the basename of the .cats file corresponding to a
@@ -191,7 +224,18 @@ class ViviDirs:
         filename_pattern = str("%s_%i_*_%.3f_*_%.3f_*.wav"
             % (taskname, st, bow_bridge_distance, bow_velocity))
         task_files = glob.glob(os.path.join(self.works_dir, filename_pattern))
-        task_files.sort()
+        task_files = filter(lambda x: ".forces" not in x, task_files)
+        def sort_task_files(filename):
+            split = filename.split('_')
+            combo = []
+            # ick this is ugly!
+            for y in split:
+                try:
+                    combo.append(float(y))
+                except:
+                    combo.append(y)
+            return combo
+        task_files.sort(key=sort_task_files)
         return task_files
 
     @staticmethod
@@ -203,8 +247,21 @@ class ViviDirs:
     def get_music_dir(self):
         return self.music_dir
 
+    def get_ly_movie_dir(self):
+        return os.path.join(self.movie_dir,
+            self.ly_basename)
+
+    def get_ly_movie_preview(self):
+        return os.path.join(self.movie_dir,
+            self.ly_basename + "-preview.avi")
+
+    def get_ly_movie(self):
+        return os.path.join(self.movie_dir,
+            self.ly_basename + "-movie.avi")
+
     def get_notes_files(self):
-        notes_files = glob.glob(os.path.join(self.lily_dir, '*.notes'))
+        notes_files = glob.glob(os.path.join(self.music_dir,
+            self.ly_basename + '*.notes'))
         notes_files.sort()
         return notes_files
 
@@ -218,7 +275,10 @@ class ViviDirs:
 
     def get_ly_extra(self, extension=""):
         return os.path.join(self.music_dir,
-                    self.ly_basename + extension)
+                self.ly_basename + extension)
+
+    def get_ly_basename(self):
+        return self.ly_basename
 
     def set_notes_from_ly(self):
         search = os.path.join(self.music_dir,

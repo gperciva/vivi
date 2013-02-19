@@ -36,6 +36,14 @@ class TablePlayWidget(QtGui.QTableWidget):
             self.setHorizontalHeaderItem(i, item)
             self.horizontalHeaderItem(i).setText(name)
 
+    def set_row_names(self, row_names):
+        """ sets number and names of columns """
+        self.setRowCount(len(row_names))
+        for i, name in enumerate(row_names):
+            item = QtGui.QTableWidgetItem()
+            self.setVerticalHeaderItem(i, item)
+            self.verticalHeaderItem(i).setText(name)
+
     def keyPressEvent(self, event):
         """ override default key event handler """
         try:

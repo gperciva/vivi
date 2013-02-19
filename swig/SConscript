@@ -8,7 +8,7 @@ env.Append(
     "../src/",
   ],
   SWIGFLAGS=Split("-c++ -python -Isrc/"),
-  LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
+  LIBS=["marsyas", "gsl", "gslcblas"],
 
 ### workaround for scons bug
   #LDMODULEPREFIX="_",
@@ -28,11 +28,6 @@ env['LIBPREFIX']=""
 
 
 env.SharedLibrary(
-  target = '_midi_pos.so',
-  source = (['midi_pos.i', '../src/midi_pos.cpp']),
-)
-
-env.SharedLibrary(
   target = '_vivi_defines.so',
   source = (['vivi_defines.i']),
 )
@@ -40,11 +35,6 @@ env.SharedLibrary(
 env.SharedLibrary(
   target = '_dynamics.so',
   source = (['dynamics.i', '../src/dynamics.cpp']),
-)
-
-env.SharedLibrary(
-  target = '_actions_file.so',
-  source = (['actions_file.i', '../src/actions_file.cpp']),
 )
 
 env.SharedLibrary(
@@ -56,16 +46,16 @@ env.SharedLibrary(
 env.SharedLibrary(
   target = '_vivi_controller.so',
   source = (['vivi_controller.i', '../src/vivi_controller.cpp']
-		+ ['../src/ears.cpp', '../src/actions_file.cpp']
+		+ ['../src/ears.cpp']
 		+ ['../src/dynamics.cpp']
-		+ ['../src/controller_params.cpp', '../src/midi_pos.cpp']),
+		+ ['../src/controller_params.cpp']),
 )
 
 # TODO: hard-coded python version again!
-env.Install('$PREFIX/lib/python2.6/site-packages/', [
-  '_vivi_controller.so',
-  'vivi_controller.py',
-])
+#env.Install('$PREFIX/lib/python2.6/site-packages/', [
+#  '_vivi_controller.so',
+#  'vivi_controller.py',
+#])
 
 #env.Install('$PREFIX/lib/python2.6/site-packages/', [
 #  '_ears.so',

@@ -13,7 +13,7 @@ IMAGE_THREAD_STEPS = 4
 FPS = 25
 
 # one buffer of impulse reponse?
-EXTRA_DELAY_BODY_RESPONSE = 2048.0 / 44100.0
+EXTRA_DELAY_BODY_RESPONSE = 2048.0 / 22050.0
 DELAY_MOVIE_START_SECONDS = 0.5 + EXTRA_DELAY_BODY_RESPONSE
 DELAY_MOVIE_END_SECONDS = 0.5 + EXTRA_DELAY_BODY_RESPONSE
 
@@ -66,6 +66,13 @@ class ViviMovie(QtCore.QThread):
         self.start()
         self.end_time = 0.0
 
+        # not thread-safe!
+        if not os.path.isdir(TMP_MOVIE_DIR):
+            os.mkdir(TMP_MOVIE_DIR)
+#        map(os.remove,
+#            glob.glob(os.path.join(TMP_MOVIE_DIR, '*.tga')) +
+#            glob.glob(os.path.join(TMP_MOVIE_DIR, '*.log')))
+
     def run(self):
         while True:
             self.mutex.lock()
@@ -75,6 +82,7 @@ class ViviMovie(QtCore.QThread):
             if self.state == WATCH_MOVIE:
                 self.watch_movie_thread()
             self.state = 0
+            self.process_step.emit()
             self.mutex.unlock()
 
     def make_movie_actions_file(self, actions_filename):
@@ -99,17 +107,6 @@ class ViviMovie(QtCore.QThread):
         movie_actions_file.close()
         return movie_actions_filename
 
-    def make_movie_audio_file(self, audio_filename):
-        movie_audio_filename = audio_filename.replace(".wav", ".movie.wav")
-        cmd = "sox %s %s delay %f %f pad 0 %f" % (
-            audio_filename, movie_audio_filename,
-            DELAY_MOVIE_START_SECONDS,
-            DELAY_MOVIE_START_SECONDS,
-            DELAY_MOVIE_END_SECONDS)
-        os.system(cmd)
-        return movie_audio_filename
-
-
     def generate_movie(self):
         self.quality = 1
         self.state = GENERATE_MOVIE
@@ -121,29 +118,23 @@ class ViviMovie(QtCore.QThread):
             dirs.files.get_notes_last("*.actions"))
 
         self.condition.wakeOne()
-        return 4*IMAGE_THREAD_STEPS + 3
+        return 4*IMAGE_THREAD_STEPS + 1
+
+    def generate_preview_steps (self, notes_last_filename):
+        self.quality = 0
+        self.audio_filename = notes_last_filename
+        self.actions_filename = self.make_movie_actions_file(
+            notes_last_filename.replace(".wav", ".actions"))
+        return 4*IMAGE_THREAD_STEPS + 1
 
     def generate_preview(self):
-        self.quality = 0
         self.state = GENERATE_MOVIE
-
-        #map(os.remove,
-        #    glob.glob(os.path.join(basename + '*.movie.actions')))
-        self.audio_filename = dirs.files.get_notes_last("*.wav")
-        self.actions_filename = self.make_movie_actions_file(
-            dirs.files.get_notes_last("*.actions"))
-
         self.condition.wakeOne()
-        return 4*IMAGE_THREAD_STEPS + 3
 
     def generate_movie_thread(self):
+        print "generate movie thread"
 #        if os.path.isdir(TMP_MOVIE_DIR):
 #            shutil.rmtree(TMP_MOVIE_DIR)
-        if not os.path.isdir(TMP_MOVIE_DIR):
-            os.mkdir(TMP_MOVIE_DIR)
-        map(os.remove,
-            glob.glob(os.path.join(TMP_MOVIE_DIR, '*.tga')) +
-            glob.glob(os.path.join(TMP_MOVIE_DIR, '*.log')))
 #
 #        shutil.copyfile("ly/violin-1.actions",
 #            "blender/violin-1.actions")
@@ -173,6 +164,7 @@ class ViviMovie(QtCore.QThread):
         for i in range(4):
             blender_images[i].wait()
 
+        return
         movie_audio_filename = self.make_movie_audio_file(
             self.audio_filename)
 
@@ -184,7 +176,7 @@ class ViviMovie(QtCore.QThread):
         else:
             movie_filename = "vivi-movie.avi"
         logfile = TMP_MOVIE_DIR+"mencoder.log"
-        cmd = """artifastring-movie.py \
+        cmd = """artifastring_movie.py \
 -o %s -i %s --fps %i -l %s %s""" % (TMP_MOVIE_DIR+movie_filename,
             TMP_MOVIE_DIR, FPS,
             logfile,
@@ -193,29 +185,6 @@ class ViviMovie(QtCore.QThread):
         self.process_step.emit()
 
         self.done.emit()
-
-    def mix(self, audio_filename):
-        movie_audio_filename = self.make_movie_audio_file(
-            audio_filename)
-        # make combo images
-        DIR = "/tmp/vivi-cache/movie/"
-        filenames = glob.glob(DIR+"1/*.tga")
-        for filename in filenames:
-                other = filename.replace("/1/", "/2/")
-                cmd = "convert %s %s +append %s" % (
-                    filename, other,
-                    DIR+os.path.basename(filename))
-                os.system(cmd)
-        # actual mix
-        movie_filename = "vivi-mix-preview.avi"
-        logfile = TMP_MOVIE_DIR+"mix-mencoder.log"
-        cmd = """artifastring-movie.py \
--o %s -i %s --fps %i -l %s %s""" % (TMP_MOVIE_DIR+movie_filename,
-            TMP_MOVIE_DIR, FPS,
-            logfile,
-            movie_audio_filename)
-        print cmd
-        os.system(cmd)
 
     def watch_movie(self):
         self.state = WATCH_MOVIE

@@ -6,8 +6,10 @@ import dyn_train_gui
 import collection
 import vivi_defines
 
+import numpy
 import math
 import scipy
+import scipy.stats
 
 import basic_training
 
@@ -17,10 +19,11 @@ import os # to delete audio files whose judgement was cancelled
 import utils
 import vivi_types
 
+import instrument_numbers
+
 # TODO: **must** import ears first, then controller.  No clue why.
 #import ears
 
-import dirs
 # TODO: **must** import this first, then controller.  No clue why.
 import vivi_controller
 import dynamics
@@ -32,7 +35,6 @@ import shared
 
 import state
 
-import dyn_backend
 #import ears
 
 import examine_auto_widget
@@ -46,114 +48,108 @@ import compare_coll
 BASIC_SECONDS = 0.3
 BASIC_SKIP = 0.5
 
-#NEEDS_BASIC_COLOR = "pink"
-NEEDS_BASIC_COLOR = "red"
-
+FINGERS = [0, 1, 6]
 
 class DynTrain(QtGui.QFrame):
     process_step = QtCore.pyqtSignal()
 
-    def __init__(self, parent, st, dyn, controller, practice, coll):
+    def __init__(self, parent_gui, parent, st, dyn,
+            inst_type, inst_num, coll, files):
         QtGui.QFrame.__init__(self)
+        self.parent = parent
         self.st = st
         self.dyn = dyn
-        self.controller = controller
-        self.practice = practice
+        self.inst_type = inst_type
+        self.inst_num = inst_num
+        self.files = files
 
         ### setup GUI
         self.ui = dyn_train_gui.Ui_dyn_train_box()
         self.ui.setupUi(self)
-        parent.addWidget(self)
+        parent_gui.addWidget(self)
 
         #self.mousePressEvent = self.click
-        self.ui.modify.clicked.connect(self.set_modified)
-        self.ui.force_factor.clicked.connect(self.click_force_factor)
-        self.ui.accuracy_label.clicked.connect(self.click_accuracy)
+        self.ui.modify.clicked.connect(self.click_modified)
+        #self.ui.force_factor.clicked.connect(self.click_force_factor)
 
-        self.force_buttons = QtGui.QButtonGroup(self)
-        for i in range(len(basic_training.FINGER_MIDIS)):
+        #self.force_buttons = QtGui.QButtonGroup(self)
+        self.force_buttons = []
+        self.force_factor_buttons = []
+        for i in range(len(FINGERS)):
             force_button = QtGui.QPushButton(self)
             force_button.setObjectName("force-%i" % i)
             force_button.setMaximumSize(QtCore.QSize(40, 16777215))
+            force_button.setAutoFillBackground(True)
+            #force_button.setFlat(True)
             self.ui.verticalLayout.insertWidget(
                 self.ui.verticalLayout.count()-2,force_button)
-            self.force_buttons.addButton(force_button, i)
-        self.force_buttons.buttonClicked.connect(self.click_force)
+            #self.force_buttons.addButton(force_button, i)
+            self.force_buttons.append(force_button)
 
-        self.ui.dampen.clicked.connect(self.click_dampen)
+            force_button.clicked.connect(self.click_force)
+
+
+        for i in range(len(FINGERS)):
+            force_factor_button = QtGui.QPushButton(self)
+            force_factor_button.setObjectName("force_factor-%i" % i)
+            force_factor_button.setMaximumSize(QtCore.QSize(40, 16777215))
+            force_factor_button.setAutoFillBackground(True)
+            #force_factor_button.setFlat(True)
+            self.ui.verticalLayout.insertWidget(
+                self.ui.verticalLayout.count()-2,force_factor_button)
+            #self.force_factor_buttons.addButton(force_factor_button, i)
+            self.force_factor_buttons.append(force_factor_button)
+
+            force_factor_button.clicked.connect(self.click_force_factor)
+        #self.force_factor_buttons.buttonClicked.connect(self.click_force_factor)
+
+        self.ui.dampen_normal.clicked.connect(self.click_dampen)
+        #self.ui.dampen_slur.clicked.connect(self.click_dampen)
         self.ui.verify.clicked.connect(self.click_verify)
 
-        ### setup variables
-        self.judged_main_num = 0
-        self.accuracy = -1.0
+        self.ui.dyn_type.clicked.connect(self.click_dyn_type)
 
         self.level = utils.dyn_to_level(self.dyn)
 
-        self.modified_training = False
-        self.modified_accuracy = False
-        self.modified_stable = False
-        self.modified_attack = False
-        self.modified_dampen = False
-        self.modified_verify = False
+        self.modified = {}
+        for key in state.DYN_JOBS:
+            self.modified[key] = False
+
         self.verify_good = None
 
         self.coll = coll
+        ### setup variables
+        self.judged_main_num = self.coll.num_main()
 
         self.basic_trained = False
 
-        self.force_init = []
+        #self.force_init = [0 for fm in basic_training.FINGER_MIDIS ]
+        self.force_init = [0 for fm in FINGERS ]
+        self.mid_forces = [ [0,0] for fm in FINGERS ]
+        self.force_factor = [1.0,1.0,1.0]
+
         self.controller_params = controller_params.ControllerParams(
-            dirs.files.get_dyn_vivi_filename(self.st, self.dyn))
-        self.dampen = False
-        self.read()
-#        self.levels = levels.Levels()
-#        self.levels.set_coll(self.coll)
+            self.files.get_dyn_vivi_filename(self.st, self.dyn,
+                self.inst_num))
+        #print "dyn_train", self.inst_type, self.inst_num
 
-#        if self.judged_main_num > 0:
-#            self.ears = ears.Ears()
-        #    shared.listen[self.st][self.dyn] = self.ears
-#        else:
-#            self.ears = None
-        #    shared.listen[self.st][self.dyn] = None
-#        shared.listen[self.st][self.dyn] = self.ears
-
-        ### setup backend
-        # (after self.read() !)
-        self.dyn_backend = dyn_backend.DynBackend(
-            self.st, self.dyn, self.level, self.accuracy, self.force_init,
-            self.force_factor, self.dampen,
-            self.controller, self.practice)
-        self.dyn_backend.process_step.connect(self.process_step_emit)
-
-        self.state = state.State()
-        self.state.next_step.connect(self.next_step)
-        self.state.finished_step.connect(self.finished_step)
+        self.dampen_normal = False
+        #self.dampen_slur = False
+        #self.read()
 
 
         self.examine = examine_auto_widget.ExamineAutoWidget(self)
         self.examine.select_note.connect(self.examine_auto_select_note)
 
-        self.compare = compare_coll.CompareColl()
-        self.compare.row_delete.connect(self.delete_file)
-        self.compare.row_retrain.connect(self.retrain_file)
-
-
-        self.cancel_will_delete = True
+        #self.task_verify = [None for fm in basic_training.FINGER_MIDIS ]
+        self.task_verify = [None for fm in FINGERS ]
+        self.task_stable = None
+        #self.task_attacks = [None for fm in basic_training.FINGER_MIDIS ]
+        self.task_attacks = [None for fm in FINGERS ]
+        self.task_dampen = None
 
         self.display()
 
-
-
-#        try:
-#            filename = dirs.files.get_forces_filename(self.st, self.dyn)
-#            att = open(filename).readlines()
-#            self.force_init = []
-#            for i in range(3):
-#                self.force_init.append(float( att[i].rstrip() ))
-#            self.force_factor = float( att[3].rstrip() )
-#        except:
-#            self.force_init = [-1.0, -1.0, -1.0]
-#            self.force_factor = 1.0
 
 
     def select(self, enable):
@@ -165,51 +161,72 @@ class DynTrain(QtGui.QFrame):
             self.ui.dyn_type.setBackgroundRole(
                     QtGui.QPalette.Window)
 
+    def highlight(self, widget, highlight=True):
+        # TODO: really bad way of highlighting!
+        # but QPushButtons don't seem
+        # to have a nice way to highlight!
+        if highlight:
+            widget.setStyleSheet("background-color: darkBlue; color: white;")
+        else:
+            widget.setStyleSheet("")
+
     def display(self):
-        if not self.judged_main_num:
+        if not self.coll.num_main():
             self.setEnabled(False)
             self.ui.dyn_type.setText(utils.dyn_to_text(self.dyn))
-            self.ui.num_trained_label.setText("")
-            self.ui.accuracy_label.setText("")
-            self.ui.force_factor.setText("")
+            #self.ui.num_trained_label.setText("")
             for i in range(len(basic_training.FINGER_MIDIS)):
-                self.force_buttons.button(i).setText("")
-            self.ui.dampen.setText("")
+                #self.force_buttons.button(i).setText("")
+                self.force_buttons[i].setText("")
+                self.force_factor_buttons[i].setText("")
+            self.ui.dampen_normal.setText("")
+            #self.ui.dampen_slur.setText("")
             self.ui.verify.setText("")
             return
-
-        if self.basic_trained:
+        # do we need any basic training?
+        #print "trying basic,", self.st, self.dyn
+        if not basic_training.get_next_basic(
+                self.inst_type,
+                self.dyn, self.coll,
+                self.files):
+            self.ui.dyn_type.setStyleSheet(
+                "")
             self.ui.dyn_type.setText(utils.dyn_to_text(self.dyn))
         else:
-            self.ui.dyn_type.setText(
-                "<font color=\"%s\">%s</font>" %
-                (NEEDS_BASIC_COLOR, utils.dyn_to_text(self.dyn)))
+            self.ui.dyn_type.setStyleSheet(
+                "color: red;")
+            self.ui.dyn_type.setText(utils.dyn_to_text(self.dyn))
 
         self.setEnabled(True)
-        self.ui.num_trained_label.setText(str(self.judged_main_num))
-        if self.accuracy > 0:
-            # round number
-            self.ui.accuracy_label.setText(
-                str("%.3f")%( self.accuracy ))
-        else:
-            self.ui.accuracy_label.setText("")
-        if self.force_factor > 1.0:
-            self.ui.force_factor.setText(
-                str("%.2f")%self.force_factor)
-        else:
-            self.ui.force_factor.setText("")
 
-        for i in range(len(basic_training.FINGER_MIDIS)):
+        for i in range(len(FINGERS)):
             if self.force_init[i] > 0:
-                self.force_buttons.button(i).setText("%.1f N"
-                    % self.force_init[i])
+                if round(self.force_init[i],2) < 1.0:
+                    self.force_buttons[i].setText(("%.2f N"
+                        % self.force_init[i])[1:])
+                else:
+                    self.force_buttons[i].setText("%.1f N"
+                        % self.force_init[i])
+                #self.force_buttons.button(i).setText("%.1f N"
+                #    % self.force_init[i])
             else:
-                self.force_buttons.button(i).setText("")
-        if self.dampen < 1.0:
-            self.ui.dampen.setText(
-                str("%.2f")%self.dampen)
+                #self.force_buttons.button(i).setText("")
+                self.force_buttons[i].setText("")
+            if self.force_factor_buttons[i] > 1.0:
+                self.force_factor_buttons[i].setText(
+                    str("%.2f")%self.force_factor[i])
+            else:
+                self.force_factor_buttons[i].setText("")
+        if self.dampen_normal < 1.0:
+            self.ui.dampen_normal.setText(
+                str("%.2f")%self.dampen_normal)
         else:
-            self.ui.dampen.setText("")
+            self.ui.dampen_normal.setText("")
+        #if self.dampen_slur < 1.0:
+        #    self.ui.dampen_slur.setText(
+        #        str("%.2f")%self.dampen_slur)
+        #else:
+        #    self.ui.dampen_slur.setText("")
 
         if self.verify_good is None:
             self.ui.verify.setText("")
@@ -222,130 +239,168 @@ class DynTrain(QtGui.QFrame):
                 "color: red;")
             self.ui.verify.setText("N")
 
-        if self.modified_training:
-            self.ui.num_trained_label.setBackgroundRole(
-                QtGui.QPalette.Highlight)
-        else:
-            self.ui.num_trained_label.setBackgroundRole(
-                QtGui.QPalette.Window)
-
-        if self.modified_accuracy:
-            # TODO: really bad way of highlighting!
-            # but QPushButtons don't seem
-            # to have a nice way to highlight!
-            self.ui.accuracy_label.setStyleSheet(
-                "background-color: darkBlue; color: white;")
-        else:
-            self.ui.accuracy_label.setStyleSheet("")
-
-        if self.modified_stable:
-            self.ui.force_factor.setStyleSheet(
-                "background-color: darkBlue; color: white;")
-        else:
-            self.ui.force_factor.setStyleSheet("")
+        #if self.modified[vivi_defines.TASK_STABLE]:
+        #    self.ui.force_factor.setStyleSheet(
+        #        "background-color: darkBlue; color: white;")
+        #else:
+        #    self.force_factor_buttons.setStyleSheet("")
 
 
-        if self.modified_attack:
-            for i in range(len(basic_training.FINGER_MIDIS)):
-                #self.force_buttons.button(i).setBackgroundRole(
-                #    QtGui.QPalette.Highlight)
-            # TODO: really bad way of highlighting!
-            # but QPushButtons don't seem
-            # to have a nice way to highlight!
-                self.force_buttons.button(i).setStyleSheet(
-                "background-color: darkBlue; color: white;")
-        else:
-            for i in range(len(basic_training.FINGER_MIDIS)):
-                self.force_buttons.button(i).setStyleSheet("")
-        if self.modified_dampen:
-            # TODO: really bad way of highlighting!
-            # but QPushButtons don't seem
-            # to have a nice way to highlight!
-            self.ui.dampen.setStyleSheet(
-                "background-color: darkBlue; color: white;")
-        else:
-            self.ui.dampen.setStyleSheet("")
-        if self.modified_verify:
-            # TODO: really bad way of highlighting!
-            # but QPushButtons don't seem
-            # to have a nice way to highlight!
-            self.ui.verify.setStyleSheet(
-                "background-color: darkBlue; color: white;")
-        else:
-            if self.verify_good is False:
-                self.ui.verify.setStyleSheet(
-                    "background-color: red; color: black;")
-            else:
-                self.ui.verify.setStyleSheet("")
+        for i in range(len(basic_training.FINGER_MIDIS)):
+            self.highlight(self.force_buttons[i],
+                self.modified[vivi_defines.TASK_ATTACK])
+            self.highlight(self.force_factor_buttons[i],
+                self.modified[vivi_defines.TASK_ATTACK])
+            #self.highlight(self.force_buttons.button(i),
+            #    self.modified_attack)
+        self.highlight(self.ui.dampen_normal, self.modified[vivi_defines.TASK_DAMPEN])
+        #self.highlight(self.ui.dampen_slur, self.modified[vivi_defines.TASK_DAMPEN])
+        self.highlight(self.ui.verify, self.modified[vivi_defines.TASK_VERIFY])
+        if self.verify_good is False:
+           self.ui.verify.setStyleSheet(
+               "background-color: red; color: black;")
+
+    def click_modified(self):
+        # will call this set_modified as well
+        self.parent.set_modified_this()
+        self.set_modified()
 
     def set_modified(self):
-        self.modified_training = True
-        self.modified_accuracy = True
-        self.modified_stable = True
-        self.modified_attack = True
-        self.modified_dampen = True
-        self.modified_verify = True
+        for key in state.DYN_JOBS:
+            self.modified[key] = True
         self.display()
 
+    def need_job(self, job_type):
+        if self.coll.num_main() == 0:
+            return False
+        if not self.modified[job_type]:
+            return False
+        return True
+
+    def make_filename(self, prefix, extra=""):
+        return 'out-dyn/%s-t%i-i%i-s%i-d%i-e%i.txt' % ( prefix,
+            self.inst_type, self.inst_num, self.st, self.dyn, extra)
+
+    def make_job(self, job_type, fmi=None, fm=None):
+        #print "new job:", self.st, self.dyn, job_type
+        job = state.Job(job_type)
+        job.inst_type = self.inst_type
+        job.inst_num = self.inst_num
+        job.st = self.st
+        job.dyn = self.dyn
+        job.files = self.files
+        job.fmi = fmi
+        job.fm = fm
+
+        extreme = self.get_extreme_forces()
+        #print "Extreme forces: ", extreme[0]
+        #print "mid forces: ", self.mid_forces[0]
+        #forces = [ self.files.get_audio_params(x[0]).bow_force
+        #    for x in self.coll.coll]
+        if job_type == vivi_defines.TASK_VERIFY:
+            #job.finger_forces = map(lambda x: [min(x), max(x)], extreme)
+            job.finger_forces = extreme
+            #job.finger_forces = [item for sublist in extreme for item in sublist]
+        elif job_type == vivi_defines.TASK_STABLE:
+            job.force_init = self.extreme
+            #print "INIT:", job.force_init
+            #job.force_init = self.force_init
+            #job.finger_forces = map(lambda x: [x[2], x[3], x[4]], extreme)
+        elif job_type == vivi_defines.TASK_ATTACK:
+            att = []
+            for j in range(3):
+                #a = [ self.mid_forces[i][0], extreme[i][2] ]
+                i = job.fmi
+                a = [ 1.0*self.mid_forces[i][0],
+                      1.5*self.mid_forces[i][1]
+                    ]
+                if i == j:
+                    out = open(self.make_filename("mid_forces", i), 'a')
+                    out.write("%i\t%.4f\t%.4f\n" % (i,
+                        self.mid_forces[i][0],
+                        self.mid_forces[i][1]))
+                    out.close()
+                #print a
+                #a = [ self.mid_forces[i][0],
+                #    numpy.mean( [self.mid_forces[i][1], extreme[i][2]]) ]
+                #a = numpy.linspace( self.mid_forces[i][0],
+                #    self.mid_forces[i][1], num=7) [2:5]
+                #a = extreme
+                #print a
+                att.append(a)
+            job.force_init = att
+        else:
+            job.force_init = self.force_init
+
+        job.mpl_filename = self.files.get_mpl_filename(self.st)
+        # extra info
+        if job_type == vivi_defines.TASK_ATTACK:
+            job.K = self.force_factor
+        if job_type == vivi_defines.TASK_DAMPEN:
+            job.K = self.force_factor[0]
+            job.force_init = self.force_init[0]
+        return job
+
+    def start_job(self, job_type):
+        #if not self.need_job(job_type) and job_type != vivi_defines.TASK_VERIFY:
+        if not self.need_job(job_type):
+            return 0
+        #print "start", self.st, self.dyn, job_type
+        if job_type == vivi_defines.TASK_VERIFY:
+            steps = 0
+            job = self.make_job(job_type)
+            steps += shared.thread_pool.add_task(job)
+        elif job_type == vivi_defines.TASK_ATTACK:
+            steps = 0
+            for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
+            #for fmi, fm in enumerate([0]):
+                job = self.make_job(job_type, fmi, fm)
+                #print "job fm", fm, job.force_init
+                steps += shared.thread_pool.add_task(job)
+        elif job_type == vivi_defines.TASK_DAMPEN:
+            steps = 0
+            #for keep_bow in [False, True]:
+            for keep_bow in [False]:
+                job = self.make_job(job_type)
+                job.keep_bow_velocity = keep_bow
+                steps += shared.thread_pool.add_task(job)
+        else:
+            job = self.make_job(job_type)
+            steps = shared.thread_pool.add_task(job)
+        return steps
+
+
+
     def read(self):
-        ### read collection
-        filename = dirs.files.get_mf_filename(self.st, self.dyn)
-        self.coll.add_mf_file(filename)
-        self.judged_main_num = self.coll.num_main()
         ### read forces
         self.controller_params.load_file()
         self.force_init = []
-        for i in range(len(basic_training.FINGER_MIDIS)):
+        self.mid_forces = []
+        self.force_factor = [1.0,1.0,1.0]
+        for i in range(len(FINGERS)):
             self.force_init.append(
                 self.controller_params.get_attack_force(i))
-        self.force_factor = self.controller_params.stable_K
-        self.accuracy = self.controller_params.accuracy
-        self.dampen = self.controller_params.dampen
-#        filename = dirs.files.get_dyn_data_filename(self.st, self.dyn)
-#        try:
-#            att = open(filename).readlines()
-#            for i in range(3):
-#                self.force_init.append(float( att[i].rstrip() ))
-#            self.force_factor = float( att[3].rstrip() )
-#            self.accuracy = float( att[4].rstrip() )
-#        except:
-#            # we don't care if we can't read the forces file.
-#            self.force_init = [-1.0, -1.0, -1.0]
-#            self.force_factor = 1.0
-        # do we need any basic training?
-        if not basic_training.get_next_basic(self.dyn, self.coll):
-            self.basic_trained = True
+            mids = [
+                self.controller_params.get_mid_force_low(i),
+                self.controller_params.get_mid_force_high(i)]
+            #print mids
+            self.mid_forces.append(mids)
+            self.force_factor[i] = self.controller_params.get_stable_K(i)
+        self.dampen_normal = self.controller_params.dampen_normal
+        #self.dampen_slur = self.controller_params.dampen_slur
         self.display()
 
     def write(self):
-        ### write collection
-        if self.dyn == 0:
-            filename = dirs.files.get_mf_filename(self.st, self.dyn)
-            self.coll.write_mf_file(filename)
-        #self.modified = False
         ### write forces
-        for i in range(len(basic_training.FINGER_MIDIS)):
+        for i in range(len(FINGERS)):
             self.controller_params.set_force(i, self.force_init[i])
-        self.controller_params.stable_K = self.force_factor
-        self.controller_params.accuracy = self.accuracy
-        self.controller_params.dampen = self.dampen
+            self.controller_params.set_mid_force_low(i, self.mid_forces[i][0])
+            self.controller_params.set_mid_force_high(i, self.mid_forces[i][1])
+            self.controller_params.set_stable_K(i, self.force_factor[i])
+        self.controller_params.dampen_normal = self.dampen_normal
+        #self.controller_params.dampen_slur = self.dampen_slur
         self.controller_params.write_file()
-#        filename = dirs.files.get_dyn_data_filename(self.st, self.dyn)
-#        att = open(filename, 'w')
-#        for i in range(3):
-#            att.write(str("%.3f\n" % self.force_init[i]))
-#        att.write(str("%.3f\n" % self.force_factor))
-#        att.write(str("%.3f\n" % self.accuracy))
-#        att.close()
 
-    ### bulk processing state
-    def process_step_emit(self):
-        self.process_step.emit()
-        #print "dyn train emit", self.st, self.dyn, self.state.jobs, self.state.job_index
-        self.state.step()
-
-    def start(self):
-        self.state.start()
 
     def get_all_cat_forces(self, low_include, high_include, fm):
         forces = []
@@ -356,380 +411,197 @@ class DynTrain(QtGui.QFrame):
     def get_extreme_forces(self):
         finger_forces = []
         for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
-            # low
-            forces = self.get_forces(-vivi_defines.CATEGORIES_EXTREME)
-            #if not forces:
-            #    forces = self.get_all_cat_forces(
-            #        -vivi_defines.CATEGORIES_EXTREME,-2,0)
-            low_force = min(forces)
+            cands = numpy.array(map(
+                lambda(x): self.files.get_audio_params(x[0]).bow_force,
+                (
+                  self.coll.get_items_cat_finger(  0, fm)
+                )))
+            median = scipy.median(cands)
+            cands = numpy.array(map(
+                lambda(x): self.files.get_audio_params(x[0]).bow_force,
+                (
+                  self.coll.get_items_cat_finger( -2, fm)
+                + self.coll.get_items_cat_finger( -1, fm)
+                + self.coll.get_items_cat_finger(  0, fm)
+                + self.coll.get_items_cat_finger(  1, fm)
+                + self.coll.get_items_cat_finger(  2, fm)
+                )))
+            #print cands.min()
+            #print median
+            #print cands.max()
+            forces = [cands.min(), median, cands.max()]
+            finger_forces.append( forces )
+            continue
             # middle
-            middle_force = scipy.mean(self.get_forces_finger(0,fm))
+            middle_forces = self.get_forces_finger(0,fm)
+            middle_force = scipy.mean(middle_forces)
+            # low
+            low_forces = self.coll.get_items_cat_finger_bp(
+                -vivi_defines.CATEGORIES_EXTREME, fm,
+                dynamics.get_distance(self.inst_type,
+                    self.dyn))
+            low_forces = map(
+                lambda(x): self.files.get_audio_params(x[0]).bow_force,
+                low_forces)
+            really_low = min(low_forces)
+            #forces = self.get_all_cat_forces(
+            #    -vivi_defines.CATEGORIES_EXTREME,-1,0)
+            #low_force = scipy.stats.gmean( forces + [min(middle_forces)])
+            #print low_forces
+            low_force = scipy.mean( low_forces + [min(middle_forces)])
             # high
             forces = self.get_forces(vivi_defines.CATEGORIES_EXTREME)
-            high_force = max(forces)
+            really_high = max(forces)
+            forces = self.get_all_cat_forces(
+                1, vivi_defines.CATEGORIES_EXTREME,0)
+            high_force = scipy.mean( forces + [min(middle_forces)])
             # all
-            finger_forces.append( [low_force, middle_force, high_force] )
+            mid_low = scipy.mean( [low_force, middle_force] )
+            mid_high = scipy.mean( [high_force, middle_force] )
+            forces = [really_low, low_force, mid_low,
+                middle_force, mid_high, high_force, really_high] 
+            #print low_force, middle_force, high_force
+            finger_forces.append( forces )
+        #print finger_forces
         return finger_forces
 
-    def next_step(self, job_type, job_index):
-        if job_type == state.BASIC_TRAINING:
-            self.basic_train()
-        elif job_type == state.SVM:
-            mf_filename = dirs.files.get_mf_filename(self.st, self.dyn)
-            self.dyn_backend.compute_training(mf_filename)
-        elif job_type == state.ACCURACY:
-            self.dyn_backend.check_accuracy()
-        elif job_type == state.VERIFY:
-            finger_forces = self.get_extreme_forces()
-            self.dyn_backend.check_verify(finger_forces)
-        elif job_type == state.STABLE:
-            finger_forces = self.get_extreme_forces()
-            self.dyn_backend.learn_stable(finger_forces)
-        elif job_type == state.ATTACKS:
-            finger_forces = self.get_extreme_forces()
-            for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
-                self.dyn_backend.task_attacks[fmi].set_K(self.force_factor)
-            self.dyn_backend.learn_attacks(finger_forces)
-        elif job_type == state.DAMPEN:
-            self.dyn_backend.task_dampen.set_K(self.force_factor)
-            self.dyn_backend.task_dampen.set_initial_force(self.force_init[0])
-            self.dyn_backend.learn_dampen()
-        else:
-            print "ERROR dyn_train: job type not recognized!"
-
-
-    def finished_step(self, job_type, job_index):
-        if job_type == state.SVM:
-            self.modified_training = False
-        elif job_type == state.ACCURACY:
-            self.accuracy = self.dyn_backend.accuracy
-            self.modified_accuracy = False
-        elif job_type == state.VERIFY:
-            self.verify_good = self.dyn_backend.verify_good
-            self.modified_verify = False
-        elif job_type == state.STABLE:
-            self.force_factor = self.dyn_backend.most_stable
-            self.modified_stable = False
-        elif job_type == state.ATTACKS:
-            self.force_init = self.dyn_backend.force_init
-            self.modified_attack = False
-        elif job_type == state.DAMPEN:
-            self.dampen = self.dyn_backend.dampen
-            self.modified_dampen = False
-        self.display()
-
-
-    ### basic training
-    def has_basic_training(self):
-        return self.basic_trained
-
-    def basic_prep(self):
-        if self.basic_trained:
-            return 0
-        num_steps = 1
-        self.state.prep(state.BASIC_TRAINING, [num_steps])
-        return num_steps
-
-    def basic_train(self):
-        shared.judge.judged_cat.connect(self.judged_cat)
-        self.basic_train_next()
-
-
-    def basic_train_next(self):
-        train_params = basic_training.get_next_basic(self.dyn, self.coll)
-        if not train_params:
-            return self.basic_train_end()
-        params = vivi_types.AudioParams(
-            self.st, train_params[1],
-            dynamics.get_distance(self.dyn),
-            train_params[0],
-            dynamics.get_velocity(self.dyn))
-
-        self.train_filename = dirs.files.make_audio_filename(params)
-        begin = vivi_controller.NoteBeginning()
-        self.dyn_backend.get_physical_params(params, begin.physical)
-        self.controller.filesNew(self.train_filename)
-        self.controller.basic(
-            begin, BASIC_SECONDS, BASIC_SKIP)
-        self.controller.filesClose()
-        shared.judge.user_judge(self.train_filename)
-
-    def basic_train_end(self):
-        self.basic_trained = True
-        self.display()
-        shared.judge.judged_cat.disconnect(self.judged_cat)
-        shared.judge.display(show=False)
-        self.process_step.emit()
-
-    def train_over(self):
-        shared.judge.judged_cat.disconnect(self.judged_cat)
-        shared.judge.display(show=False)
-
-    def judged_cat(self, cat):
-        if cat == shared.judge_audio_widget.JUDGEMENT_CANCEL:
-            if self.cancel_will_delete:
-                os.remove(self.train_filename+".wav")
-                os.remove(self.train_filename+".actions")
-        else:
-            self.train_filename = dirs.files.move_works_to_train(
-                self.train_filename)
-            if self.cancel_will_delete:
-                self.coll.add_item(self.train_filename+'.wav',
-                    cat)
-            else:
-                self.coll.add_item(self.train_filename+'.wav',
-                    cat, replace=True)
-                self.compare.compare(self.st, self.dyn,
-                    self.accuracy, self.coll)
-            self.judged_main_num = self.coll.num_main()
-            self.set_modified()
-        if self.state.job_type == state.BASIC_TRAINING:
-            if self.coll.is_cat_valid(cat):
-                self.basic_train_next()
-            else:
-                self.basic_train_end()
-        else:
-            self.train_over()
-
-#        if not self.ears:
-#            if self.judged_main_num > 0:
-#                self.ears = ears.Ears()
-#                shared.listen[self.st][self.dyn] = self.ears
-#                self.dyn_backend.reload_ears()
-
-#
-#    def has_basic_level(self):
-#        return self.levels.hasLevel(self.level)
-#
-#    def get_train_level(self):
-#        self.levels.set_level(self.level)
-#        return self.basic_train_next()
-#
-#    def basic_train_next(self):
-#        lp, force = self.levels.basic_train_next()
-#        params = shared.AudioParams(self.st, lp.finger,
-#            lp.bow_position, force, lp.bow_velocity)
-#        return [params]
-#
-#    def train_init(self, audio_params):
-#        actions = vivi_controller.PhysicalActions()
-#        actions.string_number = audio_params.st
-#        actions.finger_midi = audio_params.finger
-#        actions.bow_bridge_distance = audio_params.bow_position
-#        actions.bow_force = audio_params.bow_force
-#        actions.bow_velocity = audio_params.bow_velocity
-#
-#        self.actions = actions
-#        self.train_filename = dirs.files.make_audio_filename(audio_params)
-#        self.controller.basic(
-#            self.actions, BASIC_SECONDS, BASIC_SKIP,
-#            self.train_filename[0:-4])
-#        #self.train_filename = self.perform.make_basic_audio(
-#        #    audio_params, BASIC_PARAMS)
-#
-#        shared.judge.user_judge(self.train_filename, self.coll)
-#
-#    def train_reinit(self, wavfile):
-#        self.train_filename = wavfile
-#
-#    def train_end(self):
-#        self.train_filename = ''
-#        self.judged_main = self.coll.num_main()
-#
-#    def opinion(self, key):
-#        if (key > '0') and (key < str(len(collection.CATEGORIES)+1)):
-#            cat = int(key)
-#            self.coll.add_item(self.train_filename,
-#                collection.CATEGORIES[cat-1])
-#            self.set_modified()
-#            #if self.coll.is_cat(key, collection.CATS_MAIN):
-#            #    self.modified_out = True
-#            self.train_end()
-#            return OPINION_END
-#        if (key == '9'):
-#            self.train_end()
-#            return OPINION_QUIT
-#        return OPINION_CONTINUE
-#
-##    def get_cat_message(self):
-##        if not self.train_filename:
-##            return "Oops!  Can't train nothing"
-##        text = ''
-##        text += "   This violin note needs ______ bow force.\n"
-##        text += " "
-##        for i in range(len(collection.CATEGORIES)):
-##            text += "  "+ collection.CATEGORIES[i]
-##        text += "\n"
-##        #text += "        (numbers 2 and 4 are identical)\n"
-##        text += "        9 will quit"
-##        return text
-#
-    def compute_training_steps(self):
-        if self.judged_main_num == 0:
-            return 0
-        elif not self.modified_training:
-            return 0
-        num_steps = self.dyn_backend.compute_training_steps()
-        self.state.prep(state.SVM, [num_steps])
-        return num_steps
-
-    def check_accuracy_steps(self):
-        if self.judged_main_num == 0:
-            return 0
-        elif not self.modified_accuracy:
-            return 0
-        num_steps = self.dyn_backend.check_accuracy_steps(self.coll)
-        self.state.prep(state.ACCURACY, [num_steps])
-        return num_steps
-
-    def check_verify_steps(self):
-        if self.judged_main_num == 0:
-            return 0
-        elif not self.modified_verify:
-            return 0
-        num_steps = self.dyn_backend.check_verify_steps(self.coll)
-        self.state.prep(state.VERIFY, [num_steps])
-        return num_steps
-
-    def learn_attacks_steps(self):
-        if self.judged_main_num == 0:
-            return 0
-        elif not self.modified_attack:
-            return 0
-        num_steps = self.dyn_backend.learn_attacks_steps()
-        self.state.prep(state.ATTACKS, [num_steps])
-        return num_steps
-
-    def learn_stable_steps(self):
-        if self.judged_main_num == 0:
-            return 0
-        elif not self.modified_stable:
-            return 0
-        num_steps = self.dyn_backend.learn_stable_steps()
-        self.state.prep(state.STABLE, [num_steps])
-        return num_steps
-
-    def learn_dampen_steps(self):
-        if self.judged_main_num == 0:
-            return 0
-        elif not self.modified_dampen:
-            return 0
-        num_steps = self.dyn_backend.learn_dampen_steps()
-        self.state.prep(state.DAMPEN, [num_steps])
-        return num_steps
-
-#    def learn_attacks(self):
-#        if self.judged_main_num == 0:
-#            return 0
-#        elif not self.modified_attack:
-#            return 0
-#        print "Learning attacks dyn train", self.st, self.dyn
-        #matches = self.levels.get_pairs_on_level(self.level)
-#        print matches
-#        force_max = 0.01
-#        force_min = 100.0
-#        for pair in matches:
-#            audio_params = dirs.files.get_audio_params(pair[0])
-#            force = audio_params.bow_force
-#            if force_max < force:
-#                force_max = force
-#            if force_min > force:
-#                force_min = force
-#        self.dyn_backend.learn_attacks(force_min, force_max)
 
     def get_forces_finger(self, cat, finger_midi):
         forces = map(
-            lambda(x): dirs.files.get_audio_params(x[0]).bow_force,
+            lambda(x): self.files.get_audio_params(x[0]).bow_force,
             filter(lambda(y):
-                dirs.files.get_audio_params(y[0]).finger_midi == finger_midi,
-                self.coll.get_items(cat)))
+                self.files.get_audio_params(y[0]).finger_midi == finger_midi,
+                self.coll.get_items_cat(cat)))
         return forces
 
     def get_forces(self, cat):
         forces = map(
-            lambda(x): dirs.files.get_audio_params(x[0]).bow_force,
-                self.coll.get_items(cat))
+            lambda(x): self.files.get_audio_params(x[0]).bow_force,
+                self.coll.get_items_cat(cat))
         return forces
 
-
-#    def process_step_emit(self):
-#        if self.dyn_backend.state > 0:
-#            self.process_step.emit()
-#            return
-#
-#        if self.dyn_backend.did == dyn_backend.CALCULATE_TRAINING:
-#            self.modified_training = False
-#        if self.dyn_backend.did == dyn_backend.CHECK_ACCURACY:
-#            self.accuracy = self.dyn_backend.accuracy
-#            self.accuracy_data = self.dyn_backend.accuracy_data
-#            self.modified_accuracy = False
-#        if self.dyn_backend.did == dyn_backend.LEARN_STABLE:
-#            self.force_factor = self.dyn_backend.force_factor
-#            self.modified_stable = False
-#        if self.dyn_backend.did == dyn_backend.LEARN_ATTACKS:
-#            self.force_init = self.dyn_backend.force_init
-#            self.modified_attack = False
-#
-#        self.display()
-#        self.process_step.emit()
-#
-    def click_accuracy(self, event):
-        self.compare.compare(self.st, self.dyn,
-            self.accuracy, self.coll)
-
-    def click_force_factor(self, event):
-        self.examine.examine("stable", self.st, self.dyn,
-            self.dyn_backend.task_stable)
 
     def examine_auto_select_note(self):
         note_filename_text = self.examine.get_selected_filename()
         if note_filename_text:
-            shared.examine_main.load_file(note_filename_text[0])
-            shared.examine_main.load_note(note_filename_text[1])
+            shared.examine_main.load_file(note_filename_text[0], self.files)
+            if self.examine.mode == "second-att":
+                shared.examine_main.load_note(note_filename_text[1], full=True)
+            elif self.examine.mode == "verify":
+                shared.examine_main.load_note(note_filename_text[1], full=True)
+            elif self.examine.mode == "attack":
+                shared.examine_main.load_note(note_filename_text[1], full=True)
+            else:
+                shared.examine_main.load_note(note_filename_text[1])
 
 
-    def train_zoom(self, wavfile, cancel_will_delete=True):
-        self.cancel_will_delete = cancel_will_delete
-        self.train_filename = wavfile
-        shared.judge.judged_cat.connect(self.judged_cat)
-        shared.judge.display()
-        shared.judge.user_judge(wavfile)
 
-    def delete_file(self, filename):
-        self.coll.delete(filename+'.wav')
-        self.judged_main_num = self.coll.num_main()
-        self.set_modified()
-        if not basic_training.get_next_basic(self.dyn, self.coll):
-            self.basic_trained = True
-        else:
-            self.basic_trained = False
-        self.display()
-
-    def retrain_file(self, filename):
-        # TODO: passing a python string through a signal turns it into a
-        # QString.  This changes it back to a python string
-        wavfile = str(filename)
-#        self.train_zoom(str(filename), cancel_will_delete=False)
-        self.cancel_will_delete = False
-        self.train_filename = wavfile
-        shared.judge.judged_cat.connect(self.judged_cat)
-        shared.judge.display(self.compare.ui.verticalLayout)
-        shared.judge.user_judge(wavfile)
-#zzz
-
+    def click_force_factor(self, event):
+        force_index = int(self.sender().objectName()[13])
+        #print "clicked second attack %i" % force_index
+        #if self.task_attacks[force_index]:
+        if self.task_attacks:
+            self.examine.examine("second-att", self.st, self.dyn,
+                self.task_attacks[force_index], force_index)
 
     def click_force(self, event):
-        force_index = int(event.objectName()[6])
-        self.examine.examine("attack", self.st, self.dyn,
-            self.dyn_backend.task_attacks[force_index], force_index)
+        force_index = int(self.sender().objectName()[6])
+        #print "clicked attack %i" % force_index
+        #if self.task_attacks[force_index]:
+        if self.task_attacks:
+            self.examine.examine("attack", self.st, self.dyn,
+                self.task_attacks[force_index], force_index)
 
     def click_dampen(self):
-        self.examine.examine("dampen", self.st, self.dyn,
-            self.dyn_backend.task_dampen)
+        #if self.sender().objectName() == "dampen_slur":
+        #    if self.task_dampen_slur:
+        #        self.examine.examine("dampen", self.st, self.dyn,
+        #            self.task_dampen_slur)
+        #else:
+        if self.task_dampen_normal:
+            self.examine.examine("dampen", self.st, self.dyn,
+                self.task_dampen_normal)
 
     def click_verify(self):
+        #task.set_data(self.st, self.dyn, self.get_extreme_forces())
         # yes this is right for now
-        self.examine.examine("stable", self.st, self.dyn,
-            self.dyn_backend.task_verify)
+        if self.task_verify:
+            self.examine.examine("verify", self.st, self.dyn,
+                self.task_verify)
+        #force_index = int(self.sender().objectName()[6])
+        #print "clicked verify"
+        #force_index = 0
+        #if self.task_verify:
+        #    self.examine.examine("attack", self.st, self.dyn,
+        #        #self.task_verify[force_index], force_index)
+        #        self.task_verify, force_index)
+
+    def task_done(self, job):
+        if job.job_type in state.DYN_JOBS:
+            self.modified[job.job_type] = False
+            if job.job_type == vivi_defines.TASK_VERIFY:
+                self.verify_good = job.task.verify_good
+                self.mid_forces = job.task.mids
+                #self.task_verify = job.task
+                #self.task_attack = job.task # oh god ick
+                self.modified_verify = False
+                # initial estimates
+                #print FINGERS.index(job.fm)
+                #self.force_init[FINGERS.index(job.fm)] = job.force_init
+                #self.task_attacks[FINGERS.index(job.fm)] = job.task
+                #self.force_init[0] = job.force_init
+                self.task_verify = job.task
+            elif job.job_type == vivi_defines.TASK_STABLE:
+                self.force_factor = job.most_stable
+                self.task_stable = job.task
+                self.modified_stable = False
+            elif job.job_type == vivi_defines.TASK_ATTACK:
+                #self.force_init[job.fmi] = job.force_init
+                #self.task_attacks[job.fmi] = job.task
+                self.force_init[job.fmi] = job.task.best_attack
+                self.force_factor[job.fmi] = job.task.best_stability
+                self.task_attacks[job.fmi] = job.task
+
+                out = open(self.make_filename("forces", job.fmi), 'a')
+                out.write("%i\t%.4f\t%.4f\n" % (job.fmi,
+                    job.task.best_attack,
+                    job.task.best_stability))
+                out.close()
+
+                self.modified_attack = False
+            elif job.job_type == vivi_defines.TASK_DAMPEN:
+                #if job.keep_bow_velocity:
+                #    self.task_dampen_slur = job.task
+                #    self.dampen_slur = job.dampen
+                #else:
+                if True:
+                    self.task_dampen_normal = job.task
+                    self.dampen_normal = job.dampen
+                self.modified_dampen = False
+            self.display()
+        else:
+            raise Exception("message should not be here!")
+
+
+    def click_dyn_type(self, event):
+        needs_basic = basic_training.get_next_basic(
+            self.inst_type,
+            self.dyn, self.coll,
+            self.files)
+        if needs_basic:
+            (cat, finger) = needs_basic
+            print "need ", cat, finger
+            text = "Needs category %i" % (
+                cat + vivi_defines.CATEGORIES_CENTER_OFFSET )
+        else:
+            finger = 0
+            text = ""
+        cmd = "python train-vivi-interactive.py %i %i %i %i %i %s" % (
+            self.inst_type,
+            self.inst_num, self.st, self.dyn,
+            round(finger), text)
+        os.system(cmd)
+        self.parent.read() # TODO: clean up
+        self.set_modified()
 
 

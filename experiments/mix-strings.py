@@ -11,7 +11,7 @@ import scipy
 violin = violin_instrument.ViolinInstrument()
 wavfile = monowav.MonoWav("artifastring-test.wav")
 
-FS = 44100
+FS = 22050
 half = FS/2
 st = 0
 
@@ -27,8 +27,8 @@ violin.wait_samples(out, half)
 
 violin.bow(0, 0.08, 2.5, 0.3)
 violin.bow(1, 0.08, 1.5, 0.3)
-out = wavfile.request_fill(44100)
-violin.wait_samples(out, 44100)
+out = wavfile.request_fill(22050)
+violin.wait_samples(out, 22050)
 
 
 

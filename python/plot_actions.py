@@ -16,6 +16,7 @@ class PlotActions(QtGui.QWidget):
         self.mouse_x_end = -1
         self.highlight(False)
         self.border_extra = [0,0,0,0]
+        self.nac = None
 
     def reset(self):
         self.back = QtCore.Qt.white
@@ -26,11 +27,12 @@ class PlotActions(QtGui.QWidget):
         self.highlight(False)
         self.border_extra = [0,0,0,0]
 
-    def set_data(self, forces, cats):
+    def set_data(self, forces, cats, nac):
         self.forces = [x[1] for x in forces]
         self.cats = [x[1] for x in cats]
         self.mouse_x_begin = -1
         self.mouse_x_end = -1
+        self.nac = nac
         self.update()
 
     def mousePressEvent(self, event):
@@ -45,12 +47,20 @@ class PlotActions(QtGui.QWidget):
 
     def mouseReleaseEvent(self, event):
         self.mouse_x_end = event.x()
+        QtGui.QWidget.mousePressEvent(self, event)
         selected = abs(self.mouse_x_begin - self.mouse_x_end)
         rel_length = float(selected) / self.width()
         if rel_length < 0.05:
             self.mouse_x_begin = -1
             self.mouse_x_end = -1
-        QtGui.QWidget.mousePressEvent(self, event)
+        sel_start, sel_dur = self.get_selection()
+        #print "orig:", sel_start, sel_dur
+        if self.nac:
+            sel_start, sel_dur = self.nac.check_rel_range( sel_start, sel_dur)
+        #print "updated:", sel_start, sel_dur
+        #print self.mouse_x_begin, self.mouse_x_end
+            self.mouse_x_begin = sel_start * self.width()
+            self.mouse_x_end = (sel_start + sel_dur) * self.width()
         self.update()
 
     def clear_selection(self):
@@ -67,7 +77,7 @@ class PlotActions(QtGui.QWidget):
 
     def has_selection(self):
         if ((self.mouse_x_begin >= 0) and
-            (self.mouse_x_end >= 0)):
+            (self.mouse_x_end > 0)):
             return True
         return False
 
@@ -75,7 +85,9 @@ class PlotActions(QtGui.QWidget):
         if do_highlight:
             self.back = QtCore.Qt.white
         else:
-            self.back = QtCore.Qt.lightGray
+            #self.back = QtCore.Qt.lightGray
+            #self.back = QtGui.QColor(224, 224, 224)
+            self.back = QtGui.QColor(208, 208, 208)
         self.update()
 
     def set_border(self, border_extra):
@@ -89,7 +101,7 @@ class PlotActions(QtGui.QWidget):
         if not self.forces:
             return
         painter = QtGui.QPainter(self)
-        pen = painter.pen()
+        #pen = painter.pen()
 
         self.draw_background(painter)
         self.draw_selection(painter)
@@ -110,20 +122,65 @@ class PlotActions(QtGui.QWidget):
 
         self.draw_force_line(painter, xoffset, xscale, yoffset, yscale)
 
-        for i, cat in enumerate(self.cats):
-            x = i*xscale + left_margin
-            y = self.forces[i]*yscale + yoffset
+
+        def real_cat(cat):
+            if ((cat == vivi_defines.CATEGORY_NULL) or
+                 (cat == vivi_defines.CATEGORY_WAIT)):
+                return True
+            return False
+            
+        #prevcat = vivi_defines.CATEGORY_NULL
+        #print self.cats
+        j = 0
+        for i, cat in enumerate(self.cats[:-1]):
+            if cat is None:
+                self.line_vertical(painter, (i-1)*xscale+left_margin)
+                continue
+            j += 1
+                
+            x = j*xscale + left_margin
+            y = self.forces[j]*yscale + yoffset
 
             self.arrow(painter, x, y, cat)
 
+            #if real_cat(cat) is not real_cat(prevcat):
+            #prevcat = cat
+
+
+    def line_vertical(self, painter, x):
+        pen = painter.pen()
+        #pen.setColor(QtGui.QColor(255, 255, 255))
+        #pen.setColor(QtGui.QColor(64, 64, 64))
+        pen.setColor(QtGui.QColor(0, 255, 0))
+        painter.setPen(pen)
+        painter.drawLine(x, 0, x, self.height())
+
     def arrow(self, painter, x, y, cat):
         if cat == vivi_defines.CATEGORY_NULL:
+            pen = painter.pen()
+            pen.setColor(QtGui.QColor(192, 192, 192))
+            painter.setPen(pen)
+            yr = self.height() * 0.1
+            painter.drawLine(x, y-yr, x, y+yr)
+            return
+        if cat == vivi_defines.CATEGORY_WAIT:
+            pen = painter.pen()
+            pen.setColor(QtGui.QColor(127, 127, 127))
+            painter.setPen(pen)
+            yr = self.height() * 0.1
+            painter.drawLine(x, y-yr, x, y+yr)
             return
         scale = 0.05*self.height()
         direction = -1 if cat> 0 else 1
         cat_clipped = min( abs(cat) / vivi_defines.CATEGORIES_EXTREME , 1.0)
         cat_scale = cat_clipped ** 0.3
         pen = painter.pen()
+
+        #print cat, vivi_defines.CATEGORY_WEIRD
+        #if cat == vivi_defines.CATEGORY_WEIRD:
+        #    painter.fillRect(x, y-scale, 3, 2*scale,
+        #        QtCore.Qt.yellow)
+        #    return
 
         #third = (cat_clipped * 3.0) - round(cat_clipped*3.0)
         if cat_clipped < 0.333:

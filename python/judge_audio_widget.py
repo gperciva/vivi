@@ -92,4 +92,6 @@ class JudgeAudioWidget(QtGui.QFrame):
             utils.play(self.judge_filename+'.wav')
         elif key == 9:
             self.judged_cat.emit(JUDGEMENT_CANCEL)
+        elif key == 0:
+            self.judged_cat.emit(vivi_defines.CATEGORY_WEIRD)
 

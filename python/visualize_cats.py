@@ -42,6 +42,8 @@ class VisualizeCats(QtGui.QWidget):
         for i in range(len(self.cats)):
             y = i * self.height() / float(len(self.cats))
             x = int(x_center + self.user_cat * x_scale)
+            #if self.user_cat == vivi_defines.CATEGORY_WEIRD:
+            #    x = int(x_center)
             painter.drawPoint(x,y)
 
         # draw predicted cat
@@ -52,6 +54,9 @@ class VisualizeCats(QtGui.QWidget):
                 x = 0
             elif x >= self.width():
                 x = self.width() - 1
+
+            #if cat == vivi_defines.CATEGORY_WEIRD:
+            #    x = int(x_center)
 
             delta = abs(cat - self.user_cat) / 0.5
             delta_clipped = min(delta, 1.0)

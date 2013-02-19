@@ -1,12 +1,13 @@
-\version "2.14.0"
+\version "2.16.0"
 
-\header {
-  tagline = ##f
-}
+%\header {
+%  tagline = ##f
+% }
 
 \paper{
-  indent=5\mm
-  paper-width = 160\mm
+  indent=10\mm
+  %paper-width = 170\mm
+  paper-width = 177\mm
   oddFooterMarkup=##f
   oddHeaderMarkup=##f
 %  bookTitleMarkup = ##f

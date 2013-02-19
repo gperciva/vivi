@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-import dirs
-
 import vivi_controller
 import dynamics
 import controller_params
 
 import basic_training # for FINGER_MIDIS
 import utils
+
+import instrument_numbers
 
 class Note():
     def __init__(self, begin=None, duration=0, pizz=False,
@@ -18,12 +18,17 @@ class Note():
         self.end = end
         self.point_and_click = point_and_click
         self.details = details
+        self.let_string_vibrate = False
+
 class Rest():
     def __init__(self, duration=0):
         self.duration = duration
 
 class StyleBase():
-    def __init__(self):
+    def __init__(self, inst_type, inst_num, files):
+        self.inst_type = inst_type
+        self.inst_num = inst_num
+        self.files = files
         self.notes = None
         self.last_seconds = 0.0
 
@@ -31,7 +36,9 @@ class StyleBase():
         for st in range(4):
             st_controllers = []
             for dyn in range(4):
-                dyn_filename = dirs.files.get_dyn_vivi_filename(st, dyn)
+                dyn_filename = self.files.get_dyn_vivi_filename(st, dyn,
+                    inst_num)
+                #print dyn_filename
                 st_controllers.append(controller_params.ControllerParams(dyn_filename))
             self.controller_params.append(st_controllers)
         self.reload_params()
@@ -44,6 +51,7 @@ class StyleBase():
         for st in range(4):
             for dyn in range(4):
                 self.controller_params[st][dyn].load_file()
+                #print self.controller_params[st][dyn].get_attack_force(0)
 
     def plan_perform(self, events):
         """ main method which turns events into self.notes """
@@ -82,19 +90,15 @@ class StyleBase():
         return force
 
     def get_finger(self, pitch, which_string):
-        finger_semitones = pitch - (55 + 7*which_string)
+        string_pitch = instrument_numbers.INSTRUMENT_TYPE_STRING_PITCHES[
+            self.inst_type][which_string]
+        finger_semitones = pitch - string_pitch
         position = self.semitones(finger_semitones)
         return position
 
     def get_naive_string(self,pitch):
-        if (pitch < 62):
-            return 0
-        elif (pitch < 69):
-            return 1
-        elif (pitch < 76):
-            return 2
-        else:
-            return 3
+        return instrument_numbers.get_string(
+            self.inst_type, pitch)
 
     def semitones(self, num):
         return 1.0 - 1.0 / (1.05946309**num)

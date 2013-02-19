@@ -7,27 +7,36 @@
 # I have to import vivi_controller here for some unknown reason!
 import vivi_controller
 
-
 #import os
 import dirs
 
 from PyQt4 import QtGui, QtCore
 import vivi_mainwindow_gui
 
-#import utils
+import vivi_defines
 import shared
 
-import string_train_all
+import string_instrument
 
-#import lily
+import lilypond_prepare
+
 import score_widget
+
+import instrument_numbers
 
 import performer_feeder
 
-#import examine_note_widget
+import worker.thread_pool
 
-import movie
+import movie_prep
 
+import state
+
+import hill_prep
+import mix_hill_prep
+
+import mix_audio_prep
+import mix_video_prep
 
 import os
 import time
@@ -37,11 +46,9 @@ class ViviMainwindow(QtGui.QMainWindow):
     """ Main window of Vivi, the Virtual Violinist. """
     def __init__(self,
             training_dirname, cache_dirname, final_dirname,
-            ly_filename, skill, always_lilypond,
-            instrument_number):
+            ly_filename, skill, always_lilypond):
         self.app = QtGui.QApplication([])
         QtGui.QMainWindow.__init__(self)
-        shared.instrument_number = instrument_number
 
         ## setup main gui
         self.ui = vivi_mainwindow_gui.Ui_MainWindow()
@@ -49,29 +56,37 @@ class ViviMainwindow(QtGui.QMainWindow):
         self.show()
 
         ## setup progresss window
-        self.prod = QtGui.QDialog(self)
-        self.prod.setWindowTitle("Vivi calculations")
-        self.prod.setWindowModality(QtCore.Qt.ApplicationModal)
-        vbox = QtGui.QVBoxLayout()
-        self.prod.setLayout(vbox)
-        self.prod.label = QtGui.QLabel()
-        self.prod.progress = QtGui.QProgressBar()
-        vbox.addWidget(self.prod.label)
-        vbox.addWidget(self.prod.progress)
-        self.process_value = 0
+        #self.prod = QtGui.QDialog(self)
+        #self.prod.setWindowTitle("Vivi calculations")
+        #self.prod.setWindowModality(QtCore.Qt.ApplicationModal)
+        #vbox = QtGui.QVBoxLayout()
+        #self.prod.setLayout(vbox)
+        #self.prod.label = QtGui.QLabel()
+        #self.prod.progress = QtGui.QProgressBar()
+        #vbox.addWidget(self.prod.label)
+        #vbox.addWidget(self.prod.progress)
+        #self.process_value = 0
 
         ## setup shared
-        dirs.files = dirs.ViviDirs(
+        self.files = dirs.ViviDirs(
             training_dirname, cache_dirname, final_dirname)
-        shared.judge = shared.judge_audio_widget.JudgeAudioWidget(
-            self.ui.verticalLayout)
+
+        shared.thread_pool = worker.thread_pool.ThreadPool()
+        self.thread_pool_results_queue = shared.thread_pool.get_results_queue()
+        shared.thread_pool.process_step.connect(self.process_step)
+        shared.thread_pool.done_task.connect(self.done_task)
+
+        #shared.judge = shared.judge_audio_widget.JudgeAudioWidget(
+        #    self.ui.verticalLayout)
         shared.examine_main = shared.examine_note_widget.ExamineNoteWidget(
             shared.examine_note_widget.PLOT_MAIN)
             #shared.examine_note_widget.PLOT_STABLE)
         shared.examine_main.new_examine_note()
         shared.examine_main.plot_actions.setMinimumHeight(100)
         shared.examine_main.plot_actions.highlight(True)
-        self.ui.verticalLayout.addWidget(shared.examine_main.plot_actions)
+        self.ui.verticalLayout.insertWidget(
+            1,
+            shared.examine_main.plot_actions)
 
         ## setup other shared stuff
         #shared.perform = shared.performer.Performer()
@@ -79,29 +94,43 @@ class ViviMainwindow(QtGui.QMainWindow):
 #
 #        shared.listen = [[]]*4
 #
-#        shared.ability = shared.skill.Skill(skill)
+        shared.skill = skill
 
-        ## setup training
-        self.string_train = string_train_all.StringTrainAll(
-            self.ui.string_train_layout)
-        #self.string_train.set_note_label(self.ui.note_label)
-
-        self.string_train.process_step.connect(self.process_step)
-#        shared.compare.set_string_train(self.string_train)
-
+        ## setup instruments
+        self.instruments = []
+        colls = None
+        for i, inst_name in enumerate(instrument_numbers.INSTRUMENT_NAMES):
+            #print i, inst
+            tab = self.ui.tabWidget.widget(i)
+            #inst_num = instrument_numbers.DISTINCT_INSTRUMENT_NUMBERS[i]
+            inst = string_instrument.StringInstrument(
+                tab.layout(),
+                i, inst_name,
+                training_dirname, cache_dirname, final_dirname,
+                self.ui.judge_layout, colls)
+            self.instruments.append(inst)
+            if i in [0, 5, 7]:
+                colls = inst.get_colls()
+            if i in [4, 6]:
+                colls = None
+        #self.string_instrument.set_note_label(self.ui.note_label)
+        self.string_instrument = self.instruments[0]
+        self.ui.tabWidget.currentChanged.connect(self.tab_changed)
 
         ## setup actions?
         self.ui.actionSave_training.triggered.connect(
             self.save_training)
         self.ui.actionBasic_training.triggered.connect(self.basic_training)
 
-        self.ui.actionCompute.triggered.connect(self.compute)
-        self.ui.actionCheck_accuracy.triggered.connect(self.train_check)
-        self.ui.actionVerify.triggered.connect(self.verify)
+        # string stuff
+        self.ui.actionCompute.triggered.connect(self.calculate_training)
+        self.ui.actionCheck_accuracy.triggered.connect(self.calculate_accuracy)
 
-        self.ui.actionLearn_attacks.triggered.connect(self.learn_attacks)
-        self.ui.actionLearn_stable.triggered.connect(self.learn_stable)
-        self.ui.actionLearn_dampen.triggered.connect(self.learn_dampen)
+        # dyn stuff
+        self.ui.actionVerify.triggered.connect(self.calculate_verify)
+        self.ui.actionLearn_stable.triggered.connect(self.calculate_stable)
+        self.ui.actionLearn_attacks.triggered.connect(self.calculate_attack)
+        self.ui.actionLearn_dampen.triggered.connect(self.calculate_dampen)
 
 
         self.ui.action_Open_ly_file.triggered.connect(self.open_ly_file)
@@ -109,93 +138,108 @@ class ViviMainwindow(QtGui.QMainWindow):
         self.ui.actionWatch.triggered.connect(self.watch)
         self.ui.actionGenerate_video.triggered.connect(self.generate_video)
         self.ui.actionEnjoy_video.triggered.connect(self.enjoy_video)
+        self.ui.actionHill_climbing.triggered.connect(self.hill)
 
 
+        self.progressBar = QtGui.QProgressBar()
+        self.ui.statusBar.addPermanentWidget(self.progressBar)
+        self.progressBar.hide()
 
 #        self.setup_training()
-        self.setup_music()
+        self.setup_sheet_music()
         self.always_lilypond = always_lilypond
+
 #
 #        self.only_one = False
 #        if ly_filename:
 #            self.only_one = True
 #            self.open_ly_file(ly_filename)
 
+        self.ui.tabWidget.setCurrentIndex(0)
+        self.ui.tabWidget.setCurrentIndex(0)
+
+        self.waiting_tasks = {}
 
 
 
+    def setup_sheet_music(self):
+        self.score = score_widget.ScoreWidget()
+        self.ui.score_scroll_area.setWidget(self.score)
+        self.ui.score_scroll_area.setMinimumHeight(100)
+        #print self.ui.score_scroll_area.sizeHint()
 
-    def setup_music(self):
-        shared.lily = shared.lilypond_compile.LilyPondCompile()
-        shared.lily.process_step.connect(self.process_step)
-        shared.lily.done.connect(self.finished_ly_compile)
-
-        self.score = score_widget.ScoreWidget(self.ui.score_scroll_area)
+#        self.score = score_widget.ScoreWidget(
+#            self.ui.tabWidget.widget(
+#                self.ui.tabWidget.count()-1).layout())
         self.score.note_click.connect(self.select_note)
 
         shared.music = shared.music_events.MusicEvents()
+        #self.examine = examine_note_widget.ExamineNoteWidget(
+        #    self.ui.note_layout)
 
-#        self.examine = examine_note_widget.ExamineNoteWidget(
-#            self.ui.note_layout)
-#
         self.ui.actionRehearse.triggered.connect(self.rehearse)
         self.ui.actionListen.triggered.connect(self.play)
-        self.performer_feeder = performer_feeder.PerformerFeeder()
-        self.performer_feeder.process_step.connect(self.process_step)
-        self.performer_feeder.done.connect(self.rehearse_done)
+        self.performer_feeder = None
 
-        self.movie = movie.ViviMovie()
-        self.movie.process_step.connect(self.process_step)
+        self.movies = []
+
 
     def basic_training(self):
-        self.string_train.basic_train()
+        self.string_instrument.basic_train()
 
-
-
-
-
-
-
+    ### bulk processing state
+    def process_step(self):
+        self.process_value += 1
+        #self.prod.progress.setValue(self.process_value)
+        self.progressBar.setValue(self.process_value)
+        #if self.prod.progress.maximum() == self.process_value:
+        #    self.prod.hide()
 
 ######################### old stuffs
 
     def load_ly_file(self, ly_filename):
-        dirs.files.set_ly_basename(ly_filename)
-        if shared.lily.lily_file_needs_compile():
-            self.progress_dialog("Generating score", 2)
-            shared.lily.call_lilypond()
-        elif self.always_lilypond:
-            print "Generating lilypond",
-            shared.lily.call_lilypond()
+        self.files.set_ly_basename(ly_filename)
+        if lilypond_prepare.lily_file_needs_compile(self.files) or self.always_lilypond:
+            self.job(vivi_defines.TASK_LILYPOND, "Compiling LilyPond score")
         else:
             self.finished_ly_compile()
 
     def finished_ly_compile(self):
-        self.score.load_file(dirs.files.get_ly_extra(".pdf"))
-        dirs.files.set_notes_from_ly()
+        self.score.load_file(self.files.get_ly_extra(".pdf"))
+        self.files.set_notes_from_ly()
+        notes_filenames = self.files.get_notes_files()
+        self.pncs = {}
+        for note_filename in notes_filenames:
+            pncs = []
+            lines = open(note_filename).readlines()
+            for line in lines:
+                pnc_index = line.find("point-and-click")
+                if pnc_index >= 0:
+                    pnc = line[pnc_index+16:].strip()
+                    pncs.append(pnc)
+            self.pncs[note_filename] = pncs
 
     def save_training(self):
-        self.string_train.save()
+        for inst in self.instruments:
+            inst.save()
 
 
     def progress_dialog(self, text, maximum):
-        self.prod.label.setText(text)
-        self.prod.progress.setMaximum(maximum)
         self.process_value = 0
-        self.prod.progress.setValue(self.process_value)
-        self.prod.show()
 
-    def process_step(self):
-        self.process_value += 1
-        if self.process_value == self.prod.progress.maximum():
-            self.prod.hide()
-        else:
-            self.prod.progress.setValue(self.process_value)
+        #self.prod.label.setText(text)
+        #self.prod.progress.setMaximum(maximum)
+        #self.prod.progress.setValue(self.process_value)
+
+        self.ui.statusBar.showMessage(text)
+        self.progressBar.setMaximum(maximum)
+        self.progressBar.setValue(self.process_value)
+        self.progressBar.show()
 
     def needs_basic(self):
         # TODO: is this debug only, or permanent?
         return False
-        if self.string_train.get_basic_train_level() < 1:
+        if self.string_instrument.get_basic_train_level() < 1:
             QtGui.QMessageBox.warning(self,
                 "Vivi error",
                 "Vivi needs more basic training first!",    
@@ -203,76 +247,71 @@ class ViviMainwindow(QtGui.QMainWindow):
             return True
         return False
 
-    def compute(self):
-        self.save_training()
-        if self.needs_basic():
-            return
-        steps = self.string_train.compute_training()
-        if steps == 0:
-            return
-        self.progress_dialog("Computing training files", steps)
+    def job(self, job_type, text):
+        if job_type in state.STRING_JOBS or job_type in state.DYN_JOBS:
+            steps = self.string_instrument.start_job(job_type)
+        elif job_type is vivi_defines.TASK_LILYPOND:
+            steps = lilypond_prepare.start_job(self.files)
+        elif job_type is vivi_defines.TASK_RENDER_AUDIO:
+            steps = self.performer_feeder.start_job(self.get_instrument_files)
+            self.waiting_tasks[job_type] = self.performer_feeder.num_audio_files
+        elif job_type is vivi_defines.TASK_MIX_AUDIO:
+            raise Exception("TASK_MIX_AUDIO should be started automatically")
+        elif job_type is vivi_defines.TASK_HILL_CLIMBING:
+            steps = hill_prep.start_job(self.files, self.get_instrument_files)
+            self.waiting_tasks[job_type] = hill_prep.get_num_jobs()
+        elif job_type is vivi_defines.TASK_PLAY_AUDIO:
+            job = state.Job(job_type)
+            job.audio_filename = self.files.get_ly_extra("-all.wav")
+            steps = shared.thread_pool.add_task(job)
+        elif job_type is vivi_defines.TASK_RENDER_VIDEO_PREVIEW:
+            steps = movie_prep.start_job(self.files)
+            self.waiting_tasks[job_type] = (
+                self.performer_feeder.num_audio_files *
+                movie_prep.get_split_tasks())
+        elif job_type is vivi_defines.TASK_MIX_VIDEO:
+            raise Exception("TASK_MIX_VIDEO should be started automatically")
+        elif job_type is vivi_defines.TASK_PLAY_VIDEO_PREVIEW:
+            job = state.Job(job_type)
+            job.movie_filename = self.files.get_ly_movie_preview()
+            steps = shared.thread_pool.add_task(job)
+        elif job_type is vivi_defines.TASK_RENDER_VIDEO:
+            steps = movie_prep.start_job(self.files, 1)
+            self.waiting_tasks[job_type] = (
+                self.performer_feeder.num_audio_files *
+                movie_prep.get_split_tasks())
+        elif job_type is vivi_defines.TASK_PLAY_VIDEO:
+            job = state.Job(job_type)
+            job.movie_filename = self.files.get_ly_movie()
+            steps = shared.thread_pool.add_task(job)
+        else:
+            raise Exception("Main window: unknown job type")
+        if steps > 0:
+            self.progress_dialog(text, steps)
+
 
     def rehearse(self):
-        self.save_training()
-        wavfiles = []
-        for i in range(len(dirs.files.notes_all)):
-            dirs.files.set_notes_index(i)
-            self.performer_feeder.set_instrument(shared.instrument_number+i)
-            self.performer_feeder.load_file(
-                dirs.files.get_notes() )
-            steps = self.performer_feeder.play_music()
-            self.progress_dialog("Rehearsing music", steps)
-            # FIXME: oh god ick, total hack
-            while self.performer_feeder.state != performer_feeder.STATE_NULL:
-                time.sleep(0.1)
-        num_parts = len(dirs.files.notes_all)
-        if num_parts > 1:
-            # mixing
-            cmd = "ecasound "
-            for i in range(num_parts):
-                dirs.files.set_notes_index(i)
-                wav_filename = dirs.files.get_notes_ext(".wav")
-
-                #pan = int(100*i / (num_parts-1))
-                pan = int(100*(i+1) / (num_parts+1))
-                print pan
-                cmd += "-a:%i %s -erc:1,2 -epp:%i " % (
-                    i, wav_filename, pan)
-            mixed_filename = dirs.files.get_notes_ext(".wav")
-            mixed_filename = mixed_filename.replace(".wav", "-mixed.wav")
-            cmd += "-a:all -o %s" % (mixed_filename)
-            os.system(cmd)
-            self.performer_feeder.load_wav(mixed_filename[:-4])
-            self.mixed_filename = mixed_filename
-
+        if not self.performer_feeder:
+            self.performer_feeder = performer_feeder.PerformerFeeder(self.files)
+        self.job(vivi_defines.TASK_RENDER_AUDIO, "Rendering audio")
 
     def rehearse_done(self):
         pass
-        #print "rehearse done"
-#        if self.only_one:
-#            self.app.quit()
-#        else:
-#            self.examine.load_file(self.ly_basename)
-
-#        self.progress_dialog("Rehearsing piece", 4)
-#        self.process_step()
-#        self.app.processEvents()
-#        cmd = './vivi_play.py ly/basic-scale.ly'
-#        os.system(cmd)
-#        self.process_step()
-#        self.examine.load_file(self.ly_basename)
-#        self.prod.hide()
-
 
     def play(self):
-        self.performer_feeder.play()
+        self.job(vivi_defines.TASK_PLAY_AUDIO, "Playing music")
 
     def select_note(self, lily_line, lily_col):
-        filename = dirs.files.get_ly_extra("")
-        import glob
-        filename = glob.glob(filename+'*.actions')[0]
-        filename = filename[:-8]
-        shared.examine_main.load_file(filename)
+        notes_filename = None
+        search = "%i %i" % (lily_col, lily_line)
+        for filename, values in self.pncs.iteritems():
+            # don't bother breaking out of this; it's fast enough
+            for val in values:
+                if val == search:
+                    notes_filename = filename[:-6]
+        if notes_filename is None:
+            return
+        shared.examine_main.load_file(notes_filename, self.files)
         #pnc_text = "point_and_click %i %i" % (lily_line, lily_col)
         pnc_text = "point_and_click %i %i" % (lily_col, lily_line)
         if shared.examine_main.load_note(pnc_text):
@@ -280,7 +319,7 @@ class ViviMainwindow(QtGui.QMainWindow):
         else:
             print "no note found:", pnc_text
 
-        #self.string_train.set_note_label(self.ui.note_label)
+        #self.string_instrument.set_note_label(self.ui.note_label)
 #        status = self.examine.load_note(lily_line, lily_col)
 #        if not status:
             # done in examine (examine_note_widget) now!
@@ -291,50 +330,43 @@ class ViviMainwindow(QtGui.QMainWindow):
 #            return
 #        st = self.examine.examine_note.note_st
 #        lvl = self.examine.examine_note.level
-#        self.string_train.select(st, lvl)
+#        self.string_instrument.select(st, lvl)
         #self.examine.show_note_info()
 #        self.examine.play()
 
-    def train_note(self):
-        train_list = self.examine.examine_note.get_train_list()
-        level = self.examine.examine_note.level
-        self.string_train.train_note(train_list, level)
+    #def train_note(self):
+    #    train_list = self.examine.examine_note.get_train_list()
+     #   level = self.examine.examine_note.level
+     #   self.string_instrument.train_note(train_list, level)
 
     def train_zoom(self):
-        st, level, filename = shared.examine_main.get_zoom()
-        self.string_train.train_zoom(st, level, filename)
+        st, level, filename, dist_inst_num = shared.examine_main.get_zoom()
+        self.instruments[dist_inst_num].train_zoom(st, level, filename)
 
-    def train_check(self):
-        self.save_training()
-        steps = self.string_train.check_accuracy()
-        if steps == 0:
+# string stuff
+    def calculate_training(self):
+        if self.needs_basic():
             return
-        self.progress_dialog("Checking accuracy", steps)
+        self.job(vivi_defines.TASK_TRAINING, "Computing training files")
 
-    def verify(self):
-        self.save_training()
-        steps = self.string_train.verify()
-        if steps == 0:
-            return
-        self.progress_dialog("Verify", steps)
+    def calculate_accuracy(self):
+        self.job(vivi_defines.TASK_ACCURACY, "Checking accuracy")
 
-    def learn_attacks(self):
-        steps = self.string_train.learn_attacks()
-        if steps == 0:
-            return
-        self.progress_dialog("Learning attacks", steps)
+# dyn stuff
+    def calculate_verify(self):
+        self.job(vivi_defines.TASK_VERIFY, "Verifying stability")
 
-    def learn_stable(self):
-        steps = self.string_train.learn_stable()
-        if steps == 0:
-            return
-        self.progress_dialog("Learning stable", steps)
+    def calculate_stable(self):
+        self.job(vivi_defines.TASK_STABLE, "Learning stable")
 
-    def learn_dampen(self):
-        steps = self.string_train.learn_dampen()
-        if steps == 0:
-            return
-        self.progress_dialog("Learning dampen", steps)
+    def calculate_attack(self):
+        self.job(vivi_defines.TASK_ATTACK, "Learning attacks")
+
+    def calculate_dampen(self):
+        self.job(vivi_defines.TASK_DAMPEN, "Learning dampen slur")
+
+# other stuff
+
 
     def open_ly_file(self, ly_filename=None):
         if ly_filename:
@@ -349,36 +381,27 @@ class ViviMainwindow(QtGui.QMainWindow):
             self.load_ly_file(str(ly_filename))
 
     def quick_preview(self):
-        #print "generate low-quality preview video"
-        self.movie.end_time = self.performer_feeder.get_duration()
-        for i in range(len(dirs.files.notes_all)):
-            dirs.files.set_notes_index(i)
-            steps = self.movie.generate_preview()
-            self.progress_dialog("Generating movie", steps)
-            # FIXME: oh god ick, total hack
-            while self.movie.state != 0:
-                time.sleep(0.1)
-        num_parts = len(dirs.files.notes_all)
-        if num_parts > 1:
-            self.movie.mix(self.mixed_filename)
+        self.job(vivi_defines.TASK_RENDER_VIDEO_PREVIEW, "generating preview video")
+
+    def hill(self):
+        self.job(vivi_defines.TASK_HILL_CLIMBING, "hill climbing")
 
     def generate_video(self):
-        #print "generate high-quality video"
-        self.movie.end_time = self.performer_feeder.get_duration()
-        steps = self.movie.generate_movie()
-        self.progress_dialog("Generating movie", steps)
+        self.job(vivi_defines.TASK_RENDER_VIDEO, "generating main video")
 
     def watch(self):
-        steps = self.movie.watch_preview()
-        self.progress_dialog("Watching movie", steps)
+        self.job(vivi_defines.TASK_PLAY_VIDEO_PREVIEW, "Playing video preview")
 
     def enjoy_video(self):
-        steps = self.movie.watch_movie()
-        self.progress_dialog("Watching movie", steps)
+        self.job(vivi_defines.TASK_PLAY_VIDEO, "Playing main video")
 
 
-    def set_modified(self):
-        self.string_train.set_modified()
+    def tab_changed(self, index):
+        if index < len(self.instruments):
+            self.string_instrument = self.instruments[index]
+
+    def set_modified(self, portion):
+        self.string_instrument.set_modified(portion)
 
     def close(self):
         self.save_training()
@@ -386,6 +409,59 @@ class ViviMainwindow(QtGui.QMainWindow):
         #import os
         #os.system("reset")
         self.app.quit()
+
+    def get_instrument_files(self, index):
+        return self.instruments[index].files
+
+    def done_task(self):
+        # must do before the render_audio test
+        job = self.thread_pool_results_queue.get()
+        if job.job_type in state.STRING_JOBS or job.job_type in state.DYN_JOBS:
+            self.string_instrument.task_done(job)
+        elif job.job_type is vivi_defines.TASK_LILYPOND:
+            self.finished_ly_compile()
+        elif job.job_type is vivi_defines.TASK_RENDER_AUDIO:
+            self.waiting_tasks[job.job_type] -= 1
+            if self.waiting_tasks[job.job_type] == 0:
+                steps = mix_audio_prep.start_job(job.ly_basename)
+                self.progress_dialog("Mixing audio", steps)
+        elif job.job_type is vivi_defines.TASK_MIX_AUDIO:
+            pass
+        elif job.job_type is vivi_defines.TASK_PLAY_AUDIO:
+            pass
+        elif job.job_type is vivi_defines.TASK_HILL_CLIMBING:
+            self.waiting_tasks[job.job_type] -= 1
+            if self.waiting_tasks[job.job_type] == 0:
+                steps = mix_hill_prep.start_job(self.files, self.get_instrument_files)
+                self.progress_dialog("Deciding on a hill direction", steps)
+        elif job.job_type is vivi_defines.TASK_MIX_HILL:
+            pass
+        elif job.job_type is vivi_defines.TASK_RENDER_VIDEO_PREVIEW:
+            self.waiting_tasks[job.job_type] -= 1
+            if self.waiting_tasks[job.job_type] == 0:
+                steps = mix_video_prep.start_job(self.files,
+                    job.quality)
+                self.progress_dialog("Mixing video", steps)
+        elif job.job_type is vivi_defines.TASK_PLAY_VIDEO_PREVIEW:
+            pass
+        elif job.job_type is vivi_defines.TASK_MIX_VIDEO:
+            pass
+        elif job.job_type is vivi_defines.TASK_RENDER_VIDEO:
+            self.waiting_tasks[job.job_type] -= 1
+            if self.waiting_tasks[job.job_type] == 0:
+                steps = mix_video_prep.start_job(self.files,
+                    job.quality)
+                self.progress_dialog("Mixing video", steps)
+        elif job.job_type is vivi_defines.TASK_PLAY_VIDEO:
+            pass
+        else:
+            print "done other job"
+        self.thread_pool_results_queue.task_done()
+        if shared.thread_pool.all_tasks_finished():
+            self.progressBar.hide()
+            self.ui.statusBar.clearMessage()
+            # TODO: maybe?
+            #gc.collect()
 
     def keyPressEvent(self, event):
         try:
@@ -398,18 +474,26 @@ class ViviMainwindow(QtGui.QMainWindow):
             self.close()
         elif (key == 'p'):
             shared.examine_main.play()
-        elif key == 't':
-            self.train_note()
+        #elif key == 't':
+            #self.train_note()
         elif key == 'z':
             self.train_zoom()
         elif key == 'y':
             self.open_ly_file('ly/example-input.ly')
         elif key == 'i':
-            self.open_ly_file('ly/basic/scale-combo.ly')
+            #self.open_ly_file('ly/basic/scale-combo.ly')
+            #self.open_ly_file('ly/basic-violin/scale-forte-2.ly')
+            #self.open_ly_file('ly/basic-violin/scale-double-forte.ly')
+            self.open_ly_file('ly/black-box-cello.ly')
+            #self.open_ly_file('ly/bach-double.ly')
         elif key == 'u':
             self.open_ly_file('ly/black-box.ly')
+        elif key == 'x':
+            self.set_modified(1)
+        elif key == 's':
+            self.set_modified(2)
         elif key == 'm':
-            self.set_modified()
+            self.set_modified(0)
         else:
             QtGui.QMainWindow.keyPressEvent(self, event)
 

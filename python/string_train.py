@@ -3,351 +3,275 @@
 from PyQt4 import QtGui, QtCore
 import string_train_gui
 
+import vivi_defines
+
 import dyn_train
 
-#import ears
-import vivi_controller
 import utils
 
 import collection
 import state
 
-#import performer
-#import violin_practice
-
+import compare_coll
 import shared
 
+import judge_audio_widget
+
+import os
+import os.path
+
+import instrument_numbers
 
 NUM_DYNS = 4
 
-STATE_NULL = 0
-STATE_BASIC_TRAINING = 1
-STATE_SVM = 2
-
-CALCULATE_TRAINING = 1
-CHECK_ACCURACY = 2
-LEARN_ATTACKS = 3
-LEARN_STABLE = 4
-
-
 class StringTrain(QtGui.QFrame):
-    process_step = QtCore.pyqtSignal()
-
-    def __init__(self, parent, st):
+    def __init__(self, parent, st, inst_type, inst_num,
+            files,
+            judge_layout, coll):
         QtGui.QWidget.__init__(self)
+
+        ### internal state
         self.st = st
+        self.inst_type = inst_type
+        self.inst_num = inst_num
+        self.coll = coll
+        self.files = files
+        self.judge_layout = judge_layout
+        #print "string_train", self.inst_type, self.inst_num
 
         ### setup GUI
         self.ui = string_train_gui.Ui_string_train_box()
         self.ui.setupUi(self)
         parent.addWidget(self)
-        if self.st == 0:
-            text = 'G'
-        elif self.st == 1:
-            text = 'D'
-        elif self.st == 2:
-            text = 'A'
-        elif self.st == 3:
-            text = 'E'
-        self.ui.string_label.setText(text)
-
-        ### setup per-string control loop for training
-        self.controller = vivi_controller.ViviController(shared.instrument_number)
-        self.coll = collection.Collection()
 
         self.dyns = []
         for di in range(NUM_DYNS):
             dyn = dyn_train.DynTrain(
-                self.ui.horizontalLayout,
-                self.st, di, self.controller, None, self.coll)
-            dyn.process_step.connect(self.process_step_emit)
+                self.ui.horizontalLayout, self,
+                self.st, di,
+                self.inst_type, self.inst_num, self.coll,
+                self.files)
             self.dyns.append(dyn)
+            pass
 
-        self.dyn_steps = [0]*NUM_DYNS
-        self.dyn_working_index = -1
+        self.ui.accuracy.clicked.connect(self.click_accuracy)
 
-        self.state = state.State()
-        self.state.next_step.connect(self.next_step)
-        self.state.finished_step.connect(self.finished_step)
+        self.compare = None
+        self.judge = None
+        self.accuracy = 0.0
+
+        self.modified = {}
+        for key in state.STRING_JOBS:
+            self.modified[key] = False
+
+
+        if self.inst_type == 0:
+            string_names = ['G', 'D', 'A', 'E']
+        else:
+            string_names = ['C', 'G', 'D', 'A']
+
+        self.ui.string_label.setText(string_names[self.st])
+
+        self.read()
+
+
+
+    def display(self):
+
+        num_trained = self.coll.num_main()
+        if num_trained > 0:
+            self.ui.num_trained.setText(str(self.coll.num_main()))
+        else:
+            self.ui.num_trained.setText("")
+        if self.accuracy > 0:
+            if vivi_defines.REGRESSION:
+                # round number
+                self.ui.accuracy.setText(
+                    str("%.3f")%( self.accuracy ))
+            else:
+                self.ui.accuracy.setText(
+                    str("%.1f%%")%( self.accuracy ))
+        else:
+            self.ui.accuracy.setText("")
+
+        self.highlight(self.ui.num_trained,
+            self.modified[vivi_defines.TASK_TRAINING])
+        self.highlight(self.ui.accuracy,
+            self.modified[vivi_defines.TASK_ACCURACY])
+
+        for dyn in self.dyns:
+            dyn.display()
+
+
+    def highlight(self, widget, highlight=True):
+        # TODO: really bad way of highlighting!
+        # but QPushButtons don't seem
+        # to have a nice way to highlight!
+        if highlight:
+            widget.setStyleSheet("background-color: darkBlue; color: white;")
+        else:
+            widget.setStyleSheet("")
+
+    def read(self):
+        try:
+            ### read collection
+            mf_filename = self.files.get_mf_filename(self.st)
+            self.coll.add_mf_file(mf_filename)
+            lines = open(self.files.get_string_filename(self.st)).readlines()
+            self.accuracy = float(lines[0])
+        except:
+            self.accuracy = 0.0
+        for dyn in self.dyns:
+            dyn.read()
+        self.display()
 
     def save(self):
-        for di in range(NUM_DYNS):
-            self.dyns[di].write()
+        for di, dyn in enumerate(self.dyns):
+            dyn.write()
+        if self.inst_num > 0:
+            return
+        if self.coll.need_save():
+            ### write collection
+            mf_filename = self.files.get_mf_filename(self.st)
+            self.coll.write_mf_file(mf_filename)
+        if True:
+            ### save accuracy
+            string_file = open(self.files.get_string_filename(self.st), "w")
+            string_file.write("%.3f" % self.accuracy)
+            string_file.close()
 
-    ### bulk processing state
-    def process_step_emit(self):
-        self.process_step.emit()
-        self.state.step()
 
-    def start(self):
-        self.state.start()
-
-    def next_step(self, job_type, job_index):
-        self.dyns[job_index].start()
-
-    def finished_step(self, job_type, job_index):
-        pass
+    def set_modified_this(self):
+        for key in state.STRING_JOBS:
+            self.modified[key] = True
+        self.coll.set_modified()
+        self.display()
 
     def set_modified(self):
-        for st in range(NUM_STRINGS):
-            self.train[st].set_modified()
-#
-#    def next_step(self):
-#        print self.st, "next step ", self.dyn_steps
-#        for di in range(NUM_DYNS):
-#            if self.dyn_steps[di] > 0:
-#                self.do_next_step(di)
-#                self.dyn_steps[di] -= 1
-#                return
-#
-#    def decide_next_step(self):
-#        print self.st, "decide next step ", self.dyn_steps
-#        if self.dyn_steps[self.dyn_working_index] > 0:
-#            # continue working
-#            self.dyn_steps[self.dyn_working_index] -= 1
-#            return
+        for di, dyn in enumerate(self.dyns):
+            dyn.set_modified()
+        self.set_modified_this()
+
+    def is_need_job(self, job_type):
+        if self.coll.num_main() == 0:
+            return False
+        if not self.modified[job_type]:
+            return False
+        return True
+
+    def make_job(self, job_type):
+        job = state.Job(job_type)
+        job.inst_type = self.inst_type
+        job.inst_num = self.inst_num
+        job.st = self.st
+        job.files = self.files
+        job.mf_filename = self.files.get_mf_filename(self.st)
+        job.arff_filename = self.files.get_arff_filename(self.st)
+        job.mpl_filename = self.files.get_mpl_filename(self.st)
+        if job.job_type == vivi_defines.TASK_TRAINING:
+            if not os.path.exists(job.mf_filename):
+                return None
+        if job.job_type == vivi_defines.TASK_ACCURACY:
+            job.coll = self.coll
+            job.cats_dir = self.files.get_cats_dir()
+            if not os.path.exists(job.arff_filename):
+                return None
+        return job
+
+    def start_job(self, job_type):
+        if job_type in state.DYN_JOBS:
+            steps = sum( [dyn.start_job(job_type) for dyn in self.dyns ])
+            return steps
+        if not self.is_need_job(job_type):
+            return 0
+        job = self.make_job(job_type)
+        if not job:
+            return 0
+        steps = shared.thread_pool.add_task(job)
+        return steps
+
+
+    def make_judge(self, parent):
+        judge = judge_audio_widget.JudgeAudioWidget(parent)
+        judge.judged_cat.connect(self.judged_cat)
+        judge.display(parent)
+        return judge
+
+    def train_zoom(self, wavfile, cancel_will_delete=True):
+        self.cancel_will_delete = cancel_will_delete
+        self.train_filename = wavfile
+        # TODO: clean this up
+        self.judge = self.make_judge(self.judge_layout)
+        self.judge.user_judge(wavfile)
+
+
+    def click_accuracy(self, event):
+        if self.accuracy == 0:
+            return
+        if not self.compare:
+            self.compare = compare_coll.CompareColl(self.files)
+            self.compare.row_delete.connect(self.delete_file)
+            self.compare.row_retrain.connect(self.retrain_file)
+        self.compare.compare(self.st, self.coll)
+
+    def delete_file(self, filename):
+        self.coll.delete(filename+'.wav')
+        self.set_modified()
+        #if not basic_training.get_next_basic(self.dyn, self.coll):
+        #    self.basic_trained = True
+        #else:
+        #    self.basic_trained = False
+        self.display()
+
+    def retrain_file(self, filename):
+        # TODO: passing a python string through a signal turns it into a
+        # QString.  This changes it back to a python string
+        wavfile = str(filename)
+#        self.train_zoom(str(filename), cancel_will_delete=False)
+        self.cancel_will_delete = False
+        self.train_filename = wavfile
+        self.judge = self.make_judge(self.compare.ui.verticalLayout)
+        self.judge.user_judge(wavfile)
+
+    def judged_cat(self, cat):
+        if cat == judge_audio_widget.JUDGEMENT_CANCEL:
+            if self.cancel_will_delete:
+                os.remove(self.train_filename+".wav")
+                os.remove(self.train_filename+".forces.wav")
+                os.remove(self.train_filename+".actions")
+        else:
+            self.train_filename = self.files.move_works_to_train(
+                self.train_filename)
+            if self.cancel_will_delete:
+                self.coll.add_item(self.train_filename+'.wav',
+                    cat)
+            else:
+                self.coll.add_item(self.train_filename+'.wav',
+                    cat, replace=True)
+                self.compare.compare(self.st, self.coll)
+            self.judged_main_num = self.coll.num_main()
+            self.set_modified()
+#        if self.state.job_type == state.BASIC_TRAINING:
+#            if self.coll.is_cat_valid(cat):
+#                self.basic_train_next()
+#            else:
+#                self.basic_train_end()
 #        else:
-#            for di in range(NUM_DYNS):
-#                if self.dyn_steps[di] > 0:
-#                    self.do_next_step(di)
-#                    self.dyn_steps[di] -= 1
-#                    return
-#        return
-#
-#        self.dyn_steps[self.dyn_steps_index] = 0
-#
-#        while (self.dyn_steps[self.dyn_steps_index] == 0):
-#            self.dyn_steps_index += 1
-#            if self.dyn_steps_index >= 4:
-#                self.dyn_steps_index = -1
-#                self.dyn_steps = [0]*4
-#                self.state = 0
-#            #    print "false"
-#                return False
-#        if self.dyn_steps[self.dyn_steps_index] > 0:
-#            #print "true"
-#            return True
-#
-    ### basic training
-    def min_level(self):
-        for li in range(NUM_DYNS):
-            di = utils.level_to_dyn(li)
-            if not self.dyns[di].has_basic_training():
-                return li
-        return NUM_DYNS
+#            self.train_over()
+        self.judge.judged_cat.disconnect(self.judged_cat)
+        self.judge.display(show=False)
+        self.judge = None
 
-    def basic_train_prep(self, level):
-        jobs = [0]*NUM_DYNS
-        dyn = utils.level_to_dyn(level)
-        jobs[dyn] = 1
-        self.state.prep(state.BASIC_TRAINING, jobs)
-        return self.dyns[dyn].basic_prep()
+    def task_done(self, job):
+        self.save()
+        if job.job_type in state.STRING_JOBS:
+            self.modified[job.job_type] = False
+            if job.job_type == vivi_defines.TASK_ACCURACY:
+                self.accuracy = job.accuracy
+            self.display()
+        elif job.job_type in state.DYN_JOBS:
+            self.dyns[job.dyn].task_done(job)
+        else:
+            raise Exception("message should not be here!")
 
-#    def has_level(self, level):
-#        for di in range(4):
-#            if self.dyns[di].level == level:
-#                return self.dyns[di].has_basic_level()
-#        return False
-#
-#    def get_train_level(self, level):
-#        for di in range(4):
-#            if self.dyns[di].level == level:
-#                return self.dyns[di].get_train_level()
-#    def get_dyn_level(self, level):
-#        for di in range(4):
-#            if self.dyns[di].level == level:
-#                return self.dyns[di]
-#
-#
-    def set_modified(self):
-        for di in range(NUM_DYNS):
-            if self.dyns[di].judged_main_num > 0:
-                self.dyns[di].set_modified()
-#
-#
-#    def basic_train_next(self, level):
-#        return self.dyns[level].basic_train_next()
-#
-    def compute_training_steps(self):
-        jobs = []
-        for st in range(NUM_DYNS):
-            jobs.append(self.dyns[st].compute_training_steps())
-        self.state.prep(state.SVM, jobs)
-        return sum(jobs)
-
-    def check_accuracy_steps(self):
-        jobs = []
-        for st in range(NUM_DYNS):
-            jobs.append(self.dyns[st].check_accuracy_steps())
-        self.state.prep(state.ACCURACY, jobs)
-        return sum(jobs)
-
-    def check_verify_steps(self):
-        jobs = []
-        for st in range(NUM_DYNS):
-            jobs.append(self.dyns[st].check_verify_steps())
-        self.state.prep(state.VERIFY, jobs)
-        return sum(jobs)
-
-    def learn_stable_steps(self):
-        jobs = []
-        for st in range(NUM_DYNS):
-            jobs.append(self.dyns[st].learn_stable_steps())
-        self.state.prep(state.STABLE, jobs)
-        return sum(jobs)
-
-    def learn_dampen_steps(self):
-        jobs = []
-        for st in range(NUM_DYNS):
-            jobs.append(self.dyns[st].learn_dampen_steps())
-        self.state.prep(state.DAMPEN, jobs)
-        return sum(jobs)
-
-    def learn_attacks_steps(self):
-        jobs = []
-        for st in range(NUM_DYNS):
-            jobs.append(self.dyns[st].learn_attacks_steps())
-        self.state.prep(state.ATTACKS, jobs)
-        return sum(jobs)
-
-
-
-    def train_zoom(self, dyn, wavfile):
-        self.dyns[dyn].train_zoom(wavfile)
-
-#    def learn_stable(self):
-#        self.state = LEARN_STABLE
-#        for di in DYNS:
-#            self.dyn_steps[di] = self.dyns[di].learn_stable_steps()
-#        self.dyn_steps_index = 0
-#        if self.dyn_steps[self.dyn_steps_index] > 0:
-#            self.dyns[self.dyn_steps_index].learn_stable()
-#        else:
-#            if self.find_next_step():
-#                self.dyns[self.dyn_steps_index].learn_stable()
-#        return sum(self.dyn_steps)
-#
-#
-#    #def process_step_emit(self):
-#    #    self.process_step.emit()
-#
-#
-#
-#
-################## old stuffs
-#
-#    def old_constructor(self):
-#        self.st = st
-#
-#        self.setup_gui()
-#
-#        self.dyns = []
-#        self.make_cat_type_widget('f')
-#        self.make_cat_type_widget('mf')
-#        self.make_cat_type_widget('mp')
-#        self.make_cat_type_widget('p')
-#
-#        self.train = string_train.StringTrain(self.st)
-#        self.train.process_step.connect(self.process_step_emit)
-#
-#        self.display()
-#
-#            
-#
-#    def make_cat_type_widget(self, text):
-#        cat_type_widget = QtGui.QFrame()
-#        cat_type_widget.ui = string_train_gui.Ui_train_cat_frame()
-#        cat_type_widget.ui.setupUi(cat_type_widget)
-#        cat_type_widget.ui.dyn_type.setText(text)
-#        cat_type_widget.setAutoFillBackground(True)
-#        self.ui.horizontalLayout.addWidget(cat_type_widget)
-#        # weird subclassing event thingy
-#        cat_type_widget.mousePressEvent = self.click
-#        self.dyns.append(cat_type_widget)
-#
-#    def click(self, event):
-#        parent = self.parent().parent().string_train
-#        self.check_coll = check_coll_widget.CheckCollWidget(
-#            parent)
-#        #self.check_coll.accepted.connect(self.save_training)
-#        self.check_coll.check(self.st, False, self.train.coll)
-#
-#    def display(self):
-#        for di in range(4):
-#            self.dyns[di].display()
-#        return
-##        if self.train.modified_out:
-##            self.cat_out.setBackgroundRole(
-##                    QtGui.QPalette.Highlight)
-##        else:
-##            self.cat_out.setBackgroundRole(
-##                QtGui.QPalette.Window)
-##        if self.train.modified_in:
-##            self.cat_in.setBackgroundRole(
-##                    QtGui.QPalette.Highlight)
-##        else:
-##            self.cat_in.setBackgroundRole(
-##                QtGui.QPalette.Window)
-#
-#        if self.train.judged_out_num > 0:
-#            #text = str(self.train.judged_out_num)+ ' trained'
-#            text = str(self.train.judged_main_num)+ ' trained'
-#            self.cat_out.ui.num_trained_label.setText(text)
-#        else:
-#            self.cat_out.ui.num_trained_label.setText("")
-#        if self.train.judged_in_num > 0:
-#            text = str(self.train.judged_in_num)+ ' trained'
-#            self.cat_in.ui.num_trained_label.setText("")
-#            #self.cat_in.ui.num_trained_label.setText(text)
-#        else:
-#            self.cat_in.ui.num_trained_label.setText("")
-#
-#        if self.train.accuracy_out >= 0:
-#            text = '%.1f%%\t' % self.train.accuracy_out
-#            self.cat_out.ui.accuracy_label.setText(text)
-#        else:
-#            self.cat_out.ui.accuracy_label.setText("")
-#
-#        if self.train.accuracy_in >= 0:
-#            text = '%.1f%%' % self.train.accuracy_in
-#            self.cat_in.ui.accuracy_label.setText(text)
-#        else:
-#            self.cat_in.ui.accuracy_label.setText("")
-#
-#        #self.set_force(self.ui.force_f, 0)
-#        #self.set_force(self.ui.force_mf, 2)
-#        #self.set_force(self.ui.force_mp, 3)
-#        #self.set_force(self.ui.force_p, 1)
-#        #self.ui.label_f.setEnabled(self.train.levels.hasLevel(0))
-#        #self.ui.label_mf.setEnabled(self.train.levels.hasLevel(2))
-#        #self.ui.label_mp.setEnabled(self.train.levels.hasLevel(3))
-#        #self.ui.label_p.setEnabled(self.train.levels.hasLevel(1))
-#
-#    def set_force(self, label, dynamic_index):
-#        force = self.train.force_init[dynamic_index]
-#        if force > 0:
-#            label.setText( str("%.1f" % force) )
-#        else:
-#            label.setText("")
-#
-##    def mousePressEvent(self, event):
-##        print "click", self.st
-#
-
-#    def select(self, level):
-#        if level >= 0:
-#            self.ui.string_label.setBackgroundRole(
-#                    QtGui.QPalette.AlternateBase)
-##                    QtGui.QPalette.Highlight)
-#            for di in range(4):
-#                if self.dyns[di].level == level:
-#                    self.dyns[di].select(True)
-#                else:
-#                    self.dyns[di].select(False)
-#        else:
-#            self.ui.string_label.setBackgroundRole(
-#                    QtGui.QPalette.Window)
-#            for di in range(4):
-#                self.dyns[di].select(False)
-#
 

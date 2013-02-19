@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>78</width>
-    <height>175</height>
+    <height>110</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QLabel" name="dyn_type">
+    <widget class="QPushButton" name="dyn_type">
      <property name="maximumSize">
       <size>
        <width>40</width>
@@ -52,45 +52,8 @@
      <property name="text">
       <string>f</string>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="num_trained_label">
-     <property name="maximumSize">
-      <size>
-       <width>40</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <italic>true</italic>
-      </font>
-     </property>
-     <property name="autoFillBackground">
+     <property name="flat">
       <bool>true</bool>
-     </property>
-     <property name="text">
-      <string>9</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="accuracy_label">
-     <property name="maximumSize">
-      <size>
-       <width>40</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>98%</string>
      </property>
     </widget>
    </item>
@@ -108,20 +71,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="force_factor">
-     <property name="maximumSize">
-      <size>
-       <width>40</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>1.05</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="dampen">
+    <widget class="QPushButton" name="dampen_normal">
      <property name="maximumSize">
       <size>
        <width>40</width>

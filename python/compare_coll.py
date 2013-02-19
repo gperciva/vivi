@@ -15,19 +15,21 @@ class CompareColl(QtGui.QFrame):
     row_retrain = QtCore.pyqtSignal(str, name="row_retrain")
     row_prev = None
     
-    def __init__(self):
+    def __init__(self, files):
         QtGui.QFrame.__init__(self)
         # set up GUI
         self.ui = examine_widget_gui.Ui_Frame()
         self.ui.setupUi(self)
 
-        self.check_coll = check_coll.CheckColl()
+        self.files = files
+        self.check_coll = check_coll.CheckColl(files)
 
         self.table = table_play_widget.TablePlayWidget(self)
-        self.table.set_column_names(["cat", "stars", "dynamic"])
+        self.table.set_column_names(["cat", "judgements", "dyn", "finger"])
         self.table.setColumnWidth(0, 50)
         self.table.setColumnWidth(1, 500)
-        self.table.setColumnWidth(2, 70)
+        self.table.setColumnWidth(2, 50)
+        self.table.setColumnWidth(3, 50)
 
         self.ui.verticalLayout.addWidget(self.table)
 
@@ -53,37 +55,39 @@ class CompareColl(QtGui.QFrame):
         text = utils.st_to_text(self.st) + " string "
         self.ui.string_label.setText(text)
 
-        text = utils.dyn_to_text(self.dyn)
-        self.ui.dyn_label.setText(text)
+        #text = utils.dyn_to_text(self.dyn)
+        self.ui.dyn_label.setText("")
 
         self.ui.examine_type_label.setText("collection")
 
     def get_dynamic_hack(self, filename):
-        bbd = float(filename.split("_")[3])
-        if bbd <= 0.08:
+        bv = abs(float(filename.split("_")[5]))
+        if bv >= 0.39:
             return "f"
-        elif bbd > 0.08 and bbd < 0.10:
+        elif bv > 0.34:
             return "mf - f"
-        elif bbd == 0.10:
+        elif bv > 0.32:
             return "mf"
-        elif bbd > 0.10 and bbd < 0.12:
+        elif bv > 0.27:
             return "mp - mf"
-        elif bbd == 0.12:
+        elif bv > 0.25:
             return "mp"
-        elif bbd > 0.12 and bbd < 0.14:
+        elif bv > 0.21:
             return "mp - p"
-        elif bbd >= 0.14:
+        elif bv >= 0.19:
             return "p"
         else:
             return "eh?"
 
-    def compare(self, st, dyn, accuracy, coll):
+    def get_finger_hack(self, filename):
+        finger = int(round(float(filename.split("_")[2])))
+        return str(finger)
+
+    def compare(self, st, coll):
         self.st = st
-        self.dyn = dyn
-        self.accuracy = accuracy
         self.display()
 
-        self.check_coll.check(coll, self.st, self.dyn)
+        self.check_coll.check(coll, self.st)
         self.data = list(self.check_coll.data)
 
         self.table.clearContents()
@@ -98,11 +102,17 @@ class CompareColl(QtGui.QFrame):
 
             table_item = QtGui.QTableWidgetItem(
                 str(self.get_dynamic_hack(datum[0])))
+            table_item.setTextAlignment(QtCore.Qt.AlignCenter)
             font = table_item.font()
             font.setWeight(75)
             font.setItalic(True)
             table_item.setFont(font)
             self.table.setItem(i, 2, table_item)
+
+            table_item = QtGui.QTableWidgetItem(
+                str(self.get_finger_hack(datum[0])))
+            table_item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.table.setItem(i, 3, table_item)
         self.table_focus()
 
     def table_focus(self):
@@ -127,7 +137,7 @@ class CompareColl(QtGui.QFrame):
 
     def selection_changed(self):
         filename = self.get_selected_filename()
-        shared.examine_main.load_file(filename)
+        shared.examine_main.load_file(filename, self.files)
         shared.examine_main.load_note("")
 
         if self.row_prev >= 0:

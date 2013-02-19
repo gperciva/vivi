@@ -4,46 +4,40 @@ Import('env')
 gextract_files = Split("""
 	test-gextract.cpp
 """)
-gextract = env.Program (target='test-gextract',
-	source = [gextract_files] + env['ears_files'] + ['actions_file.cpp', 'midi_pos.cpp'],
-	LIBS=["marsyas"],
-)
-gextract = env.Program (target='test-predict-wavfile',
-	source = ['test-predict-wavfile.cpp'] + ['ears.o'] + ['actions_file.o', 'midi_pos.o'],
-	LIBS=["marsyas"],
-)
-
-basic = env.Program (target='test-basic',
-	source = (env['vivi_controller_files'] + ['test-basic.cpp']
-		+ ['ears.o', 'actions_file.o', 'dynamics.cpp', 'midi_pos.o']),
-	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
-)
 
 controllerparams = env.Program(target='test-params',
 	source = (['controller_params.o'] + ['test-controller-params.cpp'])
 )
 
+env.Append(LIBS=["marsyas"])
+gextract = env.Program (target='test-gextract',
+	source = [gextract_files] + env['ears_files'],
+)
+gextract = env.Program (target='test-predict-wavfile',
+	source = ['test-predict-wavfile.cpp'] + ['ears.o'],
+)
+
+env.Append(LIBS=["gsl", "gslcblas"])
+#basic = env.Program (target='test-basic',
+#	source = (env['vivi_controller_files'] + ['test-basic.cpp']
+#		+ ['ears.o', 'dynamics.cpp']),
+#)
+
 stable = env.Program (target='test-stable',
 	source = (['test-stable.cpp']
-		+ ['ears.o', 'vivi_controller.o', 'controller_params.o', 'actions_file.o', 'dynamics.o', 'midi_pos.o']),
-	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
+                + env['vivi_controller_files']
+		+ ['ears.o', 'dynamics.cpp']),
+)
+
+pitch = env.Program (target='test-pitch',
+	source = (['test-pitch.cpp']
+		+ ['ears.o', 'vivi_controller.o', 'controller_params.o', 'dynamics.o']),
 )
 
 dampen = env.Program (target='test-dampen',
 	source = (['test-dampen.cpp']
-		+ ['ears.o', 'vivi_controller.o', 'controller_params.o', 'actions_file.o', 'dynamics.o', 'midi_pos.o']),
-	LIBS=["artifastring", "monowav", "marsyas", "gsl", "gslcblas"],
+		+ ['ears.o', 'vivi_controller.o', 'controller_params.o', 'dynamics.o']),
 )
-
-#instrument = env.Program (target='test-instrument',
-#	source =(['test-instrument.cpp']
-#		+ ['vivi_instrument_stk.cpp']),
-#	LIBS=["monowav", "marsyas", "gsl", "gslcblas", "stk"],
-#	# TODO: loses previous CCFLAGS
-#	CCFLAGS=['-DRAWWAVE_PATH=/home/gperciva/.usr/share/stk/rawwaves/'],
-#)
-
-
 
 
 #ears_h_files = map(lambda(x): x.replace('.cpp', '.h'),

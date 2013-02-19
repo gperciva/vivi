@@ -2,12 +2,26 @@
 #include "dynamics.h"
 #include <math.h>
 
+#include "vivi_defines.h"
 //#include <stdio.h>
 
-const double BOW_BRIDGE_DISTANCES [NUM_DYNAMICS] =
-{0.08, 0.10, 0.12, 0.14};
-const double BOW_VELOCITIES [NUM_DYNAMICS] =
-{0.40, 0.33, 0.26, 0.20};
+const double BOW_BRIDGE_DISTANCES [NUM_DISTINCT_INSTRUMENTS][NUM_DYNAMICS] =
+{   // f  mf,   mp,   p
+    {0.092, 0.134, 0.154, 0.186},  // violin
+    {0.092, 0.134, 0.154, 0.186},  // viola
+    //{0.117, 0.134, 0.154, 0.186},  // cello
+    //{0.117, 0.134, 0.154, 0.186},  // cello
+    //{0.117, 0.134, 0.154, 0.186}  // cello
+    {0.092, 0.134, 0.154, 0.186},  // cello
+    //{0.073, 0.092, 0.134, 0.154},  // cello
+};
+const double BOW_VELOCITIES [NUM_DISTINCT_INSTRUMENTS][NUM_DYNAMICS] =
+{   // f  mf,   mp,   p
+    {0.40, 0.33, 0.26, 0.20}, // violin
+    {0.40, 0.33, 0.26, 0.20}, // viola
+    {0.40, 0.33, 0.26, 0.20}  // cello
+};
+//{0.30, 0.26, 0.23, 0.20};
 
 /*
  I haven't thought about it; this just comes from:
@@ -25,20 +39,20 @@ inline double interpolate(const double x,
 }
 
 
-double get_distance(double dyn) {
+double get_distance(int inst, double dyn) {
     const int x0 = floor(dyn);
     const int x1 = ceil(dyn);
     return interpolate(dyn,
-                       x0, BOW_BRIDGE_DISTANCES [x0],
-                       x1, BOW_BRIDGE_DISTANCES [x1]);
+                       x0, BOW_BRIDGE_DISTANCES [inst][x0],
+                       x1, BOW_BRIDGE_DISTANCES [inst][x1]);
 }
 
-double get_velocity(double dyn) {
+double get_velocity(int inst, double dyn) {
     const int x0 = floor(dyn);
     const int x1 = ceil(dyn);
     return interpolate(dyn,
-                       x0, BOW_VELOCITIES [x0],
-                       x1, BOW_VELOCITIES [x1]);
+                       x0, BOW_VELOCITIES [inst][x0],
+                       x1, BOW_VELOCITIES [inst][x1]);
 }
 
 

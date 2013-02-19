@@ -23,7 +23,7 @@ def wait(samples, do_rms=False):
         rms = math.sqrt(total)
         return rms
 
-FS = 44100.0
+FS = 22050.0
 sec = int(0.2*FS)
 st = 0
 

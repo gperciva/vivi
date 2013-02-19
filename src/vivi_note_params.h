@@ -2,7 +2,9 @@
 #define VIVI_NOTE_PARAMS_H
 
 #include <string>
-#include <boost/format.hpp>
+//#include <boost/format.hpp>
+
+#define MAX_LINE_LENGTH 2048
 
 // to be used inside NoteBeginning and NoteEnding
 class PhysicalActions {
@@ -38,13 +40,12 @@ public:
                bow_bridge_distance, bow_force, bow_velocity);
     };
     std::string params_text() {
-        std::string text = str( boost::format(
-                                    "st: %i\td: %.1f\tfp: %.2f\t")
-                                % string_number % dynamic % finger_position);
-        text += str( boost::format(
-                         "bbd: %.2f\tbf: %.2f\tbv: %.2f\n")
-                     % bow_bridge_distance % bow_force % bow_velocity);
-        return text;
+        char textline[MAX_LINE_LENGTH];
+        sprintf(textline,
+                "st: %i\td: %.1f\tfp: %.2f\tbbd: %.2f\tbf: %.2f\tbv: %.2f\n",
+                string_number, dynamic, finger_position,
+                bow_bridge_distance, bow_force, bow_velocity);
+        return std::string(textline);
     }
     // special access
     int get_dyn() {
@@ -59,13 +60,17 @@ public:
     NoteBeginning() {
         ignore_finger = false;
         keep_bow_force = false;
+        keep_ears = false;
         set_bow_position_along = -1; // this is "false"
+        midi_target = 0.0;
     };
     // data
     PhysicalActions physical;
     bool ignore_finger;
     bool keep_bow_force;
+    bool keep_ears;
     double set_bow_position_along;
+    double midi_target;
     // debug; must contain all above variables
     void print_params() {
         /*
@@ -77,18 +82,22 @@ public:
         */
         printf("begin\n");
         printf("%s", physical.params_text().c_str());
-        printf("if: %i\tkbf: %i\tsbpa: %.3f\n",
+        printf("if: %i\tkbf: %i\tke: %i\tsbpa: %.3f\tmidi: %.2f\n",
                ignore_finger,
                keep_bow_force,
-               set_bow_position_along);
+               keep_ears,
+               set_bow_position_along,
+               midi_target);
     };
     std::string params_text() {
         // don't include final \n
-        std::string text = str( boost::format(
-                                    "begin\n#\t%s#\tif: %i\tkbf: %i\tsbpa: %.3f")
-                                % physical.params_text().c_str()
-                                % ignore_finger % keep_bow_force % set_bow_position_along);
-        return text;
+        char textline[MAX_LINE_LENGTH];
+        sprintf(textline,
+                "begin\n#\t%s#\tif: %i\tkbf: %i\tke: %i\tsbpa: %.3f\tmidi: %.2f",
+                physical.params_text().c_str()
+                , ignore_finger, keep_bow_force, keep_ears,
+                set_bow_position_along, midi_target);
+        return std::string(textline);
     }
 };
 
@@ -97,14 +106,16 @@ public:
     // init to nothing
     NoteEnding() {
         lighten_bow_force = false;
-        let_string_vibrate = false;
+        //let_string_vibrate = false;
         keep_bow_velocity = false;
+        midi_target = 0.0;
     };
     // data
     PhysicalActions physical;
     bool lighten_bow_force;
-    bool let_string_vibrate;
+    //bool let_string_vibrate;
     bool keep_bow_velocity;
+    double midi_target;
     // debug; must contain all above variables
     void print_params() {
         /*
@@ -114,16 +125,19 @@ public:
         */
         printf("end\n");
         printf("%s", physical.params_text().c_str());
-        printf("lbf: %i\tlsv: %i\tkbv: %i\n",
-               lighten_bow_force, let_string_vibrate, keep_bow_velocity);
+        printf("lbf: %i\tkbv: %i\tmidi: %.2f\n",
+               lighten_bow_force, //let_string_vibrate,
+               keep_bow_velocity, midi_target);
     };
     std::string params_text() {
         // don't include final \n
-        std::string text = str( boost::format(
-                                    "end\n#\t%s#\tlbf: %i\tlsv: %i\tkbv: %i")
-                                % physical.params_text().c_str()
-                                % lighten_bow_force % let_string_vibrate % keep_bow_velocity);
-        return text;
+        char textline[MAX_LINE_LENGTH];
+        sprintf(textline,
+                "end\n#\t%s#\tlbf: %i\tkbv: %i\tmidi: %.2f",
+                physical.params_text().c_str(),
+                lighten_bow_force, //let_string_vibrate,
+                keep_bow_velocity, midi_target);
+        return std::string(textline);
     }
 
 };

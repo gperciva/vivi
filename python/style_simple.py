@@ -5,14 +5,28 @@ import style_base
 import vivi_controller
 import dynamics
 import utils
+import instrument_numbers
+
+import shared
+
+USE_PITCH = True
+USE_PITCH = False
 
 STACCATO_SHORTEN_MULTIPLIER = 0.7
 PORTATO_SHORTEN_MULTIPLIER = 0.9
 BREATHE_SHORTEN_MULTIPLIER = 0.5
 
+INTONATION_SKILL_BASE = 0.05
+TIMING_SKILL_BASE = 0.01
+FORCE_SKILL_BASE = 0.001
+
+PIZZ_EARLIER_SECONDS = 0.1
+#PIZZ_EARLIER_SECONDS = 0.0
+
 class StyleSimple(style_base.StyleBase):
-    def __init__(self):
-        style_base.StyleBase.__init__(self)
+    def __init__(self, inst_type, inst_num, files):
+        style_base.StyleBase.__init__(self, inst_type, inst_num, files)
+        self.files = files
 
     def plan_perform(self, events):
         self.make_notes_durs(events)
@@ -25,24 +39,35 @@ class StyleSimple(style_base.StyleBase):
         self.do_staccato_breathe() # before bowing?
         self.do_bowing() # after ties
         self.do_lighten() # do after staccato adds rests
+        self.do_gliss()
 
     def make_notes_durs(self, events):
         self.notes = []
         tempo_bpm = 60.0
         self.last_seconds = 0.0
+        altered_seconds_sum = 0.0
         for event in events:
             tempo_details = self.get_details(event, "tempo")
             if tempo_details:
                 tempo_bpm = float(tempo_details[0][0]) / 4.0
             seconds = 4.0 * (60.0 / tempo_bpm) * event.duration
+
+            if shared.skill > 0:
+                altered_seconds = utils.norm_bounded(seconds,
+                    TIMING_SKILL_BASE * shared.skill) + altered_seconds_sum
+                altered_seconds_sum += (seconds-altered_seconds)
+            else:
+                altered_seconds = seconds
+            #print seconds, altered_seconds
+
             if event.details[0][0] == 'rest':
-                rest = style_base.Rest(duration=seconds)
+                rest = style_base.Rest(duration=altered_seconds)
                 self.notes.append(rest)
             elif event.details[0][0] == 'note':
-                note = style_base.Note(duration=seconds,
+                note = style_base.Note(duration=altered_seconds,
                     details=event.details)
                 self.notes.append(note)
-            self.last_seconds += seconds
+            self.last_seconds += altered_seconds
 
     def add_point_and_click(self):
         for note in self.notes:
@@ -60,7 +85,23 @@ class StyleSimple(style_base.StyleBase):
             note.begin = vivi_controller.NoteBeginning()
             note.begin.physical.string_number = self.get_string(note.details)
             note.begin.physical.finger_position = self.get_finger_naive(note.details, note.begin.physical.string_number)
+            if USE_PITCH:
+                note.begin.midi_target = float(note.details[0][1][0])
+            else:
+                note.begin.midi_target = -1
             note.end = vivi_controller.NoteEnding()
+
+            if shared.skill > 0:
+                if note.begin.physical.finger_position > 0.0:
+                    bad_midi = utils.norm_bounded(
+                        float(note.details[0][1][0]),
+                            INTONATION_SKILL_BASE*shared.skill)
+                    note.begin.physical.finger_position = self.get_finger(
+                        bad_midi,
+                        note.begin.physical.string_number)
+                    note.begin.midi_target = -1
+
+
 
     def get_string(self, details):
         pitch = float(details[0][1][0])
@@ -105,7 +146,9 @@ class StyleSimple(style_base.StyleBase):
 
     def pitch_string(self, note, which_string):
         pitch = float(note.details[0][1][0])
-        finger_semitones = pitch - (55 + 7*which_string)
+        string_pitch = instrument_numbers.INSTRUMENT_TYPE_STRING_PITCHES[
+            self.inst_type][which_string]
+        finger_semitones = pitch - string_pitch
         position = self.semitones(finger_semitones)
         note.begin.physical.string_number = which_string
         note.begin.physical.finger_position = position
@@ -123,6 +166,12 @@ class StyleSimple(style_base.StyleBase):
                 elif text_details[0][0] == "arco":
                     pizz = False
             note.pizz = pizz
+        for note, note_next in self.pair(self.notes):
+            if not self.is_note(note_next):
+                continue
+            if note_next.pizz:
+                note.duration -= PIZZ_EARLIER_SECONDS
+                note_next.duration += PIZZ_EARLIER_SECONDS
 
     def do_ties(self):
         for note, note_next in self.pair(self.notes):
@@ -134,13 +183,37 @@ class StyleSimple(style_base.StyleBase):
                 note.end.keep_bow_velocity = True
                 note_next.begin.ignore_finger = True
                 note_next.begin.keep_bow_force = True
+                note_next.begin.keep_ears = True
+
+    def do_gliss(self):
+        for note, note_next in self.pair(self.notes):
+            if not self.is_note(note) or not self.is_note(note_next):
+                continue
+            gliss_details = self.get_details(note, "gliss")
+            if len(gliss_details) > 0:
+                note.end.midi_target = float(note_next.begin.midi_target)
 
     def do_bowing(self):
         bow_dir = 1
         slur_on = False
-        for note in self.notes:
+        stop_bow = False
+        for i, note in enumerate(self.notes):
             if not self.is_note(note):
                 continue
+            script_details = self.get_details(note, "script")
+            if ["downbow"] in script_details:
+                bow_dir = 1
+            if ["upbow"] in script_details:
+                bow_dir = -1
+            # slur from previous note
+            if slur_on and not stop_bow:
+                note.begin.keep_bow_force = True
+                #note.begin.keep_ears = True
+                if i > 0:
+                    prev = self.notes[i-1]
+                    if (note.begin.physical.string_number !=
+                        prev.begin.physical.string_number):
+                        note.begin.keep_bow_force = False
             note.begin.physical.bow_velocity *= bow_dir
             if note.end.physical.string_number >= 0:
                 note.end.physical.bow_velocity *= bow_dir
@@ -151,7 +224,6 @@ class StyleSimple(style_base.StyleBase):
                 else:
                     slur_on = False
             stop_bow = False
-            script_details = self.get_details(note, "script")
             if ["staccato"] in script_details:
                 stop_bow = True
             if ["portato"] in script_details:
@@ -166,7 +238,7 @@ class StyleSimple(style_base.StyleBase):
             if not self.is_note(note):
                 continue
             # deliberately set elsewhere, don't change
-            if note.end.let_string_vibrate:
+            if note.let_string_vibrate:
                 continue
             # before a rest
             if not self.is_note(note_next):
@@ -212,8 +284,8 @@ class StyleSimple(style_base.StyleBase):
                 note.duration *= BREATHE_SHORTEN_MULTIPLIER
                 self.notes.insert(index+1, extra_rest)
                 note.end.lighten_bow_force = False
-                note.end.let_string_vibrate = True
                 note.end.keep_bow_velocity = True
+                note.let_string_vibrate = True
 
     def do_dynamics(self):
         current_dynamic = 0 # default to forte
@@ -226,7 +298,9 @@ class StyleSimple(style_base.StyleBase):
                 continue
             dyn = self.get_details(note, "dynamic")
             if dyn:
-                current_dynamic = self.dynamic_string_to_float(dyn[0][0])
+                test_dyn = self.dynamic_string_to_float(dyn[0][0])
+                if test_dyn is not None:
+                    current_dynamic = test_dyn
                 cresc_goal = -1
                 cresc_duration = 0.0
             cresc_details = self.get_details(note, "cresc")
@@ -241,7 +315,9 @@ class StyleSimple(style_base.StyleBase):
                         continue
                     dyn = self.get_details(later_note, "dynamic")
                     if dyn:
-                        cresc_goal = self.dynamic_string_to_float(dyn[0][0])
+                        test_dyn = self.dynamic_string_to_float(dyn[0][0])
+                        if test_dyn is not None:
+                            cresc_goal = test_dyn
                         break
                     cresc_duration += later_note.duration
             if cresc_goal >= 0:
@@ -264,16 +340,25 @@ class StyleSimple(style_base.StyleBase):
 
     def set_dynamic(self, physical, dynamic):
         physical.dynamic = dynamic
-        physical.bow_bridge_distance = dynamics.get_distance(dynamic)
+        physical.bow_bridge_distance = dynamics.get_distance(
+            self.inst_type, dynamic)
         physical.bow_force = self.get_simple_force(
             physical.string_number,
             physical.finger_position,
             dynamic)
-        physical.bow_velocity = dynamics.get_velocity(dynamic)
+        physical.bow_velocity = dynamics.get_velocity(
+            self.inst_type, dynamic)
+
+        if physical.bow_force > 0:
+            physical.bow_force = utils.norm_bounded(
+                physical.bow_force,
+                FORCE_SKILL_BASE*shared.skill)
 
     def dynamic_string_to_float(self, dyn):
         if dyn == 'f':
             return 0.0
+        #elif dyn == 'sf':
+        #    return 0.0
         elif dyn == 'mf':
             return 1.0
         elif dyn == 'mp':

@@ -4,17 +4,17 @@ import collection
 
 import utils
 import shared
-import dirs
 import vivi_defines
 
 class CheckColl:
-    def __init__(self):
+    def __init__(self, files):
+        self.data = []
+        self.files = files
+
+    def check(self, coll, st):
         self.data = []
 
-    def check(self, coll, st, dyn):
-        self.data = []
-
-        training_file = dirs.files.get_mpl_filename(st, dyn)
+        training_file = self.files.get_mpl_filename(st)
 
         for coll_index,pair in enumerate(coll.coll):
             cat = pair[1]
@@ -23,7 +23,7 @@ class CheckColl:
 
     def judge_wav_file(self, wavfile, user_cat):
         cats = []
-        cat_out = dirs.files.get_cats_name(wavfile[0:-4])
+        cat_out = self.files.get_cats_name(wavfile[0:-4])
         try:
             cat_lines = open(cat_out+'.cats').readlines()
             for line in cat_lines:

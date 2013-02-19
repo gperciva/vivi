@@ -5,6 +5,7 @@ from PyQt4 import QtGui, QtCore
 import utils
 import shared
 
+import os.path
 import note_actions_cats
 
 import plot_actions
@@ -13,6 +14,7 @@ import plot_stable
 import plot_attack
 
 import math
+import instrument_numbers
 
 PLOT_ACTIONS = 1
 PLOT_MAIN = 2
@@ -20,7 +22,7 @@ PLOT_STABLE = 3
 PLOT_ATTACK = 4
 
 # TODO: make this instrument-specific?
-CONVOLUTION_DELAY = 0.025 # seconds (approximate value)
+CONVOLUTION_DELAY = 0.02322 # seconds (approximate value)
 
 class ExamineNoteWidget():
     #def __init__(self, parent):
@@ -52,6 +54,7 @@ class ExamineNoteWidget():
             self.plot_actions.set_data(
                 self.examine_note.note_forces,
                 self.examine_note.note_cats,
+                self.examine_note,
             )
             self.plot_actions.set_stability(nac[1],
                 self.examine_note.note_cats_means)
@@ -60,6 +63,7 @@ class ExamineNoteWidget():
             self.plot_actions.set_data(
                 self.examine_note.note_forces,
                 self.examine_note.note_cats,
+                self.examine_note,
             )
             self.plot_actions.set_stability(nac[1],
                 self.examine_note.note_cats_means)
@@ -69,6 +73,7 @@ class ExamineNoteWidget():
             self.plot_actions.set_data(
                 self.examine_note.note_forces,
                 self.examine_note.note_cats,
+                self.examine_note,
             )
             #self.plot_actions.set_stability(nac[1],
             #    self.examine_note.note_cats_means)
@@ -76,15 +81,19 @@ class ExamineNoteWidget():
     def new_examine_note(self):
         self.examine_note = note_actions_cats.NoteActionsCats()
 
-    def load_file(self, filename):
-        self.examine_note.load_file(filename)
+    def load_file(self, filename, files):
+        print "Examine file:\t", os.path.basename(filename)
+        self.files = files
+        self.filename = filename
+        self.examine_note.load_file(filename, files)
 
-    def load_note(self, text):
-        status = self.examine_note.load_note(text)
+    def load_note(self, text, full=False):
+        status = self.examine_note.load_note(text, full)
         if status:
             self.plot_actions.set_data(
                 self.examine_note.note_forces,
                 self.examine_note.note_cats,
+                self.examine_note,
                 )
 #        else:
 #            print "Not a rehearsed note!"
@@ -96,29 +105,36 @@ class ExamineNoteWidget():
             return
         if self.plot_actions.has_selection():
             start, dur = self.get_zoom_seconds()
-            #print "zoom in on: ", self.examine_note.wavfile
+            #print "play zoom in on: ", start, dur
             #utils.play(self.examine_note.wavfile,
             #    start, dur)
+            #return
         else:
             start = self.examine_note.note_start
             dur = self.examine_note.note_length
             # to avoid icky blimps in the big grid display
             start += CONVOLUTION_DELAY
-            dur += CONVOLUTION_DELAY
+            dur -= CONVOLUTION_DELAY
+            #print "play note: ", start, dur
         utils.play(self.examine_note.basename+'.wav',
             start, dur)
 
     def get_zoom_seconds(self):
-        start, dur = self.plot_actions.get_selection()
-        self.got_zoom = True
-        return self.examine_note.get_seconds(start, dur)
+        if self.plot_actions.has_selection():
+            start, dur = self.plot_actions.get_selection()
+            self.got_zoom = True
+            return self.examine_note.get_seconds(start, dur)
+        else:
+            return self.examine_note.get_seconds(0, 1)
 
     def get_zoom(self):
         start, dur = self.get_zoom_seconds()
         st = self.examine_note.note_st
         dyn = int(round(self.examine_note.note_dyn))
-        filename = self.examine_note.make_zoom_file(start, dur)
-        return st, dyn, filename
+        a, b, c = instrument_numbers.instrument_name_from_filename(self.filename)
+        dist_inst_num = b
+        filename = self.examine_note.make_zoom_file(start, dur, self.files)
+        return st, dyn, filename, dist_inst_num
 
     def get_zoom_bare(self):
         start, dur = self.get_zoom_seconds()
