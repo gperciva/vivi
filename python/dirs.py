@@ -225,6 +225,15 @@ class ViviDirs:
             % (taskname, st, bow_bridge_distance, bow_velocity))
         task_files = glob.glob(os.path.join(self.works_dir, filename_pattern))
         task_files = filter(lambda x: ".forces" not in x, task_files)
+        task_files = filter(lambda x: "-s0.wav" not in x,
+            task_files)
+        task_files = filter(lambda x: "-s1.wav" not in x,
+            task_files)
+        task_files = filter(lambda x: "-s2.wav" not in x,
+            task_files)
+        task_files = filter(lambda x: "-s3.wav" not in x,
+            task_files)
+
         def sort_task_files(filename):
             split = filename.split('_')
             combo = []

@@ -276,8 +276,12 @@ class NoteActionsCats:
         endhop = int((start+dur-self.note_start) * HOP_SECONDS)
         # no, *don't* make this based on the note,
         # otherwise it won't work in music!
-        start = int(start * HOP_SECONDS) / HOP_SECONDS
-        dur = (endhop-starthop) / HOP_SECONDS
+        start = float(int(start * HOP_SECONDS)) / HOP_SECONDS
+        dur = float( int(endhop-starthop)) / HOP_SECONDS
+
+        #print "starthop, endhop:\t%i\t%i" % (starthop, endhop)
+        print "Should have lines:\t%i" %(endhop-starthop)
+        #print "start, dur:\t%i\t%i" % (start, dur)
 
         #for l in self.note_lines:
         #    print l
@@ -320,13 +324,15 @@ class NoteActionsCats:
         print "ZOOM file:\t", filename
 
         # create .wav
-        cmd = 'sox %s %s trim %f %f' % (
-            self.basename+'.wav', filename+'.wav', start, dur)
-        #print cmd
+        cmd = 'sox %s -t wavpcm %s trim %f %f' % (
+            self.basename+'-s%i.wav' % (self.note_st),
+            filename+'.wav', start, dur)
+        print cmd
         os.system(cmd)
         # create .forces..wav
-        cmd = 'sox %s %s trim %f %f' % (
-            self.basename+'.forces.wav', filename+'.forces.wav', start, dur)
+        cmd = 'sox %s -t wavpcm %s trim %f %f' % (
+            self.basename+'-s%i.forces.wav' % (self.note_st),
+            filename+'.forces.wav', start, dur)
         #print cmd
         os.system(cmd)
         # create .actions
@@ -335,16 +341,17 @@ class NoteActionsCats:
         # TODO: clean this up!
         first_seconds = -1
         printed_finger = False
+        #num_lines = 0
         for line in self.note_lines:    
             splitline = line.split()
             seconds = float(splitline[1])
             if line[0] == 'f':
                 fm = float(splitline[3])
-            if seconds >= start:
+            if seconds >= (start - 0.001):
                 if first_seconds < 0:
                     first_seconds = seconds
                 seconds = seconds - first_seconds
-                if seconds <= dur:
+                if seconds <= (start + dur + 0.001):
                     splitline[1] = str(seconds)
                     if not printed_finger:
                         if splitline[0][0] == 'f':

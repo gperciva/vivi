@@ -312,7 +312,7 @@ class DynTrain(QtGui.QFrame):
                 #a = [ self.mid_forces[i][0], extreme[i][2] ]
                 i = job.fmi
                 a = [ 1.0*self.mid_forces[i][0],
-                      1.5*self.mid_forces[i][1]
+                      1.0*self.mid_forces[i][1]
                     ]
                 if i == j:
                     out = open(self.make_filename("mid_forces", i), 'a')

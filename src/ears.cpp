@@ -29,8 +29,10 @@ static pthread_mutex_t aubio_mutex;
 //#define PHYSICAL_PARAMETERS "finger,bow-bridge-distance,velocity,force"
 //#define PHYSICAL_PARAMETERS_SIZE 4
 //#define PHYSICAL_PARAMETERS "finger,bow-bridge-distance,velocity,inst_num"
-#define PHYSICAL_PARAMETERS "finger,bow-bridge-distance,velocity"
-#define PHYSICAL_PARAMETERS_SIZE 3
+//#define PHYSICAL_PARAMETERS "finger,bow-bridge-distance,velocity"
+//#define PHYSICAL_PARAMETERS_SIZE 3
+#define PHYSICAL_PARAMETERS "finger,bow-bridge-distance"
+#define PHYSICAL_PARAMETERS_SIZE 2
 #endif
 #endif
 
@@ -101,7 +103,7 @@ Ears::Ears(int inst_type, int inst_num, bool classification) {
     }
 
     audio_input_realvec.create(EARS_HOPSIZE);
-    force_input_realvec.create(EARS_HOPSIZE/2);
+    force_input_realvec.create(EARS_HOPSIZE);
     parameters_input_realvec.create(PHYSICAL_PARAMETERS_SIZE,1);
 
     // needed to avoid a segfault
@@ -274,6 +276,9 @@ bool Ears::set_predict_buffer(const char *training_filename)
 void Ears::predict_wavfile(const char *wav_in_filename,
                            const char *cats_out_filename)
 {
+    //cout<<"wav_in:\t"<<wav_in_filename<<endl;
+    //cout<<"cats_out:\t"<<cats_out_filename<<endl;
+
     //in_filename.assign(wav_in_filename);
     audio_input->updControl("SoundFileSource/audio_src/mrs_string/filename",
                             wav_in_filename);
@@ -285,7 +290,9 @@ void Ears::predict_wavfile(const char *wav_in_filename,
     //force_input->updControl("SoundFileSource/force_src/mrs_string/onObsNames",
     //                        "force_input");
     // must be done after setting the filename!
-    stabilizingDelay = audio_stuff->getctrl("mrs_natural/onStabilizingDelay")->to<mrs_natural>();
+    stabilizingDelay = audio_stuff->getctrl("mrs_natural/onStabilizingDelay")->to<mrs_natural>() + 1;
+    //cout<<"delay: "<<stabilizingDelay<<endl;
+    //stabilizingDelay = 3; // FIXME experimental
 
     //get_info_file(wav_in_filename);
     string csv_filename = wav_in_filename;
@@ -337,9 +344,10 @@ void Ears::set_extra_params(int st, double finger_position,
     //parameters_input_realvec(0,0) = expected_pitch;
     parameters_input_realvec(0,0) = finger_position;
     parameters_input_realvec(1,0) = bbd;
-    parameters_input_realvec(2,0) = fabs(velocity);
+    //parameters_input_realvec(2,0) = fabs(velocity);
     //parameters_input_realvec(3,0) = inst_num;
     //parameters_input_realvec(3,0) = force;
+    (void) velocity;
     (void) force;
 #ifdef ALL_STRINGS
     // clear out strings
@@ -376,8 +384,8 @@ void Ears::set_extra_params(int st, double finger_position,
     */
     harmonicsa->updControl("mrs_real/base_frequency", expected_pitch);
     harmonicsh->updControl("mrs_real/base_frequency", expected_pitch);
-    scna->updControl("mrs_real/expected_peak", expected_pitch);
-    scnh->updControl("mrs_real/expected_peak", expected_pitch);
+    //scna->updControl("mrs_real/expected_peak", expected_pitch);
+    //scnh->updControl("mrs_real/expected_peak", expected_pitch);
 }
 
 void Ears::get_info_csv_file() {
@@ -389,6 +397,7 @@ void Ears::get_info_csv_file() {
         cout<<"Panic!  no data to read: ";
         cout<<csvFileSource->getctrl("mrs_string/filename")->to<mrs_string>();
         cout<<endl;
+        exit(1);
     } else {
         //cout<<"ok"<<endl;
     }
@@ -420,14 +429,14 @@ void Ears::listen(double *audio) {
     }
     audio_input->updControl("RealvecSource/audio_src/mrs_realvec/data", audio_input);
     hop();
-    ticks_count++;
+    //ticks_count++;
 }
 
 void Ears::listen_forces(double *audio, double *forces) {
     for (int i=0; i<EARS_HOPSIZE; i++) {
         audio_input_realvec(0,i) = audio[i];
     }
-    for (int i=0; i<EARS_HOPSIZE/2; i++) {
+    for (int i=0; i<EARS_HOPSIZE; i++) {
         force_input_realvec(0,i) = forces[i];
     }
     audio_input->updControl("RealvecSource/audio_src/mrs_realvec/data",
@@ -435,26 +444,26 @@ void Ears::listen_forces(double *audio, double *forces) {
     force_input->updControl("RealvecSource/force_src/mrs_realvec/data",
                             force_input_realvec);
     hop();
-    ticks_count++;
+    //ticks_count++;
 }
 
 void Ears::listenShort(short *audio) {
     for (int i=0; i<EARS_HOPSIZE; i++) {
-        audio_input_realvec(0,i) = ((mrs_real) audio[i]) / SHRT_MAX;
+        audio_input_realvec(0,i) = ((mrs_real) audio[i]);
     }
     audio_input->updControl("RealvecSource/audio_src/mrs_realvec/data",
                             audio_input_realvec);
     hop();
-    ticks_count++;
+    //ticks_count++;
 }
 
 void Ears::listenShort_forces(short *audio, short *force) {
     for (int i=0; i<EARS_HOPSIZE; i++) {
-        audio_input_realvec(0,i) = ((mrs_real) audio[i]) / SHRT_MAX;
-        fvec->data[0][i] = ((smpl_t) audio[i]) / SHRT_MAX;
+        audio_input_realvec(0,i) = ((mrs_real) audio[i]);
+        fvec->data[0][i] = ((smpl_t) audio[i]);
     }
-    for (int i=0; i<EARS_HOPSIZE/2; i++) {
-        force_input_realvec(0,i) = ((mrs_real) force[i]) / SHRT_MAX;
+    for (int i=0; i<EARS_HOPSIZE; i++) {
+        force_input_realvec(0,i) = ((mrs_real) force[i]);
     }
     pitch = aubio_pitchdetection(aubio_pitch_object, fvec);
     if ((pitch != pitch) || (isinf(pitch))) {
@@ -469,11 +478,39 @@ void Ears::listenShort_forces(short *audio, short *force) {
     force_input->updControl("RealvecSource/force_src/mrs_realvec/data",
                             force_input_realvec);
     hop();
-    ticks_count++;
+    //ticks_count++;
 }
 
+void Ears::listenInt_forces(int *audio, int *force) {
+    for (int i=0; i<EARS_HOPSIZE; i++) {
+        audio_input_realvec(0,i) = ((mrs_real) audio[i]) / PCM_MAXINT;
+        fvec->data[0][i] = ((smpl_t) audio[i]);
+        //audio_input_realvec(0,i) = ((mrs_real) audio[i]) * string_int_to_float;
+        //fvec->data[0][i] = ((smpl_t) audio[i]) * string_int_to_float;
+    }
+    for (int i=0; i<EARS_HOPSIZE; i++) {
+        //force_input_realvec(0,i) = ((mrs_real) force[i]) * string_int_to_float;
+        force_input_realvec(0,i) = ((mrs_real) force[i]) / PCM_MAXINT;
+        //cout<<force_input_realvec(0,i)<<endl;
+    }
+    pitch = aubio_pitchdetection(aubio_pitch_object, fvec);
+    if ((pitch != pitch) || (isinf(pitch))) {
+        //cout<<"bingo"<<endl;
+        pitch = PITCH_NULL;
+    }
+    if (ticks_count < stabilizingDelay) {
+        pitch = 0.0;
+    }
+    audio_input->updControl("RealvecSource/audio_src/mrs_realvec/data",
+                            audio_input_realvec);
+    force_input->updControl("RealvecSource/force_src/mrs_realvec/data",
+                            force_input_realvec);
+    hop();
+    //ticks_count++;
+}
 
 double Ears::getClass() {
+    //cout<<"tc, sd:\t"<<ticks_count<<" "<<stabilizingDelay<<endl;
     if (ticks_count > stabilizingDelay) {
         //realvec data = learning->getctrl("mrs_realvec/processedData")->to<mrs_realvec>();
         realvec data = learning_output_realvec;
@@ -698,6 +735,7 @@ void Ears::processFile() {
         if (a(0) == 0.0) {
             string currentlyPlaying = audio_input->getControl("SoundFileSource/audio_src/mrs_string/currentlyPlaying")->to<mrs_string>();
             cout<<"Warning: 0 amplitude in: "<<currentlyPlaying<<endl;
+            exit(1);
         }
     }
 }
@@ -738,7 +776,7 @@ void Ears::make_input() {
                             EARS_WINDOWSIZE);
     force_input->addMarSystem(new ShiftInput ("shift_input"));
     force_input->updControl("ShiftInput/shift_input/mrs_natural/winSize",
-                            EARS_WINDOWSIZE/2);
+                            EARS_WINDOWSIZE);
 }
 
 Marsyas::MarSystem *Ears::timeDomain()
@@ -785,7 +823,9 @@ Marsyas::MarSystem *Ears::spectralDomain(int ah)
     MarSystem *net = new Fanout ("sd");
 
 //    net->addMarSystem(new Centroid ("cntrd"));
-//    net->addMarSystem(new Rolloff ("rlf"));
+    if (ah==0) {
+        net->addMarSystem(new Rolloff ("rlf"));
+    }
     net->addMarSystem(power_system(
                           new Centroid("centroid"), "centroid", 1.0/4.0));
     //net->addMarSystem(power_system(
@@ -804,20 +844,20 @@ Marsyas::MarSystem *Ears::spectralDomain(int ah)
 */
 
     if (ah == 0) {
-        scna = new SpectralCentroidBandNorm("SCN");
-        net->addMarSystem( power_system(scna, "SCN", 1.0/8.0));
+        //scna = new SpectralCentroidBandNorm("SCN");
+        //net->addMarSystem( power_system(scna, "SCN", 1.0/8.0));
     } else {
-        scnh = new SpectralCentroidBandNorm("SCN");
-        net->addMarSystem( power_system(scnh, "SCN", 1.0/8.0));
+        //scnh = new SpectralCentroidBandNorm("SCN");
+        //net->addMarSystem( power_system(scnh, "SCN", 1.0/8.0));
     }
 
     
     if (ah == 0) {
-    mrs_natural num_harmonics = 3;
+    mrs_natural num_harmonics = 1;
     realvec harmonics_r(num_harmonics);
-    harmonics_r(0) = 0.5;
-    harmonics_r(1) = 1.0;
-    harmonics_r(2) = 2.0;
+    harmonics_r(0) = 1.0;
+    //harmonics_r(1) = 1.0;
+    //harmonics_r(2) = 2.0;
     //harmonics_r(3) = 3.0;
     //harmonics_r(5) = 5.0;
         harmonicsa = new HarmonicStrength ("harm");
@@ -828,11 +868,11 @@ Marsyas::MarSystem *Ears::spectralDomain(int ah)
     harmonicsa->updControl("mrs_real/inharmonicity_B", 1e-4);
     harmonicsa->updControl("mrs_natural/type", 2);
     } else {
-    mrs_natural num_harmonics = 3;
+    mrs_natural num_harmonics = 1;
     realvec harmonics_r(num_harmonics);
-    harmonics_r(0) = 0.5;
-    harmonics_r(1) = 1.0;
-    harmonics_r(2) = 2.0;
+    harmonics_r(0) = 1.0;
+    //harmonics_r(1) = 1.0;
+    //harmonics_r(2) = 2.0;
     //harmonics_r(3) = 3.0;
         harmonicsh = new HarmonicStrength ("harm");
         net->addMarSystem(harmonicsh);
@@ -1078,7 +1118,7 @@ void Ears::make_nets()
 
     force_stuff = new Series ("force_stuff");
     force_stuff->addMarSystem(force_input);
-    force_stuff->updControl("mrs_natural/inSamples", EARS_HOPSIZE/2);
+    force_stuff->updControl("mrs_natural/inSamples", EARS_HOPSIZE);
     force_stuff->updControl("mrs_real/israte",
                             (mrs_real) HAPTIC_SAMPLE_RATE);
 
@@ -1226,7 +1266,8 @@ void Ears::make_nets()
     learning_input_realvec.create(numObservations, 1);
     learning->setctrl("mrs_natural/inObservations", numObservations);
     learning->setctrl("mrs_natural/inSamples", 1);
-    learning->setctrl("mrs_real/israte", 22050.0/512.0);
+    learning->setctrl("mrs_real/israte",
+        ((double) ARTIFASTRING_INSTRUMENT_SAMPLE_RATE) / HOPSIZE);
     learning->setctrl("mrs_string/inObsNames", labelNames);
     learning->update();
 
@@ -1240,7 +1281,8 @@ void Ears::make_nets()
 //    cout<<learning->getctrl("mrs_natural/onObservations")->to<mrs_natural>()<<endl;
 //    cout<<learning->getctrl("SVMClassifier/svm_cl/mrs_natural/nClasses")->to<mrs_natural>()<<endl;
 
-    stabilizingDelay = audio_stuff->getctrl("mrs_natural/onStabilizingDelay")->to<mrs_natural>();
+    stabilizingDelay = audio_stuff->getctrl("mrs_natural/onStabilizingDelay")->to<mrs_natural>() + 1;
+    //stabilizingDelay = 3; // FIXME experimental
     //cout<<"stabiliz   "<<stabilizingDelay<<endl;
 // for debug
     //net->put_html(std::cout);
@@ -1275,7 +1317,7 @@ void Ears::get_rms_from_file(int num_frames, const char *in_filename,
                      EARS_WINDOWSIZE);
     pnet->addMarSystem(new Rms ("rms"));
 
-    pnet->updControl("mrs_real/israte", 22050.0);
+    pnet->updControl("mrs_real/israte", (mrs_real)ARTIFASTRING_INSTRUMENT_SAMPLE_RATE);
     pnet->updControl("mrs_natural/inSamples", EARS_HOPSIZE);
     for (int i=0; i<num_frames; i++)
     {

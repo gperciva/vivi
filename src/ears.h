@@ -48,6 +48,7 @@ public:
     void listenShort(short *audio);
     void listen_forces(double *audio, double *forces);
     void listenShort_forces(short *audio, short *force);
+    void listenInt_forces(int *audio, int *force);
 
 
     // for extra params

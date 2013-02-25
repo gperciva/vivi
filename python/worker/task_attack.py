@@ -23,9 +23,9 @@ import pylab
 
 import collection
 
-DH = 512/22050.0
-ATTACK_LENGTH = int(1.000/DH)*DH
-SHORT_ATTACK_LENGTH = int(0.50/DH)*DH
+DH = vivi_defines.DH
+ATTACK_LENGTH = int(0.500/DH)*DH
+SHORT_ATTACK_LENGTH = int(0.25/DH)*DH
 
 TOO_SMALL_TO_CARE_CAT = 0.5
 #TOO_SMALL_TO_CARE_CAT = 0.0
@@ -34,7 +34,7 @@ STEPS_X = 9
 STEPS_Y = 9
 #STEPS_X = 3
 #STEPS_Y = 3
-RAPS = 2*2
+RAPS = 1
 
 class TaskAttack(task_base.TaskBase):
 
@@ -81,7 +81,7 @@ class TaskAttack(task_base.TaskBase):
         #    num=STEPS_X)
         self.test_range1 = list(self.test_range)
 
-        self.K_range = numpy.linspace(0.01, 0.25, num=STEPS_Y)
+        self.K_range = numpy.linspace(0.01, 0.3, num=STEPS_Y)
         self.K_range1 = list(self.K_range)
         #self.K_range = numpy.linspace(1.01, 2.0, num=STEPS_Y)
         #self.K_range = numpy.linspace(1.01, 3.0, num=STEPS_Y)
@@ -407,7 +407,7 @@ def get_cost(values):
     #total = sum(map(lambda x: x*x, examine))
     total = 0.0
     count = 0
-    for i in range(4):
+    for i in range(RAPS):
         for j in range(len(examines[i])):
             c = examines[i][j]
             #total += j * (c**2)

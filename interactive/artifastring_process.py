@@ -24,7 +24,7 @@ ArtifastringInit = collections.namedtuple('ArtifastringInit', """
     instrument_number,
     """)
 
-HOPSIZE = 512
+HOPSIZE = artifastring_instrument.NORMAL_BUFFER_SIZE;
 
 
 import os

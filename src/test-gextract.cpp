@@ -3,13 +3,14 @@
 #include <string>
 
 //#define TEST_REDO
-//#define TEST_FILE
+#define TEST_FILE
 //#define TEST_MEMORY
 
 // used for quick testing, with a normal violin.
 //#define CAT_2_FILE "train/cello/cello5_0_0.000_0.133_2.853_0.260_1.wav"
 //#define CAT_2_FILE "train/violin/violin0_3_0.000_0.133_0.239_0.330_1.wav"
 //#define CAT_2_FILE "train/violin/violin-0_0_0.000_0.092_0.909_0.400_1.wav"
+#define CAT_2_FILE "train-data/cello/cello-0_0_6.000_0.104_6.399_0.500_1.wav"
 
 
 int main(int argc, char **argv) {

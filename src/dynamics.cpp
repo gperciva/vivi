@@ -6,22 +6,17 @@
 //#include <stdio.h>
 
 const double BOW_BRIDGE_DISTANCES [NUM_DISTINCT_INSTRUMENTS][NUM_DYNAMICS] =
-{   // f  mf,   mp,   p
-    {0.092, 0.134, 0.154, 0.186},  // violin
-    {0.092, 0.134, 0.154, 0.186},  // viola
-    //{0.117, 0.134, 0.154, 0.186},  // cello
-    //{0.117, 0.134, 0.154, 0.186},  // cello
-    //{0.117, 0.134, 0.154, 0.186}  // cello
-    {0.092, 0.134, 0.154, 0.186},  // cello
-    //{0.073, 0.092, 0.134, 0.154},  // cello
+{   // ff,    f,     mf,    mp,    p,     pp
+    {0.104, 0.118, 0.134, 0.154, 0.176, 0.192},  // violin
+    {0.104, 0.118, 0.134, 0.154, 0.176, 0.192},  // viola
+    {0.104, 0.118, 0.134, 0.154, 0.176, 0.192},  // cello
 };
 const double BOW_VELOCITIES [NUM_DISTINCT_INSTRUMENTS][NUM_DYNAMICS] =
-{   // f  mf,   mp,   p
-    {0.40, 0.33, 0.26, 0.20}, // violin
-    {0.40, 0.33, 0.26, 0.20}, // viola
-    {0.40, 0.33, 0.26, 0.20}  // cello
+{   // ff,   f,    mf,   mp,   p,    pp
+    {0.50, 0.42, 0.34, 0.26, 0.18, 0.100}, // violin
+    {0.50, 0.42, 0.34, 0.26, 0.18, 0.100}, // viola
+    {0.50, 0.42, 0.34, 0.26, 0.18, 0.100}, // cello
 };
-//{0.30, 0.26, 0.23, 0.20};
 
 /*
  I haven't thought about it; this just comes from:

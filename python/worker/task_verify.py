@@ -27,7 +27,7 @@ STABLE_LENGTH = 1.0
 ATTACK_LENGTH = int(0.1*HOP)/HOP
 
 LOW_MEAN_ACCEPTED = -0.25
-HIGH_MEAN_ACCEPTED = 1.0
+HIGH_MEAN_ACCEPTED = 0.5
 
 STEPS = 9
 REPS = 1
@@ -243,7 +243,8 @@ class TaskVerify(task_base.TaskBase):
             while len(mids) == 0:
                 if (len(lows) + len(highs) + len(mids)) >= STEPS: 
                     break
-                force = numpy.mean( (max(lows), min(highs)) )
+                #force = numpy.mean( (max(lows), min(highs)) )
+                force = scipy.stats.gmean( (max(lows), min(highs)) )
                 #print "init", fmi, max(lows), force, min(highs)
                 low_files, high_files = process(force, fmi, lows,
                     mids, highs, low_files, high_files)
@@ -255,12 +256,13 @@ class TaskVerify(task_base.TaskBase):
                 highdistrel = min(highs) / max(mids)
                 #print lowdistrel, highdistrel
                 if lowdistrel > highdistrel:
-                    force = numpy.mean( (max(lows), min(mids)) )
+                    force = scipy.stats.gmean( (max(lows), min(mids)) )
                     force *= random.uniform(0.95, 1.05)
                 else:
-                    force = numpy.mean( (max(mids), min(highs)) )
+                    force = scipy.stats.gmean( (max(mids), min(highs)) )
                     force *= random.uniform(0.95, 1.05)
-                #print "main", max(lows), force, min(highs)
+                #print "main", max(lows), min(mids), max(mids), min(highs)
+                #print "new force:\t", force
                 # do force
                 low_files, high_files = process(force, fmi, lows,
                     mids, highs, low_files, high_files)

@@ -35,7 +35,7 @@ class ViviTrainer(artifastring_interactive.InteractiveViolin):
     def keypress_extra(self, c):
         if c == 'b':
             self.dyn += 1
-            if self.dyn >= 4:
+            if self.dyn >= dynamics.NUM_DYNAMICS:
                 self.dyn = 0
             self.params.bow_position = dynamics.get_distance(
                 self.instrument_type, self.dyn)

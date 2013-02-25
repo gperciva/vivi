@@ -27,6 +27,14 @@ def start_job(ly_basename):
     audio_filenames = glob.glob(ly_basename + "*.wav")
     audio_filenames = filter(lambda x: not x.endswith(".forces.wav"),
         audio_filenames)
+    audio_filenames = filter(lambda x: "-s0.wav" not in x,
+        audio_filenames)
+    audio_filenames = filter(lambda x: "-s1.wav" not in x,
+        audio_filenames)
+    audio_filenames = filter(lambda x: "-s2.wav" not in x,
+        audio_filenames)
+    audio_filenames = filter(lambda x: "-s3.wav" not in x,
+        audio_filenames)
     audio_filenames.sort(key=sort_filenames)
     #print audio_filenames
 

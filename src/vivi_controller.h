@@ -82,6 +82,10 @@ private:
     // optional (maybe?  TODO: check)
     MonoWav *wavfile;
     MonoWav *force_file;
+
+    MonoWav *string_audio_file_int[NUM_STRINGS];
+    MonoWav *string_force_file_int[NUM_STRINGS];
+
     ActionsFile *actions_file;
     ActionsFile *cats_file;
     //Ears *ears[NUM_STRINGS][NUM_DYNAMICS];
@@ -146,6 +150,10 @@ private:
     float note_first_reduction;
     int note_end;
     double max_hand_accel;
+
+    int *audio_buf_int[NUM_STRINGS];
+    int *force_buf_int[NUM_STRINGS];
+    short force_buf_ignore[HOPSIZE];
 };
 #endif
 

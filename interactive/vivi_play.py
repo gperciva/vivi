@@ -18,7 +18,7 @@ artifastring_interactive.HOPSIZE = vivi_defines.HOPSIZE
 
 import artifastring_osc
 
-artifastring_interactive.PRINT_EXTRA_DISPLAY = 1
+artifastring_interactive.PRINT_EXTRA_DISPLAY = 0
 if artifastring_interactive.PRINT_EXTRA_DISPLAY:
     global aubio
     import aubio

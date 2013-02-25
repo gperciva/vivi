@@ -40,7 +40,9 @@ celloc = \relative c, {
   \tempo 4 = 60
   \clef bass
   \numericTimeSignature
+  %c4\f <d g> <e g> f
   c4\f d e f
+  g a b c
   %c4\f c c c
   %g a b c
   %a4 \glissando c \glissando a \glissando c
@@ -93,8 +95,8 @@ four = \relative c, {
 
 \score {
   <<
-    %\new Staff \celloc
-    \new Staff \tiny
+    \new Staff \celloc
+    %\new Staff \tiny
     %\new Staff \one
     %\new Staff \two
 %    \new Staff \three

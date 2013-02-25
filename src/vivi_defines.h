@@ -1,8 +1,9 @@
 #ifndef VIVI_DEFINES_H
 #define VIVI_DEFINES_H
 
-const int HOPSIZE = 512;
-const int SAMPLE_RATE = 22050;
+const int HOPSIZE = 441;
+const int SAMPLE_RATE = 44100;
+const double DH = ((double) HOPSIZE) / SAMPLE_RATE;
 
 const bool REGRESSION = false;
 

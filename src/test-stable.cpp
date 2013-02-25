@@ -2,10 +2,10 @@
 #include "vivi_controller.h"
 #include "dynamics.h"
 
-const double PLAY = 1.0;
+const double PLAY = 0.25;
 
 #define E 0
-#define CELLO 0
+#define CELLO 1
 #define NOTES 1
 #define MULTI 0
 
@@ -50,7 +50,7 @@ int main() {
 #endif
 
 #if CELLO
-    begin.physical.bow_force = 30.0;
+    begin.physical.bow_force = 15.0;
 #else
     begin.physical.bow_force = 0.5;
 #endif
@@ -61,7 +61,7 @@ int main() {
     NoteEnding end;
 
 #if CELLO
-    double K = 0.2;
+    double K = 0.05;
 #else
     double K = 0.1;
 #endif
