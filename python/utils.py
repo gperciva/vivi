@@ -130,13 +130,17 @@ def dyn_to_text(dyn):
     """ dynamic number to text """
     text = 'X'
     if dyn == 0:
-        text = 'f'
+        text = 'ff'
     elif dyn == 1:
-        text = 'mf'
+        text = 'f'
     elif dyn == 2:
-        text = 'mp'
+        text = 'mf'
     elif dyn == 3:
+        text = 'mp'
+    elif dyn == 4:
         text = 'p'
+    elif dyn == 5:
+        text = 'pp'
     return text
 
 def almost_equals(one, two):

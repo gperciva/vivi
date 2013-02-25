@@ -22,7 +22,7 @@ import os.path
 
 import instrument_numbers
 
-NUM_DYNS = 4
+NUM_DYNS = 6
 
 class StringTrain(QtGui.QFrame):
     def __init__(self, parent, st, inst_type, inst_num,

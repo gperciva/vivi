@@ -2,7 +2,7 @@
 #include "vivi_controller.h"
 #include "dynamics.h"
 
-const double PLAY = 0.25;
+const double PLAY = 0.50;
 
 #define E 0
 #define CELLO 1
@@ -50,7 +50,7 @@ int main() {
 #endif
 
 #if CELLO
-    begin.physical.bow_force = 15.0;
+    begin.physical.bow_force = 12.0;
 #else
     begin.physical.bow_force = 0.5;
 #endif
@@ -61,7 +61,7 @@ int main() {
     NoteEnding end;
 
 #if CELLO
-    double K = 0.05;
+    double K = 0.15;
 #else
     double K = 0.1;
 #endif
@@ -92,8 +92,8 @@ int main() {
     viviController->load_ears_training(begin.physical.string_number,
                                        "final/violin/3.mpl");
 #else
-    viviController->load_ears_training(begin.physical.string_number,
-                                       "final/violin/0.mpl");
+    //viviController->load_ears_training(begin.physical.string_number,
+    //                                   "final/violin/0.mpl");
 #endif
 #endif
 
