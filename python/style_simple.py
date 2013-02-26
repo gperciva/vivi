@@ -355,15 +355,19 @@ class StyleSimple(style_base.StyleBase):
                 FORCE_SKILL_BASE*shared.skill)
 
     def dynamic_string_to_float(self, dyn):
-        if dyn == 'f':
+        if dyn == 'ff':
             return 0.0
         #elif dyn == 'sf':
         #    return 0.0
-        elif dyn == 'mf':
+        elif dyn == 'f':
             return 1.0
-        elif dyn == 'mp':
+        elif dyn == 'mf':
             return 2.0
-        elif dyn == 'p':
+        elif dyn == 'mp':
             return 3.0
+        elif dyn == 'p':
+            return 4.0
+        elif dyn == 'pp':
+            return 5.0
         return None
 

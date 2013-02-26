@@ -174,8 +174,8 @@ class TaskVerify(task_base.TaskBase):
             #low = scipy.stats.gmean( [init[0], init[1]])
             #high = scipy.mean( [init[1], init[2]])
             low = init[0]
-            if low < 0.01:  
-                low = 0.01
+            #if low < 0.01:  
+            #    low = 0.01
             high = init[2]
     
             # sanity check

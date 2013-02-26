@@ -35,10 +35,9 @@ class StyleBase():
         self.controller_params = []
         for st in range(4):
             st_controllers = []
-            for dyn in range(4):
+            for dyn in range(dynamics.NUM_DYNAMICS):
                 dyn_filename = self.files.get_dyn_vivi_filename(st, dyn,
                     inst_num)
-                #print dyn_filename
                 st_controllers.append(controller_params.ControllerParams(dyn_filename))
             self.controller_params.append(st_controllers)
         self.reload_params()
@@ -49,7 +48,7 @@ class StyleBase():
 
     def reload_params(self):
         for st in range(4):
-            for dyn in range(4):
+            for dyn in range(dynamics.NUM_DYNAMICS):
                 self.controller_params[st][dyn].load_file()
                 #print self.controller_params[st][dyn].get_attack_force(0)
 
@@ -87,6 +86,7 @@ class StyleBase():
             self.controller_params[st][int(dyn+0.5)].get_attack_force(low_index),
             basic_training.FINGER_MIDIS[high_index],
             self.controller_params[st][int(dyn+0.5)].get_attack_force(high_index))
+        #print force
         return force
 
     def get_finger(self, pitch, which_string):

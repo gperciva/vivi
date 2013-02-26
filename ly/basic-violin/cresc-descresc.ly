@@ -13,10 +13,10 @@ vlnone = \new Staff {
 
     \numericTimeSignature
     \key g \major
-    g1\p\< ~ g1\f\>
-    d'1\p\< ~ d1\f\>
-    a'1\p\< ~ a1\f\>
-    e'1\p\< ~ e2...\f\> ~ e16\p
+    g1\pp\< ~ g1\ff\>
+    d'1\pp\< ~ d1\ff\>
+    a'1\pp\< ~ a1\ff\>
+    e'1\pp\< ~ e2...\ff\> ~ e16\pp
 
 \bar "|."
 }

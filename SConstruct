@@ -47,8 +47,8 @@ env['vivi_controller_files'] = Split("""
 
 env.Append(
     #CPPFLAGS=Split("-fPIC -O3 -g "),
-    CPPFLAGS=Split("-fPIC -O3 -march=native -g"),
-    #CPPFLAGS=Split("-fPIC -g -Wall -Wextra"),
+    #CPPFLAGS=Split("-fPIC -O3 -march=native -g"),
+    CPPFLAGS=Split("-fPIC -g -Wall -Wextra"),
     CPPPATH=[
         "/usr/include/python2.6",
         "/usr/include/python2.7",

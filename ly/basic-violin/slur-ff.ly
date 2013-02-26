@@ -7,15 +7,14 @@ vlnone = \new Staff {
   \set Staff.instrumentName = "violin-1"
 \relative c' {
   \key g \major
-  %\tempo 4 = 108
-  \tempo 4 = 72
+  \tempo 4 = 120
 
-g4\f a b c
-g4\f a b c
-g4\mf a b c
-g4\mp a b c
-g4\p a b c
-g4\pp a b c
+g4\ff( a b c)
+d4( e fis g)
+a4( b c d)
+e4( fis g a
+b a g2)
+
 \bar "|."
 }
 }

@@ -8,14 +8,15 @@ vlnone = \new Staff {
 \relative c' {
   \key g \major
   %\tempo 4 = 108
-  \tempo 4 = 72
+  %\tempo 4 = 72
+  \tempo 4 = 120
 
-g4\f a b c
-g4\f a b c
-g4\mf a b c
-g4\mp a b c
-g4\p a b c
-g4\pp a b c
+g4\ff a b c
+d e fis g
+a b c d
+e fis g a
+b a g2
+
 \bar "|."
 }
 }

@@ -3,14 +3,14 @@
 \include "vivi.ly"
 
 tiny = \relative c' {
-  \set Staff.instrumentName = "violin-6"
+  \set Staff.instrumentName = "violin-1"
   %\tempo 4 = 120
   \tempo 4 = 96
   %\tempo 4 = 60
   %\key g \major
   %g4\f a b c
 
-  g4\f( d' a' e') | e( a, d, g,)
+  g4\pp( d' a' e') | e( a, d, g,)
 
   %d4 e fis g
   %a'4 b c d
@@ -95,8 +95,8 @@ four = \relative c, {
 
 \score {
   <<
-    \new Staff \celloc
-    %\new Staff \tiny
+    %\new Staff \celloc
+    \new Staff \tiny
     %\new Staff \one
     %\new Staff \two
 %    \new Staff \three

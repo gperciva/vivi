@@ -4,6 +4,7 @@ import subprocess
 import style_base
 
 import notes_info
+import dynamics
 
 DEBUG_PARAMS = 0
 EXTRA_FINAL_REST = 0.5
@@ -95,7 +96,7 @@ def setup_controller(job):
     for st in range(4):
         job.controller.load_ears_training(st, job.mpl_filenames[st])
         #print job.mpl_filenames[st]
-        for dyn in range(4):
+        for dyn in range(dynamics.NUM_DYNAMICS):
             job.controller.load_dyn_parameters(st, dyn,
                 job.files.get_dyn_vivi_filename(st, dyn,
                 job.reduced_inst_num),

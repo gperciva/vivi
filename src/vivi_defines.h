@@ -11,7 +11,7 @@ const bool REGRESSION = false;
 const int BASIC_FINGER_MIDIS_SIZE = 3;
 const int BASIC_FINGER_MIDIS[] = {0, 1, 6};
 
-const double SVM_C = 10.0;
+const double SVM_C = 1.0;
 
 const int CATEGORIES_NUMBER = 5;
 // rounding down is correct

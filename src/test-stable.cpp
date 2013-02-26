@@ -4,8 +4,8 @@
 
 const double PLAY = 0.50;
 
-#define E 0
-#define CELLO 1
+#define E 1
+#define CELLO 0
 #define NOTES 1
 #define MULTI 0
 
