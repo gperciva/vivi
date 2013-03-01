@@ -14,8 +14,8 @@ class MarSystem;
 #include "aubio/aubio.h"
 
 const int EARS_HOPSIZE = HOPSIZE;
-// needs to be at least 1024 for two cycles of cello C 65 Hz
-// at 22050
+// needs to be at least 1024 for one cycles of cello C 65 Hz
+// at 44100
 const int EARS_WINDOWSIZE = 1024;
 
 

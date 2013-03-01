@@ -8,6 +8,7 @@ import dispatcher
 import vivi_controller
 
 NUM_THREADS = 3
+#NUM_THREADS = 1
 
 class ThreadPool(QtCore.QObject):
     process_step = QtCore.pyqtSignal()

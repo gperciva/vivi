@@ -14,6 +14,10 @@ import utils
 import pylab
 import scipy.io.wavfile
 
+import vivi_defines
+HOPSIZE = vivi_defines.HOPSIZE
+
+
 DAMPEN_NOTE_SECONDS = 1.0
 
 vivi = vivi_controller.ViviController()
@@ -73,8 +77,8 @@ def try_thing(basename):
     vivi.filesClose()
 
     sample_rate, samples = scipy.io.wavfile.read("test-%s.wav" % basename)
-    samples = numpy.float64(samples[:512*(len(samples)/512)])
-    chunks = numpy.reshape( samples, (len(samples)/512,512) )
+    samples = numpy.float64(samples[:HOPSIZE*(len(samples)/HOPSIZE)])
+    chunks = numpy.reshape( samples, (len(samples)/HOPSIZE,HOPSIZE) )
     rmss = []
     for chunk in chunks:
         rms = numpy.sqrt( sum(chunk**2) / len(chunk))

@@ -30,16 +30,17 @@ import os.path
 #import pylab
 #import matplotlib.cm
 
+import vivi_defines
 import midi_pos
 
 # 50 ms = 8.6 hops
 # 52.2 ms = 9 hops
 # 100 ms = 17.2 hops
-DH = 512 / 22050.0
+DH = vivi_defines.DH
 DAMPEN_NOTE_HOPS = int(1.0 / DH)
 DAMPEN_NOTE_SECONDS = int( DAMPEN_NOTE_HOPS ) * DH
 DAMPEN_WAIT_SECONDS = DAMPEN_NOTE_SECONDS
-DAMPEN_NOTE_SAMPLES = 512 * DAMPEN_NOTE_HOPS
+DAMPEN_NOTE_SAMPLES = vivi_defines.HOPSIZE * DAMPEN_NOTE_HOPS
 
 HOPS_DAMPEN = 2
 HOPS_SETTLE = DAMPEN_NOTE_HOPS - HOPS_DAMPEN

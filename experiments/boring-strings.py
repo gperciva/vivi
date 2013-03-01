@@ -13,7 +13,7 @@ import utils
 violin = violin_instrument.ViolinInstrument()
 wavfile = monowav.MonoWav("artifastring-test.wav")
 
-FS = 22050.0
+FS = 44100.0
 sec = int(0.2*FS)
 st = 0
 
@@ -22,7 +22,7 @@ force = 1.4
 velocity = 0.4
 
 violin.bow(0, bp, force, velocity)
-samples = 22050
+samples = 44100
 
 def note(note_midi, direction):
     #violin.bow(0, bp, force, direction*velocity)

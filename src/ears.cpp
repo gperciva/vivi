@@ -908,8 +908,6 @@ Marsyas::MarSystem *Ears::spectralDomain(int ah)
     MarSystem *flatness = new Series ("flatness");
     net->addMarSystem(flatness);
     flatness->addMarSystem(new RemoveObservations ("filt_obs"));
-//    flatness->updControl("RemoveObservations/filt_obs/mrs_real/lowCutoff",
-//                         0.0/22050.0*2.0);
     flatness->updControl("RemoveObservations/filt_obs/mrs_real/highCutoff",
                          0.25);
                          ///(ARTIFASTRING_INSTRUMENT_SAMPLE_RATE/2));
@@ -1017,19 +1015,10 @@ void Ears::make_features() {
     spectral->addMarSystem(new PowerSpectrum ("pspk"));
     spectral->updControl("PowerSpectrum/pspk/mrs_string/spectrumType","power");
     spectral->linkControl("Spectrum/spk/mrs_real/cutoff", "mrs_real/cutoff");
-//            spectral->addMarSystem(new RemoveObservations ("filt_obs"));
-//            spectral->updControl("RemoveObservations/filt_obs/mrs_real/lowCutoff",
-//                                 0.0/22050.0*2.0);
-//            spectral->updControl("RemoveObservations/filt_obs/mrs_real/highCutoff",
-//                                 10000.0/22050.0*2.0);
 
     /*
         MarSystem *noise = new Series ("noise");
         noise->addMarSystem(new RemoveObservations ("filt_obs"));
-        noise->updControl("RemoveObservations/filt_obs/mrs_real/lowCutoff",
-                             0.0/22050.0*2.0);
-        noise->updControl("RemoveObservations/filt_obs/mrs_real/highCutoff",
-                             180.0/22050.0*2.0);
         noise->addMarSystem(new Transposer ("trans"));
         noise->addMarSystem(new Rms ("rms_spect"));
         noise->addMarSystem(new MathPower ("mathpower"));

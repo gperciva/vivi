@@ -11,7 +11,8 @@ import numpy
 import utils
 import vivi_types
 
-HOP_SECONDS = 22050.0 / vivi_defines.HOPSIZE
+HOP_SECONDS = 1.0 / vivi_defines.DH
+
 
 class NoteActionsCats:
     def __init__(self):

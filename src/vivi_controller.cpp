@@ -59,7 +59,7 @@ const double TOO_SMALL_TO_CARE_ABOUT = 1.0;
 
 
 const double LET_VIBRATE = 0.5;
-const int DAMPEN_HOPS = 2; // magic number for hops
+const int DAMPEN_HOPS = 3; // magic number for hops
 
 ViviController::ViviController(int instrument_type,
                                int instrument_number)
@@ -529,7 +529,8 @@ void ViviController::note(NoteBeginning begin, double seconds,
     int accel_hops = ceil(fabs(m_velocity_target / (max_hand_accel*DH)));
     int decel_hop;
     if (!end.keep_bow_velocity) {
-        decel_hop = main_hops - accel_hops+1;
+        //decel_hop = main_hops - accel_hops+1;
+        decel_hop = main_hops - DAMPEN_HOPS+1;
     } else {
         decel_hop = main_hops; // don't decelerate?
     }
@@ -611,6 +612,7 @@ void ViviController::note(NoteBeginning begin, double seconds,
         if (i == decel_hop) {
             m_feedback_adjust_force = false;
             m_velocity_target = 0.0;
+            actions.bow_velocity = 0.0; // FIXME: experimental
             note_end = 1;
         }
         if (i >= lighten_hop) {

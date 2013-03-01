@@ -119,7 +119,7 @@ int main() {
     //viviController->note(begin, PLAY, end);
 #endif
 #else
-    short array[512];
+    short array[HOPSIZE];
     viviController->continuous(array, begin.physical, 0.0);
 #endif
 

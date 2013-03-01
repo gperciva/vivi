@@ -21,10 +21,10 @@ import basic_training
 import collection
 import agm_sequence
 
-HOP = 22050/float(512)
+DH = vivi_defines.DH
 
 STABLE_LENGTH = 1.0
-ATTACK_LENGTH = int(0.1*HOP)/HOP
+ATTACK_LENGTH = int(0.1 / DH) * DH
 
 LOW_MEAN_ACCEPTED = -0.25
 HIGH_MEAN_ACCEPTED = 0.5

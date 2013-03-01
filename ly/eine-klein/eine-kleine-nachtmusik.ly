@@ -4,7 +4,11 @@
 
 %\include "../reduce-whitespace.ly"
 %\include "articulate.ly"
-
+\paper{
+  indent=10\mm
+  paper-width = 250\mm
+}
+ 
 \header {
   arranger = "arr. Graham Percival"
 title = "Eine kleine Nachtmusik"

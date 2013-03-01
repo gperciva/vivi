@@ -5,9 +5,13 @@
 
 \version "2.12.0"
 
-\pointAndClickOff
+%\pointAndClickOff
 
-
+\paper{
+  indent=10\mm
+  paper-width = 250\mm
+}
+ 
 %\include "reduce-whitespace.ly"
 #(set-global-staff-size 16)
 
