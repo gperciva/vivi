@@ -34,7 +34,7 @@ STEPS_X = 9
 STEPS_Y = 9
 #STEPS_X = 3
 #STEPS_Y = 3
-RAPS = 1
+RAPS = 2
 
 class TaskAttack(task_base.TaskBase):
 

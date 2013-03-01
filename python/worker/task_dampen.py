@@ -46,7 +46,7 @@ HOPS_SETTLE = DAMPEN_NOTE_HOPS - HOPS_DAMPEN
 HOPS_WAIT   = DAMPEN_NOTE_HOPS
 
 STEPS = 9
-REPS = 1
+REPS = 3
 
 class TaskDampen(task_base.TaskBase):
 

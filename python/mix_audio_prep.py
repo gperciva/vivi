@@ -93,7 +93,7 @@ def amplification(filenames):
         elif "viola" in filename:
             amps.append(100)
         elif "cello" in filename:
-            amps.append(60)
+            amps.append(100)
         else:
             #print "Unrecognized instrument; what amplication?"
             amps.append(100)
