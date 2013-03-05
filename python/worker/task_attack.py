@@ -241,8 +241,8 @@ class TaskAttack(task_base.TaskBase):
             #att = cats_means # consider entire note
             #cost = self.get_cost(att)
             K = self.K_range[row]
-            cost = (1.0 + K)*get_cost(cats)
-            #cost = get_cost(cats)
+            #cost = (1.0 + K)*get_cost(cats)
+            cost = get_cost(cats)
             #print row, col
             notes[row][col] = (nac, cost, filename)
             costs[row][col] = cost

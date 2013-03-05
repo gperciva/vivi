@@ -55,7 +55,7 @@ const double MIN_VELOCITY_FACTOR = 0.90;
 const double TOO_SMALL_TO_CARE_ABOUT = 1.0;
 
 
-const double STABLE_K = 0.1;
+const double STABLE_K_MAIN = 0.1;
 // don't listen to sound until this many hops have passed
 //const int MIN_SETTLE_HOPS = 4;
 
@@ -167,7 +167,7 @@ bool ViviController::load_ears_training(int st, const char *training_file)
         my_ears->set_predict_buffer(training_file);
         int stabilization_delay = my_ears->get_stabilization_delay();
         ticks_attack = stabilization_delay + ceil(MIN_ATTACK_TIME * SAMPLE_RATE / HOPSIZE);
-        ticks_attack = 1;
+        ticks_attack = 0;
     }
     return true;
 }
@@ -180,6 +180,7 @@ void ViviController::load_dyn_parameters(int st, int dyn,
     dyn_params->load_file();
     for (int i=0; i<3; i++) {
         m_K[st][dyn][i] = dyn_params->stable_K[i];
+        m_K_main[st][dyn][i] = STABLE_K_MAIN;
     }
     m_dampen_normal[st][dyn] = dyn_params->dampen_normal;
     //m_dampen_slur[st][dyn] = dyn_params->dampen_slur;
@@ -189,6 +190,11 @@ void ViviController::load_dyn_parameters(int st, int dyn,
 void ViviController::set_stable_K(int st, int dyn, int fmi, double K)
 {
     m_K[st][dyn][fmi] = K;
+}
+
+void ViviController::set_stable_K_main(int st, int dyn, int fmi, double K)
+{
+    m_K_main[st][dyn][fmi] = K;
 }
 
 void ViviController::set_dampen(int st, int dyn, double dampen_normal)
@@ -507,16 +513,22 @@ void ViviController::note(NoteBeginning begin, double seconds,
     // hop_K
     if (begin.physical.finger_position < 0.056) {
         hop_K = m_K[m_st][m_dyn][0];
+        hop_K_main = m_K_main[m_st][m_dyn][0];
     }
     else if (begin.physical.finger_position > 0.29) {
         hop_K = m_K[m_st][m_dyn][2];
+        hop_K_main = m_K_main[m_st][m_dyn][2];
     } else {
         double low = m_K[m_st][m_dyn][1];
         double high = m_K[m_st][m_dyn][2];
         hop_K = interpolate(begin.physical.finger_position,
             0.056, low, 0.29, high);
+        low = m_K_main[m_st][m_dyn][1];
+        high = m_K_main[m_st][m_dyn][2];
+        hop_K_main = interpolate(begin.physical.finger_position,
+            0.056, low, 0.29, high);
     }
-    //cout<<hop_K<<endl;
+    //cout<<"hop_K:\t"<<hop_K<<endl;
 
 
     if (!begin.ignore_finger) {
@@ -554,7 +566,7 @@ void ViviController::note(NoteBeginning begin, double seconds,
 
     m_note_samples = 0;
     m_feedback_adjust_force = false;
-    m_feedback_adjust_force = true;
+    //m_feedback_adjust_force = true;
     note_end = 0;
     m_cats_wait_hops = 0;
 
@@ -1222,6 +1234,7 @@ void ViviController::hop(int num_samples, short *audio_buffer)
 #ifdef PRINT_DEBUG
     cout<<m_note_samples<<"\t"<<"cat == CATEGORY_NULL"<<endl;
 #endif
+        actions.bow_force = exp( log(actions.bow_force) - 1.0 * hop_K);
         return;
     }
 
@@ -1316,7 +1329,7 @@ void ViviController::hop(int num_samples, short *audio_buffer)
     //actions.bow_force *= pow(hop_K, -cat);
     //actions.bow_force = exp( log(actions.bow_force) - cat * hop_K);
     // FIXME: experimental
-    actions.bow_force = exp( log(actions.bow_force) - cat * STABLE_K);
+    actions.bow_force = exp( log(actions.bow_force) - cat * hop_K_main);
 
     //cout<<'\t'<<actions.bow_force<<endl;
 #ifdef PRINT_DEBUG

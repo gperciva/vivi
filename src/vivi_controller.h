@@ -37,6 +37,7 @@ public:
     bool load_ears_training(int st, const char *training_file);
     void load_dyn_parameters(int st, int dyn, const char *vivi_filename);
     void set_stable_K(int st, int dyn, int fmi, double K);
+    void set_stable_K_main(int st, int dyn, int fmi, double K);
     void set_dampen(int st, int dyn, double dampen_normal);
 
     // per-file prepare
@@ -91,7 +92,9 @@ private:
     //Ears *ears[NUM_STRINGS][NUM_DYNAMICS];
     Ears *ears[NUM_STRINGS];
     double m_K[NUM_STRINGS][NUM_DYNAMICS][3];
+    double m_K_main[NUM_STRINGS][NUM_DYNAMICS][3];
     double hop_K;
+    double hop_K_main;
     double m_dampen_normal[NUM_STRINGS][NUM_DYNAMICS];
     //double m_dampen_slur[NUM_STRINGS][NUM_DYNAMICS];
 

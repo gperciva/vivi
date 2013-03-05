@@ -104,7 +104,7 @@ class TaskVerify(task_base.TaskBase):
             end = vivi_controller.NoteEnding()
             #end.keep_bow_velocity = True
 
-            for bow_direction in [1, -1]:
+            for bow_direction in [1, -1, 1, -1]:
                 self.controller.reset(True)
                 begin.physical.bow_velocity *= bow_direction
                 #begin.physical.bow_force = bow_force
@@ -122,8 +122,8 @@ class TaskVerify(task_base.TaskBase):
             return attack_filename
 
         def split_cats(cats):
-            notes = [[],[]]
-            #notes = [[],[],[],[]]
+            #notes = [[],[]]
+            notes = [[],[],[],[]]
             notes_i = -1
             prev = None
             for i, cat in enumerate(cats):
