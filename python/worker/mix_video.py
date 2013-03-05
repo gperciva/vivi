@@ -41,9 +41,11 @@ def calculate(job, process_step):
 
 def imagemagick_image_string(name, filename):
     cmd = ""
-    cmd += " '(' %s -fill white -undercolor black " % (filename)
+    cmd += " '(' %s " % (filename)
+    cmd += " -pointsize 48 -fill black"
+    #cmd += " -undercolor black "
     cmd += " -gravity northwest "
-    cmd += " -annotate +10+10 ' %s ' ')' " % (name)
+    cmd += " -annotate +5+5 ' %s ' ')' " % (name)
     return cmd
 
 def imagemagick_horizontal_string(image_one, image_two):

@@ -16,11 +16,11 @@ int main() {
     begin.physical.bow_bridge_distance = get_distance(inst, 0);
     begin.physical.bow_velocity = get_velocity(inst, 0);
     NoteEnding end;
-    end.lighten_bow_force = true;
+    //end.lighten_bow_force = true;
     //end.keep_bow_velocity = true;
 
-    double K = 1.20;
-    double dampen = 1.0;
+    double K = 1.10;
+    double dampen = 0.5;
 
     viviController->filesNew("test-dampen");
     viviController->load_ears_training(begin.physical.string_number,

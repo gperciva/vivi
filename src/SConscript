@@ -13,9 +13,12 @@ env.Append(LIBS=["marsyas"])
 gextract = env.Program (target='test-gextract',
 	source = [gextract_files] + env['ears_files'],
 )
-gextract = env.Program (target='test-predict-wavfile',
-	source = ['test-predict-wavfile.cpp'] + ['ears.o'],
-)
+#gextract = env.Program (target='test-predict-wavfile',
+#	source = ['test-predict-wavfile.cpp'] + ['ears.o'],
+#)
+
+kextract = env.Program (target='kextract',
+	source = ['kextract.cpp'] + env['ears_files'],)
 
 env.Append(LIBS=["gsl", "gslcblas"])
 #basic = env.Program (target='test-basic',

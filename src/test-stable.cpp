@@ -4,7 +4,7 @@
 
 const double PLAY = 0.50;
 
-#define E 1
+#define E 0
 #define CELLO 0
 #define NOTES 1
 #define MULTI 0
@@ -92,8 +92,8 @@ int main() {
     viviController->load_ears_training(begin.physical.string_number,
                                        "final/violin/3.mpl");
 #else
-    //viviController->load_ears_training(begin.physical.string_number,
-    //                                   "final/violin/0.mpl");
+    viviController->load_ears_training(begin.physical.string_number,
+                                       "final/violin/0.mpl");
 #endif
 #endif
 
@@ -123,5 +123,6 @@ int main() {
     viviController->continuous(array, begin.physical, 0.0);
 #endif
 
+    //viviController->rest(0.5);
     delete viviController;
 }

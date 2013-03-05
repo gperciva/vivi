@@ -36,7 +36,7 @@ violinone = \relative c' {
 \score {
   <<
     \new Staff {
-      \set Staff.instrumentName = "cello-1"
+      \set Staff.instrumentName = "cello-2"
       \set Staff.midiInstrument = "cello"
       \clef bass
       \transpose a' d \violinone
