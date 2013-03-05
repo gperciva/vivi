@@ -63,7 +63,8 @@ int main() {
 #if CELLO
     double K = 0.15;
 #else
-    double K = 0.1;
+    //double K = 0.1;
+    double K = 0.0;
 #endif
 
     viviController->filesNew("test-stable");

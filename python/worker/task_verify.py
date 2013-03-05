@@ -23,11 +23,11 @@ import agm_sequence
 
 DH = vivi_defines.DH
 
-STABLE_LENGTH = 1.0
+STABLE_LENGTH = 0.5
 ATTACK_LENGTH = int(0.1 / DH) * DH
 
-LOW_MEAN_ACCEPTED = -0.25
-HIGH_MEAN_ACCEPTED = 0.5
+LOW_MEAN_ACCEPTED = -0.1
+HIGH_MEAN_ACCEPTED = 0.1
 
 STEPS = 9
 REPS = 1
@@ -66,7 +66,8 @@ class TaskVerify(task_base.TaskBase):
 
     def _make_files(self):
         self._setup_controller()
-        K = 0.01
+        #K = 0.01
+        K = 0.1
 
         def make_file_force(bow_force, fmi, count):
             self.controller.set_stable_K(self.st, self.dyn, fmi, K)
@@ -104,6 +105,7 @@ class TaskVerify(task_base.TaskBase):
             #end.keep_bow_velocity = True
 
             for bow_direction in [1, -1]:
+                self.controller.reset(True)
                 begin.physical.bow_velocity *= bow_direction
                 #begin.physical.bow_force = bow_force
                 #begin.keep_ears = False
@@ -275,8 +277,9 @@ class TaskVerify(task_base.TaskBase):
                 mids.append( max(lows) )
                 mids.append( min(highs) )
                 self.verify_good = False
-            self.mids[fmi] = [ min(mids), max(mids) ]
-            mids.sort()
+            #self.mids[fmi] = [ min(mids), max(mids) ]
+            self.mids[fmi] = [ max(lows), min(highs) ]
+            #mids.sort()
             #print mids
 
             return files
@@ -286,6 +289,7 @@ class TaskVerify(task_base.TaskBase):
         for fmi in range(3):
             #print '-------------- ', fmi
             self.kept_files[fmi] = handle_finger(fmi)
+            print self.mids[fmi]
         #handle_finger(1, self.kept_files[1])
         #handle_finger(2, self.kept_files[2])
 

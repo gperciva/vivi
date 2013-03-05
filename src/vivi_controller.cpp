@@ -54,6 +54,8 @@ const double MIN_VELOCITY_FACTOR = 0.90;
 
 const double TOO_SMALL_TO_CARE_ABOUT = 1.0;
 
+
+const double STABLE_K = 0.1;
 // don't listen to sound until this many hops have passed
 //const int MIN_SETTLE_HOPS = 4;
 
@@ -552,6 +554,7 @@ void ViviController::note(NoteBeginning begin, double seconds,
 
     m_note_samples = 0;
     m_feedback_adjust_force = false;
+    m_feedback_adjust_force = true;
     note_end = 0;
     m_cats_wait_hops = 0;
 
@@ -1311,7 +1314,9 @@ void ViviController::hop(int num_samples, short *audio_buffer)
     }
     //cout<<actions.bow_force<<"\t"<<hop_K<<"\t"<<-cat;
     //actions.bow_force *= pow(hop_K, -cat);
-    actions.bow_force = exp( log(actions.bow_force) - cat * hop_K);
+    //actions.bow_force = exp( log(actions.bow_force) - cat * hop_K);
+    // FIXME: experimental
+    actions.bow_force = exp( log(actions.bow_force) - cat * STABLE_K);
 
     //cout<<'\t'<<actions.bow_force<<endl;
 #ifdef PRINT_DEBUG

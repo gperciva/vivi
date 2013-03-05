@@ -81,7 +81,7 @@ class TaskAttack(task_base.TaskBase):
         #    num=STEPS_X)
         self.test_range1 = list(self.test_range)
 
-        self.K_range = numpy.linspace(0.01, 0.3, num=STEPS_Y)
+        self.K_range = numpy.linspace(0.0, 0.3, num=STEPS_Y)
         self.K_range1 = list(self.K_range)
         #self.K_range = numpy.linspace(1.01, 2.0, num=STEPS_Y)
         #self.K_range = numpy.linspace(1.01, 3.0, num=STEPS_Y)
@@ -161,16 +161,19 @@ class TaskAttack(task_base.TaskBase):
             #print "------"
 
             for i, bow_direction in enumerate([1, -1]*RAPS):
+                self.controller.reset(True)
                 #print i, bow_direction
                 begin.physical.bow_velocity *= bow_direction
-                if i % 4 < 2:
-                    self.controller.note(begin, ATTACK_LENGTH, end)
-                else:
-                    self.controller.note(begin, SHORT_ATTACK_LENGTH, end)
+                self.controller.note(begin, ATTACK_LENGTH, end)
+                #if i % 4 < 2:
+                #    self.controller.note(begin, ATTACK_LENGTH, end)
+                #else:
+                #    self.controller.note(begin, SHORT_ATTACK_LENGTH, end)
                 #if i % 4 == 3:
-                if i % 2 == 1:
+                #if i % 2 == 1:
+                #if True:
                     #print "reset"
-                    self.controller.reset(True)
+                #    self.controller.reset(True)
             self.controller.filesClose()
 
             self.kept_files.append(attack_filename)

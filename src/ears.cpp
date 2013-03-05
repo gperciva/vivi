@@ -853,12 +853,11 @@ Marsyas::MarSystem *Ears::spectralDomain(int ah)
 
     
     if (ah == 0) {
-    mrs_natural num_harmonics = 1;
+    mrs_natural num_harmonics = 3;
     realvec harmonics_r(num_harmonics);
     harmonics_r(0) = 1.0;
-    //harmonics_r(1) = 1.0;
-    //harmonics_r(2) = 2.0;
-    //harmonics_r(3) = 3.0;
+    harmonics_r(1) = 2.0;
+    harmonics_r(2) = 3.0;
     //harmonics_r(5) = 5.0;
         harmonicsa = new HarmonicStrength ("harm");
         net->addMarSystem(harmonicsa);
@@ -868,12 +867,11 @@ Marsyas::MarSystem *Ears::spectralDomain(int ah)
     harmonicsa->updControl("mrs_real/inharmonicity_B", 1e-4);
     harmonicsa->updControl("mrs_natural/type", 2);
     } else {
-    mrs_natural num_harmonics = 1;
+    mrs_natural num_harmonics = 3;
     realvec harmonics_r(num_harmonics);
     harmonics_r(0) = 1.0;
-    //harmonics_r(1) = 1.0;
-    //harmonics_r(2) = 2.0;
-    //harmonics_r(3) = 3.0;
+    harmonics_r(1) = 2.0;
+    harmonics_r(2) = 3.0;
         harmonicsh = new HarmonicStrength ("harm");
         net->addMarSystem(harmonicsh);
     harmonicsh->updControl("mrs_realvec/harmonics", harmonics_r);

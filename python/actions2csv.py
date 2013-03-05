@@ -24,7 +24,7 @@ def main(actions_filename):
         split = line.split()
         action_time = float( split[1] )
         if action_time > prev_time:
-            csv.write("%i,%.3f,%.3f,%.3f,%.3f\n" % (
+            csv.write("%i,%.5f,%.5f,%.5f,%.5f\n" % (
                 params.string_number,
                 params.finger_position,
                 params.bow_bridge_distance,
@@ -48,7 +48,7 @@ def main(actions_filename):
             print "Error! unrecognized: %s in file %s" %(
                 split, actions_filename)
     if True:
-        csv.write("%i,%.3f,%.3f,%.3f,%.3f\n" % (
+        csv.write("%i,%.5f,%.5f,%.5f,%.5f\n" % (
                 params.string_number,
                 params.finger_position,
                 params.bow_bridge_distance,

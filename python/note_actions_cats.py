@@ -266,7 +266,7 @@ class NoteActionsCats:
         return start, dur
 
     def make_zoom_file(self, start, dur, files):
-        #print "make_zoom_file  %.3f  %.3f" % (start, dur)
+        print "make_zoom_file, range of seconds from orig:  %.3f  %.3f" % (start, dur)
         self.files = files
         force = 0.0
         ### get params from note
@@ -280,8 +280,8 @@ class NoteActionsCats:
         start = float(int(start * HOP_SECONDS)) / HOP_SECONDS
         dur = float( int(endhop-starthop)) / HOP_SECONDS
 
-        #print "starthop, endhop:\t%i\t%i" % (starthop, endhop)
-        print "Should have lines:\t%i" %(endhop-starthop)
+        print "starthop, endhop:\t%i\t%i" % (starthop, endhop)
+        print "Should have lines:\t%i" %(endhop-starthop+1)
         #print "start, dur:\t%i\t%i" % (start, dur)
 
         #for l in self.note_lines:
@@ -328,7 +328,7 @@ class NoteActionsCats:
         cmd = 'sox %s -t wavpcm %s trim %f %f' % (
             self.basename+'-s%i.wav' % (self.note_st),
             filename+'.wav', start, dur)
-        print cmd
+        #print cmd
         os.system(cmd)
         # create .forces..wav
         cmd = 'sox %s -t wavpcm %s trim %f %f' % (
@@ -340,31 +340,37 @@ class NoteActionsCats:
         out = open(filename+'.actions', 'w')
         out.write(self.note_prelim_line)
         # TODO: clean this up!
-        first_seconds = -1
+        #first_seconds = -1
         printed_finger = False
         #num_lines = 0
         for line in self.note_lines:    
             splitline = line.split()
             seconds = float(splitline[1])
+            #print seconds, first_seconds, start, start+dur
             if line[0] == 'f':
                 fm = float(splitline[3])
             if seconds >= (start - 0.001):
-                if first_seconds < 0:
-                    first_seconds = seconds
-                seconds = seconds - first_seconds
+                #if first_seconds < 0:
+                #    first_seconds = seconds
+                #seconds = seconds - first_seconds
                 if seconds <= (start + dur + 0.001):
-                    splitline[1] = str(seconds)
+                    now = round(seconds - start, 3)
+                    if now == -0.0:
+                        now = 0.0
+                    splitline[1] = str(now)
                     if not printed_finger:
                         if splitline[0][0] == 'f':
                             pass
                         else:
-                            data = ['f', str(seconds),
+                            data = ['f', str(now),
                                 str(self.note_st),
                                 str(utils.midi2pos(fm))]
                             finger_line = "\t".join(data) + "\n"
+                            print finger_line,
                             out.write(finger_line)
                         printed_finger = True
                     done_line = "\t".join(splitline) + "\n"
+                    print done_line,
                     out.write(done_line)
         out.close()
 

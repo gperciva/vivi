@@ -95,8 +95,8 @@ four = \relative c, {
 
 \score {
   <<
-    %\new Staff \celloc
-    \new Staff \tiny
+    \new Staff \celloc
+    %\new Staff \tiny
     %\new Staff \one
     %\new Staff \two
 %    \new Staff \three

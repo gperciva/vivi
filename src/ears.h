@@ -16,7 +16,10 @@ class MarSystem;
 const int EARS_HOPSIZE = HOPSIZE;
 // needs to be at least 1024 for one cycles of cello C 65 Hz
 // at 44100
-const int EARS_WINDOWSIZE = 1024;
+//const int EARS_WINDOWSIZE = 1024;
+//
+// needed to resolve harmonics of cello C 65 Hz
+const int EARS_WINDOWSIZE = 2048;
 
 
 const double dh = (double) EARS_HOPSIZE / SAMPLE_RATE;
