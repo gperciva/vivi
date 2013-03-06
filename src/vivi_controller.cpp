@@ -30,9 +30,9 @@ static pthread_mutex_t vivi_mutex;
 
 // used in normal hops
 //const double VELOCITY_STDDEV = 0.01;
-//const double FORCE_STDDEV = 0.01;
+const double FORCE_STDDEV = 0.003;
 const double VELOCITY_STDDEV = 0.0;
-const double FORCE_STDDEV = 0.0;
+//const double FORCE_STDDEV = 0.0;
 //const double FINGER_STDDEV = 0.001;
 
 const double ACCELS[3] = { 10.0, 7.5, 5.0 };
@@ -42,7 +42,8 @@ const double ACCELS[3] = { 10.0, 7.5, 5.0 };
 //const double MAX_HAND_ACCEL = 8.0; // m/s/s
 const double dt = 1.0 / ARTIFASTRING_INSTRUMENT_SAMPLE_RATE;
 
-//const int ATTACK_WAITS[3] = { 0, 2, 4 };
+//const int ATTACK_WAITS[3] = { 0, 2, 4 }
+//const int ATTACK_WAITS[3] = { 5, 5, 5 };
 const int ATTACK_WAITS[3] = { 0, 0, 0 };
 
 // used in basic
@@ -63,6 +64,11 @@ const double STABLE_K_MAIN = 0.05;
 
 const double LET_VIBRATE = 0.5;
 const int DAMPEN_HOPS = 3; // magic number for hops
+
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
 
 ViviController::ViviController(int instrument_type,
                                int instrument_number)
@@ -108,6 +114,7 @@ ViviController::ViviController(int instrument_type,
     }
     }
     }
+    m_K_velocity = 0.0;
 }
 
 
@@ -207,6 +214,11 @@ void ViviController::set_stable_K_main(int st, int dyn, int fmi, double K)
     m_K_main[st][dyn][fmi] = K;
 }
 
+void ViviController::set_K_velocity(double K)
+{
+    m_K_velocity = K;
+}
+
 void ViviController::set_dampen(int st, int dyn, double dampen_normal)
 {
     m_dampen_normal[st][dyn] = dampen_normal;
@@ -239,10 +251,14 @@ void ViviController::filesClose() {
         force_file = NULL;
     }
     for (int st=0; st<NUM_STRINGS; st++) {
-        delete string_audio_file_int[st];
-        string_audio_file_int[st] = NULL;
-        delete string_force_file_int[st];
-        string_force_file_int[st] = NULL;
+        if (string_audio_file_int[st] != NULL) {
+            delete string_audio_file_int[st];
+            string_audio_file_int[st] = NULL;
+        }
+        if (string_force_file_int[st] != NULL) {
+            delete string_force_file_int[st];
+            string_force_file_int[st] = NULL;
+        }
     }
     if (actions_file != NULL) {
         // finish current action(s)
@@ -257,18 +273,22 @@ void ViviController::filesClose() {
 }
 
 
-bool ViviController::filesNew(const char *filenames_base) {
+bool ViviController::filesNew(const char *filenames_base, int only_string) {
     reset();
+    m_only_string = only_string;
     // wav file
     std::string filename;
     filename.assign(filenames_base);
     filename.append(".wav");
     wavfile = new MonoWav(filename.c_str(), SAMPLE_RATE, SAMPLE_RATE);
-    filename.assign(filenames_base);
-    filename.append(".forces.wav");
-    force_file = new MonoWav(filename.c_str(), HAPTIC_SAMPLE_RATE, HAPTIC_SAMPLE_RATE);
+    //filename.assign(filenames_base);
+    //filename.append(".forces.wav");
+    //force_file = new MonoWav(filename.c_str(), HAPTIC_SAMPLE_RATE, HAPTIC_SAMPLE_RATE);
     // string files
     for (int st=0; st<NUM_STRINGS; st++) {
+        if ((only_string >= 0) && (only_string != st)){
+            continue;
+        }
         filename.assign(filenames_base);
         filename.append("-s");
         filename.append(SSTR(st));
@@ -576,7 +596,7 @@ void ViviController::note(NoteBeginning begin, double seconds,
 
     m_note_samples = 0;
     m_feedback_adjust_force = false;
-    //m_feedback_adjust_force = true;
+    m_feedback_adjust_force = true;
     note_end = 0;
     m_cats_wait_hops = 0;
 
@@ -666,6 +686,11 @@ void ViviController::note(NoteBeginning begin, double seconds,
             actions.dynamic = interpolate(x,
                                           0, begin.physical.dynamic,
                                           1, end.physical.dynamic);
+            if (hop_K_main == 0.0) {
+                actions.bow_force = interpolate(x,
+                        0, begin.physical.bow_force,
+                        1, end.physical.bow_force);
+            }
             m_dyn = actions.get_dyn();
             if (!end.keep_bow_velocity) {
                 if (i > decel_hop) {
@@ -768,8 +793,8 @@ void ViviController::bowStop() {
 inline void ViviController::hop_passive(int num_samples)
 {
     short *buf = wavfile->request_fill(num_samples);
-    short *force_buf = force_file->request_fill(num_samples);
-    violin->wait_samples_forces(buf, force_buf, num_samples);
+    //short *force_buf = force_file->request_fill(num_samples);
+    violin->wait_samples_forces(buf, NULL, num_samples);
     m_total_samples += num_samples;
     m_note_samples  += num_samples;
     // TODO: what else do I need?
@@ -994,6 +1019,9 @@ void ViviController::hop(int num_samples, short *audio_buffer)
         actions.bow_force = 0;
     }
 
+
+
+
 #if 0
     //cout<<"----"<<endl;
     //cout<<m_velocity_target<<"\t"<<actions.bow_velocity<<endl;
@@ -1087,6 +1115,9 @@ void ViviController::hop(int num_samples, short *audio_buffer)
     violin->wait_samples_forces(buf, force_buf_ignore, num_samples);
 
     for (int st=0; st<NUM_STRINGS; st++) {
+        if ((m_only_string >= 0) && (m_only_string != st)){
+            continue;
+        }
         audio_buf_int[st] = string_audio_file_int[st]->request_fill_int(num_samples);
         force_buf_int[st] = string_force_file_int[st]->request_fill_int(num_samples);
         violin->get_string_buffer_int(st,
@@ -1128,7 +1159,7 @@ void ViviController::hop(int num_samples, short *audio_buffer)
     if (m_feedback_adjust_force==false) {
         cats_file->category(m_total_samples*dt, CATEGORY_NULL);
         if (note_end == 0) {
-            actions.bow_force = exp( log(actions.bow_force) - 1.0 * hop_K);
+            //actions.bow_force = exp( log(actions.bow_force) - 1.0 * hop_K);
         //actions.bow_force -= note_first_reduction;
         }
 #ifdef PRINT_PITCH
@@ -1141,7 +1172,7 @@ void ViviController::hop(int num_samples, short *audio_buffer)
     }
     if (note_first_alter_hop > 0) {
         cats_file->category(m_total_samples*dt, CATEGORY_NULL);
-        actions.bow_force = exp( log(actions.bow_force) - 1.0 * hop_K);
+        //actions.bow_force = exp( log(actions.bow_force) - 1.0 * hop_K);
         //actions.bow_force -= note_first_reduction;
         note_first_alter_hop--;
 #ifdef PRINT_PITCH
@@ -1341,13 +1372,22 @@ void ViviController::hop(int num_samples, short *audio_buffer)
     // FIXME: experimental
     actions.bow_force = exp( log(actions.bow_force) - cat * hop_K_main);
 
+    actions.bow_force += norm_bounded(0, actions.bow_force * FORCE_STDDEV);
+
     //cout<<'\t'<<actions.bow_force<<endl;
 #ifdef PRINT_DEBUG
     cout<<'\t'<<actions.bow_force<<"\tnormal";
 #endif
 
     // FIXME: experimental
-    //actions.bow_velocity *= (1.0 - 0.03*cat);
+    float velsign = sgn(actions.bow_velocity);
+    actions.bow_velocity = exp( log(abs(actions.bow_velocity)) + cat * m_K_velocity);
+    if (actions.bow_velocity < 0.75*fabs(m_velocity_target)) {
+        actions.bow_velocity = 0.75*fabs(m_velocity_target);
+    } else if (actions.bow_velocity > 1.5*fabs(m_velocity_target)) {
+        actions.bow_velocity = 1.5*fabs(m_velocity_target);
+    }
+    actions.bow_velocity *= velsign;
 
 #ifdef PRINT_DEBUG
     cout<<"\t"<<actions.bow_velocity;

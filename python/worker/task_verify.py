@@ -67,8 +67,8 @@ class TaskVerify(task_base.TaskBase):
     def _make_files(self):
         self._setup_controller()
         #K = 0.01
-        K = 0.1
-        K_main = 0.05
+        K = 0.0
+        K_main = 0.01
 
         def make_file_force(bow_force, fmi, count):
             self.controller.set_stable_K(self.st, self.dyn, fmi, K)
@@ -88,7 +88,7 @@ class TaskVerify(task_base.TaskBase):
             #print attack_filename
 
             self.controller.reset()
-            self.controller.filesNew(attack_filename)
+            self.controller.filesNew(attack_filename, self.st)
 
             self.controller.comment("verify inst %i st %i dyn %i finger_midi %.3f"
                         % (self.inst_type, self.st, self.dyn, finger_midi))

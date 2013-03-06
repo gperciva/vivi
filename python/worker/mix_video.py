@@ -42,7 +42,7 @@ def calculate(job, process_step):
 def imagemagick_image_string(name, filename):
     cmd = ""
     cmd += " '(' %s " % (filename)
-    cmd += " -pointsize 48 -fill black"
+    cmd += " -pointsize 48 -fill blue"
     #cmd += " -undercolor black "
     cmd += " -gravity northwest "
     cmd += " -annotate +5+5 ' %s ' ')' " % (name)
@@ -111,11 +111,11 @@ def make_combo_images(parts_dirnames, combo_dirname):
             names = [ get_name(filename) for filename in [one_filename, two_filename, three_filename, four_filename]]
             cmd += imagemagick_vertical_string(
                 imagemagick_horizontal_string(
-                    imagemagick_image_string(names[0], one_filename),
-                    imagemagick_image_string(names[1], two_filename)
+                    imagemagick_image_string(names[1], two_filename),
+                    imagemagick_image_string(names[2], three_filename)
                     ),
                 imagemagick_horizontal_string(
-                    imagemagick_image_string(names[2], three_filename),
+                    imagemagick_image_string(names[0], one_filename),
                     imagemagick_image_string(names[3], four_filename)
                     ),
                 )

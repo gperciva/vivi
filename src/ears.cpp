@@ -28,11 +28,13 @@ static pthread_mutex_t aubio_mutex;
 #else
 //#define PHYSICAL_PARAMETERS "finger,bow-bridge-distance,velocity,force"
 //#define PHYSICAL_PARAMETERS_SIZE 4
+#define PHYSICAL_PARAMETERS "finger,bow-bridge-distance,force"
+#define PHYSICAL_PARAMETERS_SIZE 3
 //#define PHYSICAL_PARAMETERS "finger,bow-bridge-distance,velocity,inst_num"
 //#define PHYSICAL_PARAMETERS "finger,bow-bridge-distance,velocity"
 //#define PHYSICAL_PARAMETERS_SIZE 3
-#define PHYSICAL_PARAMETERS "finger,bow-bridge-distance"
-#define PHYSICAL_PARAMETERS_SIZE 2
+//#define PHYSICAL_PARAMETERS "finger,bow-bridge-distance"
+//#define PHYSICAL_PARAMETERS_SIZE 2
 #endif
 #endif
 
@@ -290,7 +292,7 @@ void Ears::predict_wavfile(const char *wav_in_filename,
     //force_input->updControl("SoundFileSource/force_src/mrs_string/onObsNames",
     //                        "force_input");
     // must be done after setting the filename!
-    stabilizingDelay = audio_stuff->getctrl("mrs_natural/onStabilizingDelay")->to<mrs_natural>() + 1;
+    stabilizingDelay = audio_stuff->getctrl("mrs_natural/onStabilizingDelay")->to<mrs_natural>();
     //cout<<"delay: "<<stabilizingDelay<<endl;
     //stabilizingDelay = 3; // FIXME experimental
 
@@ -345,10 +347,10 @@ void Ears::set_extra_params(int st, double finger_position,
     parameters_input_realvec(0,0) = finger_position;
     parameters_input_realvec(1,0) = bbd;
     //parameters_input_realvec(2,0) = fabs(velocity);
-    //parameters_input_realvec(3,0) = inst_num;
     //parameters_input_realvec(3,0) = force;
-    (void) velocity;
-    (void) force;
+    parameters_input_realvec(2,0) = force;
+    //(void) velocity;
+    //(void) force;
 #ifdef ALL_STRINGS
     // clear out strings
     for (int i=5; i<9; i++) {
@@ -470,7 +472,7 @@ void Ears::listenShort_forces(short *audio, short *force) {
         //cout<<"bingo"<<endl;
         pitch = PITCH_NULL;
     }
-    if (ticks_count < stabilizingDelay) {
+    if (ticks_count <= stabilizingDelay) {
         pitch = 0.0;
     }
     audio_input->updControl("RealvecSource/audio_src/mrs_realvec/data",
@@ -498,7 +500,7 @@ void Ears::listenInt_forces(int *audio, int *force) {
         //cout<<"bingo"<<endl;
         pitch = PITCH_NULL;
     }
-    if (ticks_count < stabilizingDelay) {
+    if (ticks_count <= stabilizingDelay) {
         pitch = 0.0;
     }
     audio_input->updControl("RealvecSource/audio_src/mrs_realvec/data",
@@ -1268,7 +1270,7 @@ void Ears::make_nets()
 //    cout<<learning->getctrl("mrs_natural/onObservations")->to<mrs_natural>()<<endl;
 //    cout<<learning->getctrl("SVMClassifier/svm_cl/mrs_natural/nClasses")->to<mrs_natural>()<<endl;
 
-    stabilizingDelay = audio_stuff->getctrl("mrs_natural/onStabilizingDelay")->to<mrs_natural>() + 1;
+    stabilizingDelay = audio_stuff->getctrl("mrs_natural/onStabilizingDelay")->to<mrs_natural>();
     //stabilizingDelay = 3; // FIXME experimental
     //cout<<"stabiliz   "<<stabilizingDelay<<endl;
 // for debug
@@ -1478,7 +1480,7 @@ void Ears::hop() {
         }
     }
 
-    if (ticks_count < stabilizingDelay) {
+    if (ticks_count <= stabilizingDelay) {
         //cout<<ticks_count<<"  "<<stabilizingDelay<<"--";
         //cout<<endl;
         ticks_count++;

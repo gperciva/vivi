@@ -39,10 +39,11 @@ public:
     void set_stable_K(int st, int dyn, int fmi, double K);
     void set_stable_K_main(int st, int dyn, int fmi, double K);
     void set_dampen(int st, int dyn, double dampen_normal);
+    void set_K_velocity(double K_velocity);
 
     // per-file prepare
     void filesClose();
-    bool filesNew(const char *filenames_base);
+    bool filesNew(const char *filenames_base, int only_string=-1);
 
     // special
     void comment(const char *text);
@@ -157,6 +158,8 @@ private:
     int *audio_buf_int[NUM_STRINGS];
     int *force_buf_int[NUM_STRINGS];
     short force_buf_ignore[HOPSIZE];
+    int m_only_string;
+    double m_K_velocity;
 };
 #endif
 

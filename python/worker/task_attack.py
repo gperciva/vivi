@@ -30,7 +30,7 @@ SHORT_ATTACK_LENGTH = int(0.25/DH)*DH
 TOO_SMALL_TO_CARE_CAT = 0.5
 #TOO_SMALL_TO_CARE_CAT = 0.0
 
-STEPS_X = 17
+STEPS_X = 9
 STEPS_Y = 9
 #STEPS_X = 3
 #STEPS_Y = 3
@@ -71,8 +71,8 @@ class TaskAttack(task_base.TaskBase):
         #    num=STEPS_X)
         #print self.test_range
         #self.test_range = self.test_range[2:-2]
-        self.LOW_INIT = 8.0
-        self.HIGH_INIT = 24.0
+        #self.LOW_INIT = 5.0
+        #self.HIGH_INIT = 20.0
         self.test_range = numpy.linspace(
             self.LOW_INIT, self.HIGH_INIT, num=STEPS_X)
         #geom_mid = scipy.stats.gmean( [self.LOW_INIT, self.HIGH_INIT])
@@ -83,20 +83,11 @@ class TaskAttack(task_base.TaskBase):
         #    num=STEPS_X)
         self.test_range1 = list(self.test_range)
 
-        self.K_range = numpy.linspace(0.0, 0.12, num=STEPS_Y)
+        self.K_range = numpy.linspace(0.0, 0.2, num=STEPS_Y)
         self.K_range1 = list(self.K_range)
         #self.K_range = numpy.linspace(1.01, 2.0, num=STEPS_Y)
         #self.K_range = numpy.linspace(1.01, 3.0, num=STEPS_Y)
 
-        # FIXME FIXME
-        #self.test_range = numpy.linspace(
-        #    6.0, 16.0, num=STEPS_X)
-        #self.K_range = numpy.linspace(1.0, 1.5, num=STEPS_Y)
-        #self.K_range = numpy.linspace(1.02, 1.10, num=STEPS_Y)
-        #print self.test_range
-        #for a in self.test_range:
-        #    print "%.3f" % a,
-        #print
         self.second = False
 
     @staticmethod
@@ -142,7 +133,7 @@ class TaskAttack(task_base.TaskBase):
             #print attack_filename
 
             self.controller.reset()
-            self.controller.filesNew(attack_filename)
+            self.controller.filesNew(attack_filename, self.st)
 
             self.controller.comment("attack inst %i st %i dyn %i finger_midi %.3f"
                     % (self.inst_type, self.st, self.dyn, finger_midi))
@@ -156,6 +147,7 @@ class TaskAttack(task_base.TaskBase):
                 self.inst_type, self.dyn)
             begin.physical.bow_velocity = dynamics.get_velocity(
                 self.inst_type, self.dyn)
+            orig_velocity = begin.physical.bow_velocity
             end = vivi_controller.NoteEnding()
             #if finger_midi != 0:
             #    self.process_step.emit()
@@ -165,7 +157,7 @@ class TaskAttack(task_base.TaskBase):
             for i, bow_direction in enumerate([1, -1]*RAPS):
                 self.controller.reset(True)
                 #print i, bow_direction
-                begin.physical.bow_velocity *= bow_direction
+                begin.physical.bow_velocity = orig_velocity * bow_direction
                 self.controller.note(begin, ATTACK_LENGTH, end)
                 #if i % 4 < 2:
                 #    self.controller.note(begin, ATTACK_LENGTH, end)
@@ -182,14 +174,24 @@ class TaskAttack(task_base.TaskBase):
             self.process_step.emit()
 
 
-        K_main = 0.05
+        # FIXME
+        K_main = 0.01
         for bow_force in self.test_range:
+            #for Ki, Kvel in enumerate(numpy.linspace(0.0, 0.2, STEPS_Y)):
             for Ki, K in enumerate(self.K_range):
                 #print bow_force, K
                 self.controller.set_stable_K(self.st, self.dyn,
                     int(self.fmi), K)
                 self.controller.set_stable_K_main(self.st, self.dyn,
-                    int(self.fmi), K_main)
+                    int(self.fmi), 0.1)
+                #if Ki > 3:
+                #    self.controller.set_stable_K_main(self.st, self.dyn,
+                #        int(self.fmi), 0.01)
+                    #int(self.fmi), K)
+                #self.controller.set_K_velocity(self.st, self.dyn,
+                #    int(self.fmi), K)
+                self.controller.set_K_velocity(0.0)
+                #self.controller.set_K_velocity(K)
                 # TODO: start counting at 1 due to "if 0" in training_dir
                 #for count in range(1,self.REPS+1):
                 single_file(bow_force, count=Ki, K=K)

@@ -18,7 +18,7 @@ violinOne = \new Voice {
 	\clef treble
 	\key g \major
 	\time 4/4
-	\tempo 4 = 144
+	\tempo 4 = 360
 
 	\relative g'' {
 
@@ -34,7 +34,7 @@ violinTwo = \new Voice {
 	\clef treble
 	\key g \major
 	\time 4/4
-	\tempo 4 = 144
+	\tempo 4 = 360
 
 	\relative g'' {
 		b,1\mf
@@ -50,7 +50,7 @@ viola = \new Voice {
 	\clef alto
 	\key g \major
 	\time 4/4
-	\tempo 4=144
+	\tempo 4=360
 
 	\relative g' {
 		d1\p
@@ -67,7 +67,7 @@ cello = \new Voice {
 	\clef bass
 	\key g \major
 	\time 4/4
-	\tempo 4=144
+	\tempo 4=360
 
 	\relative g {
 		g,1\f
@@ -109,7 +109,7 @@ mvtOne =
 %	\score {
 %		%\iftop \unfoldRepeats \withmidi \mvtOne
 %		\midi {
-%			\tempo 4 = 144
+%			\tempo 4 = 360
 %		}
 %	}
 % }

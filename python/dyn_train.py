@@ -352,8 +352,9 @@ class DynTrain(QtGui.QFrame):
             steps += shared.thread_pool.add_task(job)
         elif job_type == vivi_defines.TASK_ATTACK:
             steps = 0
-            for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
-            #for fmi, fm in enumerate([0]):
+            ### FIXME: only open string
+            #for fmi, fm in enumerate(basic_training.FINGER_MIDIS):
+            for fmi, fm in enumerate([0]):
                 job = self.make_job(job_type, fmi, fm)
                 #print "job fm", fm, job.force_init
                 steps += shared.thread_pool.add_task(job)
