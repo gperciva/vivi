@@ -23,7 +23,7 @@ import agm_sequence
 
 DH = vivi_defines.DH
 
-STABLE_LENGTH = 0.5
+STABLE_LENGTH = 1.0
 ATTACK_LENGTH = int(0.1 / DH) * DH
 
 LOW_MEAN_ACCEPTED = -0.1
@@ -68,9 +68,11 @@ class TaskVerify(task_base.TaskBase):
         self._setup_controller()
         #K = 0.01
         K = 0.1
+        K_main = 0.05
 
         def make_file_force(bow_force, fmi, count):
             self.controller.set_stable_K(self.st, self.dyn, fmi, K)
+            self.controller.set_stable_K_main(self.st, self.dyn, fmi, K_main)
             finger_midi = basic_training.FINGER_MIDIS[fmi]
             # FIXME: oh god ick
             ap = vivi_types.AudioParams( self.st,

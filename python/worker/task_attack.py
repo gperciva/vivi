@@ -24,13 +24,13 @@ import pylab
 import collection
 
 DH = vivi_defines.DH
-ATTACK_LENGTH = int(0.500/DH)*DH
+ATTACK_LENGTH = int(1.000/DH)*DH
 SHORT_ATTACK_LENGTH = int(0.25/DH)*DH
 
 TOO_SMALL_TO_CARE_CAT = 0.5
 #TOO_SMALL_TO_CARE_CAT = 0.0
 
-STEPS_X = 9
+STEPS_X = 17
 STEPS_Y = 9
 #STEPS_X = 3
 #STEPS_Y = 3
@@ -71,6 +71,8 @@ class TaskAttack(task_base.TaskBase):
         #    num=STEPS_X)
         #print self.test_range
         #self.test_range = self.test_range[2:-2]
+        self.LOW_INIT = 8.0
+        self.HIGH_INIT = 24.0
         self.test_range = numpy.linspace(
             self.LOW_INIT, self.HIGH_INIT, num=STEPS_X)
         #geom_mid = scipy.stats.gmean( [self.LOW_INIT, self.HIGH_INIT])
@@ -81,7 +83,7 @@ class TaskAttack(task_base.TaskBase):
         #    num=STEPS_X)
         self.test_range1 = list(self.test_range)
 
-        self.K_range = numpy.linspace(0.0, 0.3, num=STEPS_Y)
+        self.K_range = numpy.linspace(0.0, 0.12, num=STEPS_Y)
         self.K_range1 = list(self.K_range)
         #self.K_range = numpy.linspace(1.01, 2.0, num=STEPS_Y)
         #self.K_range = numpy.linspace(1.01, 3.0, num=STEPS_Y)
@@ -180,11 +182,14 @@ class TaskAttack(task_base.TaskBase):
             self.process_step.emit()
 
 
+        K_main = 0.05
         for bow_force in self.test_range:
             for Ki, K in enumerate(self.K_range):
                 #print bow_force, K
                 self.controller.set_stable_K(self.st, self.dyn,
                     int(self.fmi), K)
+                self.controller.set_stable_K_main(self.st, self.dyn,
+                    int(self.fmi), K_main)
                 # TODO: start counting at 1 due to "if 0" in training_dir
                 #for count in range(1,self.REPS+1):
                 single_file(bow_force, count=Ki, K=K)

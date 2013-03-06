@@ -55,7 +55,8 @@ const double MIN_VELOCITY_FACTOR = 0.90;
 const double TOO_SMALL_TO_CARE_ABOUT = 1.0;
 
 
-const double STABLE_K_MAIN = 0.1;
+const double STABLE_K_ATTACK = 0.1;
+const double STABLE_K_MAIN = 0.05;
 // don't listen to sound until this many hops have passed
 //const int MIN_SETTLE_HOPS = 4;
 
@@ -98,6 +99,15 @@ ViviController::ViviController(int instrument_type,
     }
     reset();
     pitch_integral = 0.0;
+
+    for (int st=0; st<NUM_STRINGS; st++) {
+    for (int dyn=0; dyn<NUM_DYNAMICS; dyn++) {
+    for (int i=0; i<3; i++) {
+        m_K[st][dyn][i] = STABLE_K_ATTACK;
+        m_K_main[st][dyn][i] = STABLE_K_MAIN;
+    }
+    }
+    }
 }
 
 
@@ -138,6 +148,7 @@ void ViviController::reset(bool keep_files) {
 
     note_first_alter_hop = 0;
     note_first_reduction = 0;
+
 }
 
 void ViviController::reset_arrays() {
@@ -180,7 +191,6 @@ void ViviController::load_dyn_parameters(int st, int dyn,
     dyn_params->load_file();
     for (int i=0; i<3; i++) {
         m_K[st][dyn][i] = dyn_params->stable_K[i];
-        m_K_main[st][dyn][i] = STABLE_K_MAIN;
     }
     m_dampen_normal[st][dyn] = dyn_params->dampen_normal;
     //m_dampen_slur[st][dyn] = dyn_params->dampen_slur;
@@ -528,7 +538,7 @@ void ViviController::note(NoteBeginning begin, double seconds,
         hop_K_main = interpolate(begin.physical.finger_position,
             0.056, low, 0.29, high);
     }
-    //cout<<"hop_K:\t"<<hop_K<<endl;
+    //cout<<"hop_K, hop_K_main:\t"<<hop_K<<"\t"<<hop_K_main<<endl;
 
 
     if (!begin.ignore_finger) {
