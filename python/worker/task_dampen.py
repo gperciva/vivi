@@ -42,12 +42,14 @@ DAMPEN_NOTE_SECONDS = int( DAMPEN_NOTE_HOPS ) * DH
 DAMPEN_WAIT_SECONDS = DAMPEN_NOTE_SECONDS
 DAMPEN_NOTE_SAMPLES = vivi_defines.HOPSIZE * DAMPEN_NOTE_HOPS
 
-HOPS_DAMPEN = 2
+HOPS_DAMPEN = 3
 HOPS_SETTLE = DAMPEN_NOTE_HOPS - HOPS_DAMPEN
 HOPS_WAIT   = DAMPEN_NOTE_HOPS
 
 STEPS = 9
 REPS = 3
+#STEPS = 3
+#REPS = 1
 
 class TaskDampen(task_base.TaskBase):
 
@@ -71,13 +73,13 @@ class TaskDampen(task_base.TaskBase):
         #return 2*(STEPS * REPS)
 
     def set_K(self, K):
-        self.controller.set_stable_K(self.st, self.dyn, 0, K)
+        self.controller.set_stable_K_main(self.st, self.dyn, 0, K)
 
     def set_data(self, inst_type, st, dyn, finger_forces, K, force_init,
             keep_bow, files):
         task_base.TaskBase.set_data(self, inst_type, st, dyn, files)
         self.taskname += "-%i" % keep_bow
-        self.controller.set_stable_K(self.st, self.dyn, 0, K)
+        self.controller.set_stable_K_main(self.st, self.dyn, 0, K)
         self.initial_force = force_init
         self.keep_bow_velocity = keep_bow
         self._init_range()
@@ -161,8 +163,12 @@ class TaskDampen(task_base.TaskBase):
                 #print filename
                 sr, timedomain = scipy.io.wavfile.read(filename)
                 examine = timedomain[DAMPEN_NOTE_SAMPLES:]
-                cost = math.sqrt( sum(examine**2) / float(len(examine)) )
+                cost = scipy.sqrt( scipy.mean(examine**2) )
 
+                #basename = os.path.basename(filename)
+                #scipy.savetxt(basename+".txt", examine)
+
+                #print "%s\t%f" % (basename, cost)
                 #ears = self.controller.getEars(self.st)
                 #ears.get_rms_from_file(self.hops,
                 #    filename, rmss)

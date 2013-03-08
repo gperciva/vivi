@@ -26,25 +26,18 @@ STEPS_X = 100
 STEPS_Y = 50
 
 
-#STEPS_X = 50
+#STEPS_X = 10
 #STEPS_Y = 10
 REPS = 1
 
 
 PARAMS = {
-    'cello-c-guess-0.1': {'inst_type': 2, 'st': 0,
-        'fbmin': 5.0, 'fbmax': 20.0,
-        'K_main': 0.1, 'K_attack': 0.0, 'K_velocity': 0.0},
-    'cello-c-guess-0.05': {'inst_type': 2, 'st': 0,
-        'fbmin': 5.0, 'fbmax': 20.0,
+    'cello-c-guess': {'inst_type': 2, 'st': 0,
+        'fbmin': 2.0, 'fbmax': 20.0,
         'K_main': 0.05, 'K_attack': 0.0, 'K_velocity': 0.0},
-    'cello-c-guess-weird': {'inst_type': 2, 'st': 0,
-        'fbmin': 5.0, 'fbmax': 20.0,
-        'K_main': 0.1, 'K_attack': 0.1, 'K_velocity': 0.0},
-
-    'violin-e-guess-0.1': {'inst_type': 0, 'st': 3,
-        'fbmin': 0.1, 'fbmax': 1.5,
-        'K_main': 0.1, 'K_attack': 0.0, 'K_velocity': 0.0},
+    'violin-e-guess': {'inst_type': 0, 'st': 3,
+        'fbmin': 0.2, 'fbmax': 1.5,
+        'K_main': 0.05, 'K_attack': 0.0, 'K_velocity': 0.0},
     }
 
 def process(name):
@@ -162,6 +155,18 @@ def process(name):
             #stable_file.write("\n")
         stable_file.close()
 
+        lows = numpy.percentile(costs, 25, axis=0)
+        highs = numpy.percentile(costs, 75, axis=0)
+        stable_file = open('%s-lows.txt' % (name), 'w')
+        for ix, x in enumerate(x_range):
+                stable_file.write("%g\t%g\n" % (
+                    x, lows[ix]))
+        stable_file.close()
+        stable_file = open('%s-highs.txt' % (name), 'w')
+        for ix, x in enumerate(x_range):
+                stable_file.write("%g\t%g\n" % (
+                    x, highs[ix]))
+        stable_file.close()
   
     main()
     
@@ -169,10 +174,10 @@ def process(name):
 def main():
     #process("cello-c-guess-wait-0.1")
     #process("cello-c-guess-0.05")
-    process("cello-c-guess-weird")
+    #process("cello-c-guess-weird")
 
-    #process("cello-c-guess-0.1")
-    #process("violin-e-guess-0.1")
+    process("cello-c-guess")
+    process("violin-e-guess")
 
 main()
 

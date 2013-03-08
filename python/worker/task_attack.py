@@ -30,8 +30,8 @@ SHORT_ATTACK_LENGTH = int(0.25/DH)*DH
 TOO_SMALL_TO_CARE_CAT = 0.5
 #TOO_SMALL_TO_CARE_CAT = 0.0
 
-STEPS_X = 9
-STEPS_Y = 9
+STEPS_X = 15
+STEPS_Y = 5
 #STEPS_X = 3
 #STEPS_Y = 3
 RAPS = 2
@@ -181,9 +181,9 @@ class TaskAttack(task_base.TaskBase):
             for Ki, K in enumerate(self.K_range):
                 #print bow_force, K
                 self.controller.set_stable_K(self.st, self.dyn,
-                    int(self.fmi), K)
+                    int(self.fmi), 0)
                 self.controller.set_stable_K_main(self.st, self.dyn,
-                    int(self.fmi), 0.1)
+                    int(self.fmi), K)
                 #if Ki > 3:
                 #    self.controller.set_stable_K_main(self.st, self.dyn,
                 #        int(self.fmi), 0.01)
@@ -293,6 +293,7 @@ class TaskAttack(task_base.TaskBase):
             stable_file.write("\n")
         stable_file.close()
 
+        #newcosts = costs
         # avoid picking edges
         r = 0
         c = 0
@@ -417,13 +418,13 @@ def get_cost(values):
     #total = sum(map(lambda x: x*x, examine))
     total = 0.0
     count = 0
-    for i in range(RAPS):
+    for i in range(RAPS*2):
         for j in range(len(examines[i])):
             c = examines[i][j]
             #total += j * (c**2)
             #total += (float(j)**0.5) * (c**2)
-            #total += (c**2)
-            total += abs(c)
+            total += c**2
+            #total += abs(c)
             count += 1
     total /= float(count)
     return total

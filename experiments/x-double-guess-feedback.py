@@ -25,14 +25,14 @@ NOTE_LENGTH = 1.0
 STEPS_X = 100
 STEPS_Y = 50
 
-#STEPS_X = 25
-#STEPS_Y = 5
+#STEPS_X = 10
+#STEPS_Y = 10
 REPS = 1
 
 
 PARAMS = {
     'cello-c-double-fb-prev-0-guess': {'inst_type': 2, 'st': 0,
-        'fbmin': 2.0, 'fbmax': 20.0, 'fbi': 12.0,
+        'fbmin': 5.0, 'fbmax': 20.0, 'fbi': 12.0,
         'prev_fmi': 0.0, 'prev_dyn': 0,
         'K_main': 0.1, 'K_attack': 0.0, 'K_velocity': 0.0,
         },
@@ -74,15 +74,16 @@ PARAMS = {
         },
 
 
+    ### final values
     'cello-c-double-fb-guess': {'inst_type': 2, 'st': 0,
         'fbmin': 2.0, 'fbmax': 20.0, 'fbi': 12.0,
         'prev_fmi': 0.0, 'prev_dyn': 0,
-        'K_main': 0.1, 'K_attack': 0.0, 'K_velocity': 0.0,
+        'K_main': 0.05, 'K_attack': 0.0, 'K_velocity': 0.0,
         },
     'violin-e-double-fb-guess': {'inst_type': 0, 'st': 3,
-        'fbmin': 0.1, 'fbmax': 1.5, 'fbi': 0.7,
+        'fbmin': 0.2, 'fbmax': 1.5, 'fbi': 0.7,
         'prev_fmi': 0.0, 'prev_dyn': 0,
-        'K_main': 0.1, 'K_attack': 0.0, 'K_velocity': 0.0
+        'K_main': 0.05, 'K_attack': 0.0, 'K_velocity': 0.0,
         },
 
     'violin-e-double-guess-0.03': {'inst_type': 0, 'st': 3,
@@ -229,7 +230,20 @@ def process(name):
             #stable_file.write("\n")
         stable_file.close()
 
-  
+     
+        lows = numpy.percentile(costs, 25, axis=0)
+        highs = numpy.percentile(costs, 75, axis=0)
+        stable_file = open('%s-lows.txt' % (name), 'w')
+        for ix, x in enumerate(x_range):
+                stable_file.write("%g\t%g\n" % (
+                    x, lows[ix]))
+        stable_file.close()
+        stable_file = open('%s-highs.txt' % (name), 'w')
+        for ix, x in enumerate(x_range):
+                stable_file.write("%g\t%g\n" % (
+                    x, highs[ix]))
+        stable_file.close()
+ 
     main()
     
 
@@ -240,9 +254,9 @@ def main():
     #process("violin-e-double-guess-0.1")
     #process("violin-e-double-guess-0.03")
 
-    process("cello-c-double-fb-guess-weird")
-    #process("cello-c-double-fb-guess")
-    #process("violin-e-double-fb-guess")
+    #process("cello-c-double-fb-guess-weird")
+    process("cello-c-double-fb-guess")
+    process("violin-e-double-fb-guess")
     #process("cello-c-double-fb-prev-0-guess")
     #process("cello-c-double-fb-prev-1-guess")
     #process("cello-c-double-fb-prev-6-guess")

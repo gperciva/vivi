@@ -30,7 +30,7 @@ static pthread_mutex_t vivi_mutex;
 
 // used in normal hops
 //const double VELOCITY_STDDEV = 0.01;
-const double FORCE_STDDEV = 0.003;
+const double FORCE_STDDEV = 0.005;
 const double VELOCITY_STDDEV = 0.0;
 //const double FORCE_STDDEV = 0.0;
 //const double FINGER_STDDEV = 0.001;
@@ -43,8 +43,8 @@ const double ACCELS[3] = { 10.0, 7.5, 5.0 };
 const double dt = 1.0 / ARTIFASTRING_INSTRUMENT_SAMPLE_RATE;
 
 //const int ATTACK_WAITS[3] = { 0, 2, 4 }
-//const int ATTACK_WAITS[3] = { 5, 5, 5 };
-const int ATTACK_WAITS[3] = { 0, 0, 0 };
+const int ATTACK_WAITS[3] = { 1, 2, 3 };
+//const int ATTACK_WAITS[3] = { 0, 0, 0 };
 
 // used in basic
 const double BASIC_VELOCITY_STDDEV = 0.02;
@@ -56,14 +56,15 @@ const double MIN_VELOCITY_FACTOR = 0.90;
 const double TOO_SMALL_TO_CARE_ABOUT = 1.0;
 
 
-const double STABLE_K_ATTACK = 0.1;
-const double STABLE_K_MAIN = 0.05;
+const double STABLE_K_ATTACK = 0.0;
+const double STABLE_K_MAIN = 0.0;
 // don't listen to sound until this many hops have passed
 //const int MIN_SETTLE_HOPS = 4;
 
 
 const double LET_VIBRATE = 0.5;
 const int DAMPEN_HOPS = 3; // magic number for hops
+const int LIFT_HOPS = 5; // magic number for hops
 
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
@@ -197,7 +198,7 @@ void ViviController::load_dyn_parameters(int st, int dyn,
     ControllerParams *dyn_params = new ControllerParams(vivi_filename);
     dyn_params->load_file();
     for (int i=0; i<3; i++) {
-        m_K[st][dyn][i] = dyn_params->stable_K[i];
+        m_K_main[st][dyn][i] = dyn_params->stable_K[i];
     }
     m_dampen_normal[st][dyn] = dyn_params->dampen_normal;
     //m_dampen_slur[st][dyn] = dyn_params->dampen_slur;
@@ -558,6 +559,9 @@ void ViviController::note(NoteBeginning begin, double seconds,
         hop_K_main = interpolate(begin.physical.finger_position,
             0.056, low, 0.29, high);
     }
+    // experimental turn off feedback
+    //hop_K = 0;
+    //hop_K_main = 0;
     //cout<<"hop_K, hop_K_main:\t"<<hop_K<<"\t"<<hop_K_main<<endl;
 
 
@@ -583,13 +587,15 @@ void ViviController::note(NoteBeginning begin, double seconds,
     int lighten_hop = main_hops; // don't lighten?
     if (end.lighten_bow_force) {
         //decel_hop -= DAMPEN_HOPS;
-        lighten_hop = main_hops - DAMPEN_HOPS;
+        lighten_hop = main_hops - LIFT_HOPS;
         // we need to stop the bow before lightening the bow force
         dampen_factor = m_dampen_normal[m_st][m_dyn];
         if (!end.keep_bow_velocity) {
             decel_hop -= DAMPEN_HOPS;
         }
     }
+    //cout<<"main hops: "<<main_hops<<endl;
+    //cout<<"lighten at: "<<lighten_hop<<endl;
     //if (end.let_string_vibrate) {
         //lighten_hop = main_hops - DAMPEN_HOPS;
     //}

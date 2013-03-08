@@ -68,7 +68,7 @@ class TaskVerify(task_base.TaskBase):
         self._setup_controller()
         #K = 0.01
         K = 0.0
-        K_main = 0.01
+        K_main = 0.05
 
         def make_file_force(bow_force, fmi, count):
             self.controller.set_stable_K(self.st, self.dyn, fmi, K)
@@ -291,7 +291,7 @@ class TaskVerify(task_base.TaskBase):
         for fmi in range(3):
             #print '-------------- ', fmi
             self.kept_files[fmi] = handle_finger(fmi)
-            print self.mids[fmi]
+            #print self.mids[fmi]
         #handle_finger(1, self.kept_files[1])
         #handle_finger(2, self.kept_files[2])
 

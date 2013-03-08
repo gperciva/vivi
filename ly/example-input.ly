@@ -41,7 +41,10 @@ celloc = \relative c, {
   \clef bass
   \numericTimeSignature
   %c4\f <d g> <e g> f
-  c4\f d e f
+
+  %c4\f d e f
+  c4\f cis d dis  |  e f fis g_"IV"
+
   %g a b c
   %c4\f c c c
   %g a b c

@@ -9,7 +9,7 @@ vlnone = \new Staff {
   \key c \major
   \clef bass
   %\tempo 4 = 108
-  \tempo 4 = 120
+  \tempo 4 = 60
 
 c4\ff d e f
 g4 a b c

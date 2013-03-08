@@ -16,7 +16,7 @@ int main() {
     begin.physical.bow_bridge_distance = get_distance(inst, 0);
     begin.physical.bow_velocity = get_velocity(inst, 0);
     NoteEnding end;
-    //end.lighten_bow_force = true;
+    end.lighten_bow_force = true;
     //end.keep_bow_velocity = true;
 
     double K = 1.10;
@@ -25,7 +25,7 @@ int main() {
     viviController->filesNew("test-dampen");
     viviController->load_ears_training(begin.physical.string_number,
                                        "final/violin/0.mpl");
-    viviController->set_stable_K(0, 0, 0, K);
+    viviController->set_stable_K_main(0, 0, 0, K);
     viviController->set_dampen(0, 0, dampen);
     viviController->note(begin, PLAY, end);
     viviController->rest(1.0);

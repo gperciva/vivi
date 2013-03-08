@@ -25,6 +25,16 @@ def start_job(files, get_instrument_files):
         basename = files.notes # TODO: fix bad integration
         old_files = glob.glob(os.path.join(files.hills_dir,
             basename) + "*")
+        old_files = filter(lambda x: "forces.wav" not in x,
+            old_files)
+        old_files = filter(lambda x: "-s0.wav" not in x,
+            old_files)
+        old_files = filter(lambda x: "-s1.wav" not in x,
+            old_files)
+        old_files = filter(lambda x: "-s2.wav" not in x,
+            old_files)
+        old_files = filter(lambda x: "-s3.wav" not in x,
+            old_files)
         job.alterations = set()
         job.count = 0
         for filename in old_files:

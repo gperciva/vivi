@@ -7,6 +7,7 @@ import Queue
 import dispatcher
 import vivi_controller
 
+#NUM_THREADS = 4
 NUM_THREADS = 3
 #NUM_THREADS = 1
 
