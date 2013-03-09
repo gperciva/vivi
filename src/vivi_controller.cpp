@@ -63,8 +63,8 @@ const double STABLE_K_MAIN = 0.0;
 
 
 const double LET_VIBRATE = 0.5;
-const int DAMPEN_HOPS = 3; // magic number for hops
-const int LIFT_HOPS = 5; // magic number for hops
+const int DAMPEN_HOPS = 5; // magic number for hops
+const int LIFT_HOPS = 3; // magic number for hops
 
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
@@ -200,7 +200,8 @@ void ViviController::load_dyn_parameters(int st, int dyn,
     for (int i=0; i<3; i++) {
         m_K_main[st][dyn][i] = dyn_params->stable_K[i];
     }
-    m_dampen_normal[st][dyn] = dyn_params->dampen_normal;
+    //m_dampen_normal[st][dyn] = dyn_params->dampen_normal;
+    m_dampen_normal[st][dyn] = 0.5;
     //m_dampen_slur[st][dyn] = dyn_params->dampen_slur;
     delete dyn_params;
 }

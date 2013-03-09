@@ -17,6 +17,8 @@
 #include <pthread.h>
 static pthread_mutex_t aubio_mutex;
 
+#define DISABLE_FORCE
+
 
 #ifdef ALL_COMBO
 #define PHYSICAL_PARAMETERS "pitch,finger,bow-bridge-distance,force,velocity,st0,st1,st2,st3,violin,viola,cello"
@@ -1153,7 +1155,10 @@ void Ears::make_nets()
     */
 
     audio_stuff->addMarSystem(audio_features);
+#ifdef DISABLE_FORCE
+#else
     force_stuff->addMarSystem(force_features);
+#endif
 
     parameters_input = new Inject ("parameters_input");
     parameters_input->updControl("mrs_natural/injectSize",

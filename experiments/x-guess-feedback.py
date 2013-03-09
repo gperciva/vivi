@@ -38,6 +38,13 @@ PARAMS = {
     'violin-e-guess': {'inst_type': 0, 'st': 3,
         'fbmin': 0.2, 'fbmax': 1.5,
         'K_main': 0.05, 'K_attack': 0.0, 'K_velocity': 0.0},
+
+    'cello-c-guess-noforce': {'inst_type': 2, 'st': 0,
+        'fbmin': 2.0, 'fbmax': 20.0,
+        'K_main': 0.05, 'K_attack': 0.0, 'K_velocity': 0.0},
+    'violin-e-guess-noforce': {'inst_type': 0, 'st': 3,
+        'fbmin': 0.2, 'fbmax': 1.5,
+        'K_main': 0.05, 'K_attack': 0.0, 'K_velocity': 0.0},
     }
 
 def process(name):
@@ -176,8 +183,10 @@ def main():
     #process("cello-c-guess-0.05")
     #process("cello-c-guess-weird")
 
-    process("cello-c-guess")
-    process("violin-e-guess")
+    #process("cello-c-guess")
+    #process("violin-e-guess")
+    process("cello-c-guess-noforce")
+    process("violin-e-guess-noforce")
 
 main()
 

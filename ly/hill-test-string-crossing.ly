@@ -7,7 +7,7 @@ violinone = \relative c {
   \tempo 4 = 96
   \clef bass
 
-  a8\ff d b d c d b d   % hill climbing
+  a8\f d b d c d b d   % hill climbing
 
 %  \st "III"
 %  fis16\p\startTextSpan a_"II" g a_"II" a a_"II" bes a_"II"
