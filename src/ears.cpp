@@ -17,7 +17,7 @@
 #include <pthread.h>
 static pthread_mutex_t aubio_mutex;
 
-#define DISABLE_FORCE
+//#define DISABLE_FORCE
 
 
 #ifdef ALL_COMBO

@@ -165,6 +165,9 @@ class StyleSimple(style_base.StyleBase):
                     pizz = True
                 elif text_details[0][0] == "arco":
                     pizz = False
+                ### FIXME: oh god ick
+                if text_details[0][0] == "frog":
+                    note.begin.set_bow_position_along = 0.3
             note.pizz = pizz
         for note, note_next in self.pair(self.notes):
             if not self.is_note(note_next):

@@ -72,6 +72,12 @@ PARAMS = {
         'prev_fmi': 0.0, 'prev_dyn': 0,
         'K_main': 0.1, 'K_attack': 0.05, 'K_velocity': 0.0,
         },
+    'violin-e-double-guess-0.03': {'inst_type': 0, 'st': 3,
+        'fbmin': 0.1, 'fbmax': 1.5,
+        'K_main': 0.03, 'K_attack': 0.0, 'K_velocity': 0.0},
+    'violin-e-double-guess-weird': {'inst_type': 0, 'st': 3,
+        'fbmin': 0.1, 'fbmax': 1.5,
+        'K_main': 0.03, 'K_attack': 0.0, 'K_velocity': 0.0},
 
 
     ### final values
@@ -85,13 +91,17 @@ PARAMS = {
         'prev_fmi': 0.0, 'prev_dyn': 0,
         'K_main': 0.05, 'K_attack': 0.0, 'K_velocity': 0.0,
         },
+    'cello-c-double-fb-guess-noforce': {'inst_type': 2, 'st': 0,
+        'fbmin': 2.0, 'fbmax': 20.0, 'fbi': 12.0,
+        'prev_fmi': 0.0, 'prev_dyn': 0,
+        'K_main': 0.05, 'K_attack': 0.0, 'K_velocity': 0.0,
+        },
+    'violin-e-double-fb-guess-noforce': {'inst_type': 0, 'st': 3,
+        'fbmin': 0.2, 'fbmax': 1.5, 'fbi': 0.7,
+        'prev_fmi': 0.0, 'prev_dyn': 0,
+        'K_main': 0.05, 'K_attack': 0.0, 'K_velocity': 0.0,
+        },
 
-    'violin-e-double-guess-0.03': {'inst_type': 0, 'st': 3,
-        'fbmin': 0.1, 'fbmax': 1.5,
-        'K_main': 0.03, 'K_attack': 0.0, 'K_velocity': 0.0},
-    'violin-e-double-guess-weird': {'inst_type': 0, 'st': 3,
-        'fbmin': 0.1, 'fbmax': 1.5,
-        'K_main': 0.03, 'K_attack': 0.0, 'K_velocity': 0.0},
     }
 
 def process(name):
@@ -253,10 +263,16 @@ def main():
     #process("cello-c-double-guess-0.1")
     #process("violin-e-double-guess-0.1")
     #process("violin-e-double-guess-0.03")
-
     #process("cello-c-double-fb-guess-weird")
-    process("cello-c-double-fb-guess")
-    process("violin-e-double-fb-guess")
+
+
+    ### final ones
+    #process("cello-c-double-fb-guess")
+    #process("violin-e-double-fb-guess")
+    process("cello-c-double-fb-guess-noforce")
+    process("violin-e-double-fb-guess-noforce")
+
+
     #process("cello-c-double-fb-prev-0-guess")
     #process("cello-c-double-fb-prev-1-guess")
     #process("cello-c-double-fb-prev-6-guess")

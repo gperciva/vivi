@@ -467,6 +467,7 @@ void ViviController::note_setup_actions(NoteBeginning begin)
         actions.bow_force = begin.physical.bow_force;
     }
     if (begin.set_bow_position_along >= 0) {
+        cout<<"m_bow_pos_along!"<<endl;
         m_bow_pos_along= begin.set_bow_position_along;
     }
 

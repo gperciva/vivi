@@ -427,6 +427,7 @@ def get_cost(values):
             #total += abs(c)
             count += 1
     total /= float(count)
+    total = numpy.sqrt(total)
     return total
 
 

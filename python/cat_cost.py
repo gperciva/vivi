@@ -10,7 +10,7 @@ def get_cost(cats):
         for c in filt:
             total += c**2
         import math
-        total = math.sqrt(total) / float(len(cats))
+        total = math.sqrt(total / float(len(cats)) )
     else:
         for c in filt:
             total += abs(c)
