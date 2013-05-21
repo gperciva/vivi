@@ -20,9 +20,9 @@ class ScoreWidget(QtGui.QLabel):
 
     def load_file(self, pdf_file):
         self.pdf = popplerqt4.Poppler.Document.load(pdf_file)
-        self.pdf.RenderHint(1)
-        self.pdf.RenderHint(2)
-        self.pdf.RenderHint(3)
+        self.pdf.setRenderHint(1)
+        self.pdf.setRenderHint(2)
+        self.pdf.setRenderHint(4)
 
         self.selected = None
         self.current_page = 0
